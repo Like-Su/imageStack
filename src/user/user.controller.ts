@@ -59,7 +59,7 @@ export class UserController {
           permissions: user.roles[0].permissions,
         },
       },
-      { expiresIn: this.configService.get('jwt.access_token') },
+      { expiresIn: this.configService.get('jwt.access_token') || '30m' },
     );
 
     const refreshToken = this.jwtService.sign(
@@ -68,7 +68,7 @@ export class UserController {
           userId: user.id,
         },
       },
-      { expiresIn: this.configService.get('jwt.refresh_token') },
+      { expiresIn: this.configService.get('jwt.refresh_token') || '7d' },
     );
 
     return {
