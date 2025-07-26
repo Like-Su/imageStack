@@ -86,7 +86,7 @@ export class UserService {
       where: { email: loginUserDto.email },
       relations: ['roles', 'roles.permissions'],
     });
-    console.log(user);
+
     if (!user) {
       throw new HttpException('用户不存在', HttpStatus.ACCEPTED);
     }
@@ -95,5 +95,12 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async findUserById(id: number) {
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles', 'roles.permissions'],
+    });
   }
 }

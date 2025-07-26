@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Inject,
+  Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,9 +18,12 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { NeedPermissions, UnNeedLogin } from 'src/interface.guard.decorator';
 import { PERMISSIONS } from 'src/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('user')
 export class UserController {
+  @Inject(ConfigService)
+  private readonly configService: ConfigService;
   @Inject(RedisService)
   private readonly redisService: RedisService;
   @Inject(JwtService)
@@ -41,19 +46,74 @@ export class UserController {
   @Post('login')
   @UnNeedLogin()
   async login(@Body() loginUserDto: LoginUserDto) {
-    console.log(loginUserDto);
     const user = await this.userService.login(loginUserDto);
 
-    const token = this.jwtService.sign({
-      user: {
-        userId: user.id,
-        nickname: user.nickname,
-        email: user.email,
-        roles: user.roles,
-        permissions: user.roles[0].permissions,
+    // 创建 accessToken
+    const accessToken = this.jwtService.sign(
+      {
+        user: {
+          userId: user.id,
+          nickname: user.nickname,
+          email: user.email,
+          roles: user.roles,
+          permissions: user.roles[0].permissions,
+        },
       },
-    });
+      { expiresIn: this.configService.get('jwt.access_token') },
+    );
 
-    return token;
+    const refreshToken = this.jwtService.sign(
+      {
+        user: {
+          userId: user.id,
+        },
+      },
+      { expiresIn: this.configService.get('jwt.refresh_token') },
+    );
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
+  }
+
+  @Get('refresh')
+  @UnNeedLogin()
+  async refresh(@Query('refresh_token') refreshToken: string) {
+    try {
+      const refreshTokenData = this.jwtService.verify(refreshToken);
+      const user = await this.userService.findUserById(
+        refreshTokenData.user.userId,
+      );
+
+      const accessToken = this.jwtService.sign(
+        {
+          user: {
+            userId: user.id,
+            nickname: user.nickname,
+            email: user.email,
+            roles: user.roles,
+            permissions: user.roles[0].permissions,
+          },
+        },
+        { expiresIn: this.configService.get('jwt.access_token') || '30m' },
+      );
+
+      const newRefreshToken = this.jwtService.sign(
+        {
+          user: {
+            userId: user.id,
+          },
+        },
+        { expiresIn: this.configService.get('jwt.refresh_token') || '7d' },
+      );
+
+      return {
+        access_token: accessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (e) {
+      throw new UnauthorizedException('token 失效, 请重新登陆');
+    }
   }
 }
