@@ -84,10 +84,9 @@ export class UserService {
   async login(loginUserDto: LoginUserDto) {
     const user = await this.userRepository.findOne({
       where: { email: loginUserDto.email },
-      relations: {
-        roles: true,
-      },
+      relations: ['roles', 'roles.permissions'],
     });
+    console.log(user);
     if (!user) {
       throw new HttpException('用户不存在', HttpStatus.ACCEPTED);
     }

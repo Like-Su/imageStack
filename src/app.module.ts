@@ -8,6 +8,10 @@ import { RedisModule } from './redis/redis.module';
 
 // config
 import config from './config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { BuildResponseInterceptor } from './build-response.interceptor';
+import { LoginGuard } from './login.guard';
+import { PermissionGuard } from './permission.guard';
 
 @Module({
   imports: [
@@ -19,6 +23,22 @@ import config from './config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 构造 响应返回对象
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: BuildResponseInterceptor,
+    },
+    // 登录 守卫
+    {
+      provide: APP_GUARD,
+      useClass: LoginGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
+    },
+  ],
 })
 export class AppModule {}
