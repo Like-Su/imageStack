@@ -2,11 +2,10 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from 'src/redis/redis.module';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { Permission } from 'src/user/entities/permission.entity';
 import { Role } from 'src/user/entities/role.entity';
 import { User } from 'src/user/entities/user.entity';
-import { RedisService } from 'src/redis/redis.service';
 
 @Global()
 @Module({
@@ -28,7 +27,7 @@ import { RedisService } from 'src/redis/redis.service';
           poolSize: configService.get('db.mysql.poolSize'),
           connectorPackage: 'mysql2',
           extra: {
-            authPlugin: 'sha256_password',
+            // authPlugin: 'sha256_password',
           },
         };
       },

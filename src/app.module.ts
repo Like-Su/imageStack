@@ -12,6 +12,8 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { BuildResponseInterceptor } from './build-response.interceptor';
 import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
+import { AuthModule } from './auth/auth.module';
+import { PictureModule } from './picture/picture.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { PermissionGuard } from './permission.guard';
       isGlobal: true,
       load: [config],
     }),
+    AuthModule,
+    PictureModule,
   ],
   controllers: [AppController],
   providers: [

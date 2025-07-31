@@ -3,22 +3,30 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   Inject,
   Query,
   UnauthorizedException,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { NeedPermissions, UnNeedLogin } from 'src/interface.guard.decorator';
-import { PERMISSIONS } from 'src/constants';
+import { CAPTCHA_TYPE, PERMISSIONS } from 'src/constants';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { UserInfo } from 'src/user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { LoginUserVo } from './vo/login-user.vo';
+import { RefreshToken } from './vo/refresh-token.vo';
+import { UpdateUserVo } from './vo/update-user.vo';
+import { PermissionGuard } from 'src/permission.guard';
 
 @Controller('user')
 export class UserController {
@@ -37,26 +45,43 @@ export class UserController {
     return 'done';
   }
 
-  @Get('test')
-  @NeedPermissions(PERMISSIONS.UPLOAD)
-  async test() {
-    return 'done';
+  // 发送验证码
+  @Get('captcha')
+  @UnNeedLogin()
+  async captcha(@Query('email') email: string, type: CAPTCHA_TYPE) {
+    const captchaCode = Math.random().toString().slice(2, 8);
+    // 保存到 redis
+    await this.redisService.set(
+      `captcha_${email}_${type}`,
+      captchaCode,
+      3 * 60,
+    );
+
+    // 只有注册和忘记密码需要验证码到邮箱
+    if (type === CAPTCHA_TYPE.REGISTER || type === CAPTCHA_TYPE.FORGET) {
+      // send email
+      // this.emailService.
+      return 'success';
+    }
+
+    return captchaCode;
   }
 
-  @Post('login')
+  // @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard('local'))
   @UnNeedLogin()
-  async login(@Body() loginUserDto: LoginUserDto) {
-    const user = await this.userService.login(loginUserDto);
-
+  @Post('login')
+  async login(@UserInfo() loginUserVo: LoginUserVo) {
+    const userInfo = loginUserVo.userInfo;
     // 创建 accessToken
     const accessToken = this.jwtService.sign(
       {
         user: {
-          userId: user.id,
-          nickname: user.nickname,
-          email: user.email,
-          roles: user.roles,
-          permissions: user.roles[0].permissions,
+          userId: userInfo.id,
+          nickname: userInfo.nickname,
+          email: userInfo.email,
+          roles: userInfo.roles,
+          permissions: userInfo.permissions,
         },
       },
       { expiresIn: this.configService.get('jwt.access_token') || '30m' },
@@ -65,18 +90,26 @@ export class UserController {
     const refreshToken = this.jwtService.sign(
       {
         user: {
-          userId: user.id,
+          userId: userInfo.id,
         },
       },
       { expiresIn: this.configService.get('jwt.refresh_token') || '7d' },
     );
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+    loginUserVo.access_token = accessToken;
+    loginUserVo.refresh_token = refreshToken;
+
+    return loginUserVo;
   }
 
+  // 注册
+  @Post('register')
+  @UnNeedLogin()
+  async register(@Body() registerUser: RegisterUserDto) {
+    return await this.userService.register(registerUser);
+  }
+
+  // 刷新 token
   @Get('refresh')
   @UnNeedLogin()
   async refresh(@Query('refresh_token') refreshToken: string) {
@@ -108,12 +141,35 @@ export class UserController {
         { expiresIn: this.configService.get('jwt.refresh_token') || '7d' },
       );
 
-      return {
-        access_token: accessToken,
-        refresh_token: newRefreshToken,
-      };
+      const refreshTokenInstance = new RefreshToken();
+      refreshTokenInstance.access_token = accessToken;
+      refreshTokenInstance.refresh_token = newRefreshToken;
+
+      return refreshTokenInstance;
     } catch (e) {
       throw new UnauthorizedException('token 失效, 请重新登陆');
     }
+  }
+
+  @Post('update_user_info')
+  async updateUserInfo(
+    @UserInfo('id') userId,
+    @Body() updateUserVo: UpdateUserVo,
+  ) {
+    return await this.userService.update(userId, updateUserVo);
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      dest: 'uploads',
+      limits: {
+        fileSize: 1024 * 1024 * 10,
+      },
+    }),
+  )
+  uploadHeadPicture(@UploadedFile() file: Express.Multer.File) {
+    console.log('file', file);
+    return file.path;
   }
 }

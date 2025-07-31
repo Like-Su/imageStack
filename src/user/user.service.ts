@@ -1,10 +1,10 @@
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,11 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
+import { CAPTCHA_TYPE } from 'src/constants';
+import { RedisService } from 'src/redis/redis.service';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserVo } from './vo/login-user.vo';
+import { UpdateUserVo } from './vo/update-user.vo';
 
 function md5(str) {
   const hash = crypto.createHash('md5');
@@ -28,6 +33,8 @@ export class UserService {
   private readonly roleRepository: Repository<Role>;
   @InjectRepository(Permission)
   private readonly permissionRepository: Repository<Permission>;
+  @Inject(RedisService)
+  private readonly redisService: RedisService;
 
   async initData() {
     const password = md5('123456');
@@ -81,7 +88,16 @@ export class UserService {
     await this.userRepository.save([user1, user2]);
   }
 
+  // 登录
   async login(loginUserDto: LoginUserDto) {
+    // 校验验证码
+    // await this.validationCaptcha(
+    //   loginUserDto.email,
+    //   loginUserDto.captcha,
+    //   CAPTCHA_TYPE.LOGIN,
+    // );
+
+    // 查找用户
     const user = await this.userRepository.findOne({
       where: { email: loginUserDto.email },
       relations: ['roles', 'roles.permissions'],
@@ -94,13 +110,103 @@ export class UserService {
       throw new HttpException('密码错误', HttpStatus.ACCEPTED);
     }
 
-    return user;
+    const loginUserVo = new LoginUserVo();
+    console.log(user.id);
+    loginUserVo.userInfo = {
+      id: user.id,
+      nickname: user.nickname,
+      email: user.email,
+      picture: user.picture,
+      status: user.status,
+      createTime: user.createTime.getTime(),
+      updateTime: user.updateTime.getTime(),
+      roles: user.roles.map((role) => role.name),
+      permissions: user.roles.reduce((prev, cur) => {
+        cur.permissions.forEach((permission) =>
+          !prev.includes(permission) ? prev.push(permission) : null,
+        );
+        return prev;
+      }, []),
+    };
+
+    return loginUserVo;
   }
 
+  // 注册
+  async register(registerUserDto: RegisterUserDto) {
+    // 验证 验证码
+    await this.validationCaptcha(
+      registerUserDto.email,
+      registerUserDto.captcha,
+      CAPTCHA_TYPE.REGISTER,
+    );
+
+    // 验证 两次输入密码是yizhi
+    if (registerUserDto.password !== registerUserDto.enter_password) {
+      throw new HttpException('密码输入不一致', HttpStatus.ACCEPTED);
+    }
+
+    // 通过邮箱查找用户
+    const foundUser = await this.userRepository.findOneBy({
+      email: registerUserDto.email,
+    });
+
+    if (foundUser) {
+      throw new HttpException('用户已存在', HttpStatus.BAD_REQUEST);
+    }
+
+    // 创建用户
+    const createUser = new User();
+    createUser.email = registerUserDto.email;
+    createUser.nickname = registerUserDto.email;
+    createUser.password = md5(registerUserDto.password);
+
+    try {
+      await this.userRepository.save(createUser);
+      return 'success';
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  async update(id: number, updateUserVo: UpdateUserVo) {
+    const foundUser = await this.findUserById(id);
+
+    if (updateUserVo.nickname) {
+      foundUser.nickname = updateUserVo.nickname;
+    }
+    if (updateUserVo.picture) {
+      foundUser.picture = updateUserVo.picture;
+    }
+    if (updateUserVo.password) {
+      foundUser.password = md5(updateUserVo.password);
+    }
+
+    try {
+      return await this.userRepository.save(foundUser);
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  // 通过 id 查找 user
   async findUserById(id: number) {
     return await this.userRepository.findOne({
       where: { id },
       relations: ['roles', 'roles.permissions'],
     });
+  }
+
+  // 效验验证码
+  async validationCaptcha(email: string, captcha: string, type: CAPTCHA_TYPE) {
+    const code = await this.redisService.get(`captcha_${email}_${type}`);
+    if (!code) {
+      throw new HttpException('验证码已失效', HttpStatus.ACCEPTED);
+    }
+
+    if (code !== captcha) {
+      throw new HttpException('验错误错误', HttpStatus.ACCEPTED);
+    }
+    return true;
   }
 }

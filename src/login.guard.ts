@@ -47,7 +47,7 @@ export class LoginGuard implements CanActivate {
     const authorization: string | string[] =
       request.headers.authorization?.split(' ');
 
-    if (authorization.length === 0 || !authorization) {
+    if (!authorization || authorization.length === 0) {
       throw new UnauthorizedException('无权访问该接口, 请登录');
     }
 

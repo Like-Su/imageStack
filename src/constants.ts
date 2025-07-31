@@ -4,6 +4,7 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
 // login and permissions
 export const UN_NEED_LOGIN = 'UN_NEED_LOGIN';
 export const NEED_PERMISSIONS = 'NEED_PERMISSIONS';
+export const IS_EXPOSE = 'IS_EXPOSE';
 
 // permissions
 export enum PERMISSIONS {
@@ -11,4 +12,10 @@ export enum PERMISSIONS {
   MODIFIER = '1002',
   VIEW = '1003',
   DELETE = '1004',
+}
+
+export enum CAPTCHA_TYPE {
+  LOGIN = 'login',
+  REGISTER = 'register',
+  FORGET = 'forget',
 }

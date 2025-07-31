@@ -4,11 +4,11 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   JoinTable,
-  RoleSpecification,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from './role.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -27,6 +27,7 @@ export class User {
   })
   email: string;
 
+  @Exclude()
   @Column({
     length: 50,
     comment: '密码',

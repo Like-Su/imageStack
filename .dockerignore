@@ -1,0 +1,8 @@
+*.md
+node_modules/
+.git/
+.vscode/
+.dockerignore
+.eslintrc.js
+.prettierrc.js
+.DS_Store
