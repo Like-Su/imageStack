@@ -15,6 +15,9 @@ export class BuildResponseInterceptor implements NestInterceptor {
     // 将返回结果 构建为 一个 格式化对象返回
     return next.handle().pipe(
       map((data) => {
+        if (data && data._type === 'application/html') {
+          return data.data;
+        }
         return {
           code: response.statusCode,
           message: 'success',

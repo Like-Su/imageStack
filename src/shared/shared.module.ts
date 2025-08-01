@@ -6,6 +6,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { Permission } from 'src/user/entities/permission.entity';
 import { Role } from 'src/user/entities/role.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Picture } from 'src/picture/entities/picture.entity';
+import { Tags } from 'src/picture/entities/tags.entity';
+import { MinioModule } from 'src/minio/minio.module';
 
 @Global()
 @Module({
@@ -23,7 +26,7 @@ import { User } from 'src/user/entities/user.entity';
           synchronize: configService.get('db.mysql.synchronize'),
           logging: configService.get('db.mysql.logging'),
           // entities: ['../**/entity/*.entity.ts'],
-          entities: [User, Role, Permission],
+          entities: [User, Role, Permission, Picture, Tags],
           poolSize: configService.get('db.mysql.poolSize'),
           connectorPackage: 'mysql2',
           extra: {
@@ -44,7 +47,8 @@ import { User } from 'src/user/entities/user.entity';
       },
       inject: [ConfigService],
     }),
+    MinioModule
   ],
-  exports: [RedisModule, JwtModule],
+  exports: [RedisModule, JwtModule, MinioModule],
 })
-export class SharedModule {}
+export class SharedModule { }

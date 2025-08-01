@@ -10,7 +10,6 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import * as crypto from 'crypto';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
 import { CAPTCHA_TYPE } from 'src/constants';
@@ -18,12 +17,8 @@ import { RedisService } from 'src/redis/redis.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserVo } from './vo/login-user.vo';
 import { UpdateUserVo } from './vo/update-user.vo';
+import { md5 } from 'src/utils';
 
-function md5(str) {
-  const hash = crypto.createHash('md5');
-  hash.update(str);
-  return hash.digest('hex');
-}
 
 @Injectable()
 export class UserService {

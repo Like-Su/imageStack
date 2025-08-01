@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <input type="file" id="file" multiple />
+  <button onclick="upload()">Upload</button>
+
+  <script>
+    function upload() {
+      const files = document.querySelector('#file').files;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        retrieveNewURL(file, (file, url) => {
+          uploadFile(file, url);
+        });
+      }
+    }
+
+    function retrieveNewURL(file, cb) {
+      fetch(`/user/upload?file_name=${file.name}`).then(response => {
+        response.json().then(res => {
+          const url = res.data;
+          fetch(url, {
+            method: 'PUT',
+            body: file
+          }).then(async res => {
+            console.log(await res.text());
+          }).catch(console.log);
+        }).catch(console.log)
+      })
+    }
+  </script>
+</body>
+
+</html>

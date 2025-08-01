@@ -7,9 +7,8 @@ import {
   Query,
   UnauthorizedException,
   UseGuards,
-  UseInterceptors,
-  ClassSerializerInterceptor,
-  UploadedFile,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,11 +21,12 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserInfo } from 'src/user.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { LoginUserVo } from './vo/login-user.vo';
 import { RefreshToken } from './vo/refresh-token.vo';
 import { UpdateUserVo } from './vo/update-user.vo';
 import { PermissionGuard } from 'src/permission.guard';
+import { MinioService } from 'src/minio/minio.service';
+import { buildFileName } from 'src/utils';
 
 @Controller('user')
 export class UserController {
@@ -36,8 +36,10 @@ export class UserController {
   private readonly redisService: RedisService;
   @Inject(JwtService)
   private readonly jwtService: JwtService;
+  @Inject(MinioService)
+  private readonly minioService: MinioService;
 
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get('init')
   async initData() {
@@ -159,17 +161,13 @@ export class UserController {
     return await this.userService.update(userId, updateUserVo);
   }
 
-  @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      dest: 'uploads',
-      limits: {
-        fileSize: 1024 * 1024 * 10,
-      },
-    }),
-  )
-  uploadHeadPicture(@UploadedFile() file: Express.Multer.File) {
-    console.log('file', file);
-    return file.path;
+  @Get('upload')
+  async uploadHeadPicture(@Query('file_name') fileName: string, @UserInfo('id') userId: number) {
+    const fullName = buildFileName(userId, fileName);
+    if (!fullName._is_suc) {
+      throw new HttpException('图片格式错误', HttpStatus.ACCEPTED);
+    }
+
+    return await this.minioService.presignedPutObject('headers', fileName);
   }
 }

@@ -14,6 +14,8 @@ import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
 import { AuthModule } from './auth/auth.module';
 import { PictureModule } from './picture/picture.module';
+import { SystemModule } from './system/system.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { PictureModule } from './picture/picture.module';
     }),
     AuthModule,
     PictureModule,
+    SystemModule,
   ],
   controllers: [AppController],
   providers: [
@@ -45,4 +48,4 @@ import { PictureModule } from './picture/picture.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

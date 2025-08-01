@@ -25,10 +25,9 @@ export class Tags {
   pictures: Picture[];
 
   // 标签 对应的 用户
-  @ManyToOne(() => User)
   @Column({
     type: 'int',
-    nullable: true,
+    nullable: false,
   })
   owner_id: number;
 }

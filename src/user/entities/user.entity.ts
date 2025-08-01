@@ -6,6 +6,7 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
 import { Role } from './role.entity';
 import { Exclude } from 'class-transformer';

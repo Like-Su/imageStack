@@ -1,5 +1,6 @@
 // Redis
 export const REDIS_CLIENT = 'REDIS_CLIENT';
+export const MINIO_CLIENT = 'MINIO_CLIENT';
 
 // login and permissions
 export const UN_NEED_LOGIN = 'UN_NEED_LOGIN';
@@ -18,4 +19,9 @@ export enum CAPTCHA_TYPE {
   LOGIN = 'login',
   REGISTER = 'register',
   FORGET = 'forget',
+}
+
+export enum PICTURE_STATUS {
+  DELETE = 1,
+  NORMAL = 2,
 }
