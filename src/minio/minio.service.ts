@@ -16,4 +16,9 @@ export class MinioService {
   presignedUrl(method: string, bucketName: string, fileName: string, expires: number = 60 * 60) {
     return this.minioClient.presignedUrl(method, bucketName, fileName, expires);
   }
+
+  // 文件信息
+  statObject(bucketName: string, fileName: string) {
+    return this.minioClient.statObject(bucketName, fileName);
+  }
 }

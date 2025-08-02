@@ -24,6 +24,14 @@
 
     function retrieveNewURL(file, cb) {
       fetch(`/user/upload?file_name=${file.name}`).then(response => {
+      // fetch(`/picture/upload`, {
+        // method: 'POST',
+        // body: JSON.stringify({
+        //   originname: 'test.webp',
+        //   filename: 'test.png',
+        //   location: 'fujian',
+        // })
+      }).then(response => {
         response.json().then(res => {
           const url = res.data;
           fetch(url, {

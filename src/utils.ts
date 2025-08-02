@@ -11,11 +11,13 @@ export function buildFileName(userId: number, fileName: string) {
   const now = Date.now(),
     ext = fileName.match(extMatch),
     newFileName = `${userId}_${fileName}_${now}`,
-    fullName = `${newFileName}_${Buffer.from(newFileName, 'hex')}.${ext}`;
+    hex = Buffer.from(newFileName, 'hex'),
+    fullName = `${newFileName}_${hex}.${ext}`;
   return {
     now,
     ext,
     fileName: newFileName,
+    hex,
     fullName,
     _is_suc: true
   }

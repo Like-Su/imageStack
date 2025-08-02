@@ -9,6 +9,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Picture } from 'src/picture/entities/picture.entity';
 import { Tags } from 'src/picture/entities/tags.entity';
 import { MinioModule } from 'src/minio/minio.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Global()
 @Module({
@@ -47,8 +48,9 @@ import { MinioModule } from 'src/minio/minio.module';
       },
       inject: [ConfigService],
     }),
-    MinioModule
+    MinioModule,
+    EmailModule
   ],
-  exports: [RedisModule, JwtModule, MinioModule],
+  exports: [RedisModule, JwtModule, MinioModule, EmailModule],
 })
 export class SharedModule { }

@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { PictureModule } from './picture/picture.module';
 import { SystemModule } from './system/system.module';
 import { MinioModule } from './minio/minio.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [

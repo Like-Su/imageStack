@@ -27,6 +27,7 @@ import { UpdateUserVo } from './vo/update-user.vo';
 import { PermissionGuard } from 'src/permission.guard';
 import { MinioService } from 'src/minio/minio.service';
 import { buildFileName } from 'src/utils';
+import { EmailService } from 'src/email/email.service';
 
 @Controller('user')
 export class UserController {
@@ -38,6 +39,8 @@ export class UserController {
   private readonly jwtService: JwtService;
   @Inject(MinioService)
   private readonly minioService: MinioService;
+  @Inject(EmailService)
+  private readonly emailService: EmailService;
 
   constructor(private readonly userService: UserService) { }
 
@@ -52,6 +55,7 @@ export class UserController {
   @UnNeedLogin()
   async captcha(@Query('email') email: string, type: CAPTCHA_TYPE) {
     const captchaCode = Math.random().toString().slice(2, 8);
+
     // 保存到 redis
     await this.redisService.set(
       `captcha_${email}_${type}`,
@@ -62,8 +66,11 @@ export class UserController {
     // 只有注册和忘记密码需要验证码到邮箱
     if (type === CAPTCHA_TYPE.REGISTER || type === CAPTCHA_TYPE.FORGET) {
       // send email
-      // this.emailService.
-      return 'success';
+      await this.emailService.sendMail({
+        to: email,
+        subject: type,
+        text: `<h1>${captchaCode}</h1>`
+      });
     }
 
     return captchaCode;
@@ -161,13 +168,14 @@ export class UserController {
     return await this.userService.update(userId, updateUserVo);
   }
 
+  @UnNeedLogin()
   @Get('upload')
-  async uploadHeadPicture(@Query('file_name') fileName: string, @UserInfo('id') userId: number) {
-    const fullName = buildFileName(userId, fileName);
-    if (!fullName._is_suc) {
+  async uploadHeadPicture(@Query('file_name') fileName: string, @UserInfo('id') userId: number) { 
+    const headerInfo = buildFileName(userId, fileName);
+    if (!headerInfo._is_suc) {
       throw new HttpException('图片格式错误', HttpStatus.ACCEPTED);
     }
 
-    return await this.minioService.presignedPutObject('headers', fileName);
+    return await this.minioService.presignedPutObject('headers', headerInfo.fullName);
   }
 }

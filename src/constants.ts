@@ -1,6 +1,7 @@
 // Redis
 export const REDIS_CLIENT = 'REDIS_CLIENT';
 export const MINIO_CLIENT = 'MINIO_CLIENT';
+export const EMAIL_CLIENT = 'EMAIL_CLIENT';
 
 // login and permissions
 export const UN_NEED_LOGIN = 'UN_NEED_LOGIN';

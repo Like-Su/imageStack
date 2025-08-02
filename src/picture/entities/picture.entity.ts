@@ -1,11 +1,14 @@
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Tags } from './tags.entity';
 import { PICTURE_STATUS } from 'src/constants';
@@ -40,22 +43,18 @@ export class Picture {
   size: number;
 
   // @OneToOne(() => User)
-  @Column({
-    nullable: false,
-    comment: '图片隶属者',
-  })
-  owner: number;
+  // @Column({
+  //   nullable: false,
+  //   comment: '图片隶属者',
+  // })
+  @JoinColumn()
+  @OneToOne(() => User)
+  owner: User;
 
   @JoinTable()
   // 图片标签
   @ManyToMany(() => Tags, (tag) => tag.pictures)
   tags: Tags[];
-
-  // 图片位置
-  @Column({
-    comment: '图片位置',
-  })
-  location: string;
 
   // 图片状态
   @Column({
@@ -66,13 +65,13 @@ export class Picture {
   })
   status: PICTURE_STATUS;
 
-  @Column({
+  @CreateDateColumn({
     nullable: false,
     comment: '图片创建时间',
   })
   createTime: Date;
 
-  @Column({
+  @UpdateDateColumn({
     nullable: false,
     comment: '图片修改时间',
   })
