@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Query, UseGuards } from '@nestjs/common';
 import { PictureService } from './picture.service';
 import * as Minio from 'minio';
-import { MINIO_CLIENT, PICTURE_STATUS } from 'src/constants';
-import { UnNeedLogin } from 'src/interface.guard.decorator';
+import { MINIO_CLIENT, PERMISSIONS, PICTURE_STATUS } from 'src/constants';
+import { NeedPermissions, UnNeedLogin } from 'src/interface.guard.decorator';
 import { MinioService } from 'src/minio/minio.service';
 import { UserInfo } from 'src/user.decorator';
 import { buildFileName } from 'src/utils';
@@ -10,6 +10,7 @@ import { CreatePictureDto } from './dto/create-picture.dto';
 import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
+import { PermissionGuard } from 'src/permission.guard';
 
 @UnNeedLogin()
 @Controller('picture')
@@ -25,6 +26,7 @@ export class PictureController {
 
   // 上传图片(FormData, 以及信息)
   @Get('upload')
+  @NeedPermissions(PERMISSIONS.UPLOAD)
   async uploadFile(@Query('file_name') fileName: string, @UserInfo('id') userId: number) {
     const imageInfo = buildFileName(userId, fileName);
 
@@ -36,6 +38,7 @@ export class PictureController {
 
   // 通知上传完毕
   @Post('upload/confirm')
+  @NeedPermissions(PERMISSIONS.UPLOAD)
   async confirmUpload(
     @Body() confirmUploadDto: ConfirmUploadDto,
     @UserInfo('id') userId: number
@@ -65,6 +68,7 @@ export class PictureController {
 
   // 修改元数据
   @Post('update_image')
+  @NeedPermissions(PERMISSIONS.MODIFIER)
   async updateImage(@Body() updatePictureDto: UpdatePictureDto, @Body('id') imageId, @UserInfo('id') userId: number) {
     // 检查用户是否存在该图片 
     await this.pictureService.existImage(userId, imageId);
@@ -75,6 +79,7 @@ export class PictureController {
 
   // 获取所有图片
   @Get('list_image')
+  @NeedPermissions(PERMISSIONS.VIEW)
   async listImage(@UserInfo('id') userId: number) {
     const user = await this.userService.findUserById(userId);
     return await this.pictureService.listImage(user);
