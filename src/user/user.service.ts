@@ -86,11 +86,11 @@ export class UserService {
   // 登录
   async login(loginUserDto: LoginUserDto) {
     // 校验验证码
-    await this.validationCaptcha(
-      loginUserDto.email,
-      loginUserDto.captcha,
-      CAPTCHA_TYPE.LOGIN,
-    );
+    // await this.validationCaptcha(
+    //   loginUserDto.email,
+    //   loginUserDto.captcha,
+    //   CAPTCHA_TYPE.LOGIN,
+    // );
 
     // 查找用户
     const user = await this.userRepository.findOne({

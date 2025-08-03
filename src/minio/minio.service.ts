@@ -21,4 +21,9 @@ export class MinioService {
   statObject(bucketName: string, fileName: string) {
     return this.minioClient.statObject(bucketName, fileName);
   }
+
+  // 获取文件流
+  getObject(bucketName: string, fileName: string) {
+    return this.minioClient.getObject(bucketName, fileName);
+  }
 }

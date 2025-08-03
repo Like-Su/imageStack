@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, Header, Inject, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { PictureService } from './picture.service';
 import * as Minio from 'minio';
 import { MINIO_CLIENT, PERMISSIONS, PICTURE_STATUS } from 'src/constants';
@@ -12,7 +12,7 @@ import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { PermissionGuard } from 'src/permission.guard';
 
-@UnNeedLogin()
+// @UnNeedLogin()
 @Controller('picture')
 export class PictureController {
   @Inject(MinioService)
@@ -23,6 +23,11 @@ export class PictureController {
   private readonly userService: UserService;
 
   constructor() { }
+
+  @Get('init')
+  async initData() {
+    return await this.pictureService.initData();
+  }
 
   // 上传图片(FormData, 以及信息)
   @Get('upload')
@@ -75,13 +80,20 @@ export class PictureController {
     return await this.pictureService.updateImageInfo(imageId, updatePictureDto);
   }
 
+  // 下载图片 
+  @Get('download')
+  async download(@UserInfo('userId') userId, @Query('id') imageId: number) {
+    console.log(userId, imageId)
+    return await this.pictureService.download(userId, imageId);
+  }
+
   // 删除图片
 
   // 获取所有图片
   @Get('list_image')
   @NeedPermissions(PERMISSIONS.VIEW)
-  async listImage(@UserInfo('id') userId: number) {
+  async listImage(@UserInfo('id') userId: number, @Query('limit', new DefaultValuePipe(30), ParseIntPipe) limit: number, @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number) {
     const user = await this.userService.findUserById(userId);
-    return await this.pictureService.listImage(user);
+    return await this.pictureService.listImage(user, limit, page);
   }
 }

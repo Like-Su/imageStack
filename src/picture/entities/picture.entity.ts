@@ -3,10 +3,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   JoinTable,
   ManyToMany,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -20,7 +19,6 @@ export class Picture {
   id: number;
 
   @Column({
-    nullable: false,
     comment: '图片名称',
   })
   name: string;
@@ -31,24 +29,18 @@ export class Picture {
   description: string;
 
   @Column({
-    nullable: false,
     comment: '图片路径',
   })
   uri: string;
 
   @Column({
-    nullable: false,
     comment: '图片大小',
   })
   size: number;
 
+
+  @ManyToOne(() => User)
   // @OneToOne(() => User)
-  // @Column({
-  //   nullable: false,
-  //   comment: '图片隶属者',
-  // })
-  @JoinColumn()
-  @OneToOne(() => User)
   owner: User;
 
   @JoinTable()
@@ -59,20 +51,18 @@ export class Picture {
   // 图片状态
   @Column({
     type: 'enum',
-    nullable: false,
     comment: '图片状态',
     enum: PICTURE_STATUS,
+    default: PICTURE_STATUS.NORMAL
   })
   status: PICTURE_STATUS;
 
   @CreateDateColumn({
-    nullable: false,
     comment: '图片创建时间',
   })
   createTime: Date;
 
   @UpdateDateColumn({
-    nullable: false,
     comment: '图片修改时间',
   })
   updateTime: Date;
