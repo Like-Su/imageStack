@@ -18,7 +18,7 @@
 			"@/*": ["src/*"]
 		},
 		// 加载类型文件
-		"types": []
+		"types": ["ant-design-vue/global.d.ts"]
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
