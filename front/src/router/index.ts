@@ -3,22 +3,22 @@ import { createRouter, createWebHistory } from "vue-router"
 import Layout from "@/layout/index.vue"
 
 const routes: RouteRecordRaw[] = [
-  {
-    path: "/",
-    name: "Login",
-    component: () => import("@/views/login/index.vue"),
-  },
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: Layout,
-    // component: () => import("@/views/dashboard/index.vue"),
-  },
+	{
+		path: "/",
+		name: "Login",
+		component: () => import("@/views/login/index.vue"),
+	},
+	{
+		path: "/dashboard",
+		name: "Dashboard",
+		component: Layout,
+		// component: () => import("@/views/dashboard/index.vue"),
+	},
 ]
 
 const router = createRouter({
-  routes,
-  history: createWebHistory(),
+	routes,
+	history: createWebHistory(),
 })
 
 // 路由守卫

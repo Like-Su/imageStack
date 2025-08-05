@@ -8,37 +8,37 @@ import Components from "unplugin-vue-components/vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    tailwidcss(),
-    AutoImport({
-      imports: ["vue", "vue-router", "pinia"],
-      eslintrc: { enabled: false },
-      dts: "./auto-imports.d.ts",
-    }),
-    Components({
-      resolvers: [
-        AntDesignVueResolver({
-          importStyle: false, // css in js
-        }),
-      ],
-    }),
-  ],
-  resolve: {
-    alias: [
-      {
-        find: "@",
-        replacement: path.resolve(__dirname, "./src"),
-      },
-    ],
-  },
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
-  },
+	plugins: [
+		vue(),
+		tailwidcss(),
+		AutoImport({
+			imports: ["vue", "vue-router", "pinia"],
+			eslintrc: { enabled: false },
+			dts: "./auto-imports.d.ts",
+		}),
+		Components({
+			resolvers: [
+				AntDesignVueResolver({
+					importStyle: false, // css in js
+				}),
+			],
+		}),
+	],
+	resolve: {
+		alias: [
+			{
+				find: "@",
+				replacement: path.resolve(__dirname, "./src"),
+			},
+		],
+	},
+	server: {
+		proxy: {
+			"/api": {
+				target: "http://localhost:3001",
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api/, ""),
+			},
+		},
+	},
 })

@@ -3,91 +3,103 @@ import logo from "@/assets/logo.jpeg"
 import { type User } from "@/api/user"
 import { UserOutlined, LockOutlined } from "@ant-design/icons-vue"
 import { useUserStore } from "@/stores/user.ts"
-import { newRefreshToken } from "@/api/config/service.ts"
+import { inject } from "vue"
+import { MESSAGE_EMITTER } from "@/constants.ts"
+import { useRouter } from "vue-router"
 
+const messageEmitter = inject(MESSAGE_EMITTER)
+
+const router = useRouter()
 const userStore = useUserStore()
 const formState = reactive<User>({
-  email: "123@qq.com",
-  password: "123456",
+	email: "123@qq.com",
+	password: "123456",
 })
 
 const onFinish = async () => {
-  await userStore.loginUser(formState)
+	const res = await userStore.loginUser(formState)
+	console.log(res)
+	if (!res.success) {
+		messageEmitter.emit("error", res.message)
+		return
+	}
+	messageEmitter.emit("success", "登录成功")
+	router.push({ name: "Dashboard" })
 }
 
 const onFinishFailed = () => {}
 
 const rules = {
-  email: [
-    { required: true, message: "请输入用户名" },
-    { min: 3, message: "用户名不能少于3个字符" },
-    { max: 10, message: "用户名不能超过10个字符" },
-  ],
-  password: [{ required: true, message: "请输入密码" }],
+	email: [
+		{ required: true, message: "请输入用户名" },
+		{ min: 3, message: "用户名不能少于3个字符" },
+		{ max: 10, message: "用户名不能超过10个字符" },
+	],
+	password: [{ required: true, message: "请输入密码" }],
 }
 </script>
 
 <template>
-  <div class="w-screen h-screen flex items-center justify-center">
-    <a-card :bordered="true" hoverable="true" class="w-[500px] h-[600px]">
-      <div class="w-full flex flex-col items-center mt-[40px]">
-        <img :src="logo" alt="logo" class="w-[96px] h-[96px] rounded-full" />
-        <h1 class="text-2xl font-bold">ImageStack</h1>
-      </div>
-      <div class="mt-[30px] p-[26px]">
-        <a-form
-          :model="formState"
-          name="normal_login"
-          class="login-form"
-          @finish="onFinish"
-          @finishFailed="onFinishFailed"
-        >
-          <a-form-item name="email" :rules="rules.email" class="h-[48px]">
-            <a-input
-              v-model:value="formState.email"
-              placeholder="请输入邮箱"
-              class="h-[48px]"
-            >
-              <template #prefix>
-                <UserOutlined class="site-form-item-icon" />
-              </template>
-            </a-input>
-          </a-form-item>
+	<div class="w-screen h-screen flex items-center justify-center">
+		<a-card :bordered="true" hoverable="true" class="w-[500px] h-[600px]">
+			<div class="w-full flex flex-col items-center mt-[40px]">
+				<img :src="logo" alt="logo" class="w-[96px] h-[96px] rounded-full" />
+				<h1 class="text-2xl font-bold">ImageStack</h1>
+			</div>
+			<div class="mt-[30px] p-[26px]">
+				<a-form
+					:model="formState"
+					name="normal_login"
+					class="login-form"
+					@finish="onFinish"
+					@finishFailed="onFinishFailed"
+				>
+					<a-form-item name="email" :rules="rules.email" class="h-[48px]">
+						<a-input
+							v-model:value="formState.email"
+							placeholder="请输入邮箱"
+							class="h-[48px]"
+						>
+							<template #prefix>
+								<UserOutlined class="site-form-item-icon" />
+							</template>
+						</a-input>
+					</a-form-item>
 
-          <a-form-item name="password" :rules="rules.password" class="h-[48px]">
-            <a-input-password
-              v-model:value="formState.password"
-              placeholder="请输入密码"
-              class="h-[48px]"
-            >
-              <template #prefix>
-                <LockOutlined class="site-form-item-icon" />
-              </template>
-            </a-input-password>
-          </a-form-item>
+					<a-form-item name="password" :rules="rules.password" class="h-[48px]">
+						<a-input-password
+							v-model:value="formState.password"
+							placeholder="请输入密码"
+							class="h-[48px]"
+						>
+							<template #prefix>
+								<LockOutlined class="site-form-item-icon" />
+							</template>
+						</a-input-password>
+					</a-form-item>
 
-          <a-form-item
-            class="w-[100%] h-[42px] flex justify-center items-center"
-          >
-            <a-button
-              type="primary"
-              html-type="submit"
-              block
-              style="width: 420px; height: 38px"
-            >
-              登录
-            </a-button>
-          </a-form-item>
+					<a-form-item
+						class="w-[100%] h-[42px] flex justify-center items-center"
+					>
+						<a-button
+							type="primary"
+							html-type="submit"
+							block
+							style="width: 420px; height: 38px"
+						>
+							登录
+						</a-button>
+					</a-form-item>
 
-          <a-form-item class="flex justify-center items-center">
-            <a href="">现在注册</a>
-            /
-            <a class="login-form-forgot" href="">忘记密码</a>
-          </a-form-item>
-        </a-form>
-      </div>
-    </a-card>
-  </div>
+					<a-form-item class="flex justify-center items-center">
+						<a href="">现在注册</a>
+						/
+						<a class="login-form-forgot" href="">忘记密码</a>
+					</a-form-item>
+				</a-form>
+			</div>
+		</a-card>
+	</div>
 </template>
 
 <style scoped lang="scss"></style>
