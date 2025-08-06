@@ -1,7 +1,12 @@
 import { ACCESS_TOKEN, REFRESH_TOKEN, SETTINGS } from "./constants"
 import * as punycode from "punycode"
 
-function isObject(val) {
+export interface Settings {
+	theme: string
+	isCollapse: boolean
+}
+
+function isObject(val: any) {
 	return val !== null && typeof val === "object" && !Array.isArray(val)
 }
 
@@ -28,14 +33,23 @@ export const isSuccessCode = (code: number) => {
 	return code >= 200 && code < 300
 }
 
-// global setting
-export const getSetting = () => {
-	return JSON.parse(localStorage.getItem(SETTINGS) || "{}")
+const getTheme = () => {
+	return window.matchMedia("(prefers-color-scheme: dark)").media
+		? "dark"
+		: "light"
 }
 
-export const setSetting = (value: string) => {
+// global setting
+export const getSetting = (): Settings => {
+	const settings =
+		localStorage.getItem(SETTINGS) ??
+		`{"theme": "${getTheme()}","isCollapse": false}`
+	return JSON.parse(settings)
+}
+
+export const setSetting = (value: Settings | string) => {
 	localStorage.setItem(
 		SETTINGS,
-		isObject(value) ? JSON.stringify(value) : value,
+		isObject(value) ? JSON.stringify(value) : (value as string),
 	)
 }
