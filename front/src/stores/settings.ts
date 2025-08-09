@@ -10,23 +10,12 @@ export const useSettingStore = defineStore("settings", () => {
 
 	const themeClass = computed(() => `theme-${settings.theme}`)
 
-	const sidebarBgClass = computed(() => {
-		switch (theme.value) {
-			case "dark":
-				return "bg-gray-900 text-white"
-			case "light":
-				return "bg-gray-100 text-black"
-			default:
-				break
-		}
-	})
-
-	const headerBgClass = computed(() => {
+	const globalBgClass = computed(() => {
 		switch (theme.value) {
 			case "dark":
 				return "bg-gray-800 text-white"
 			case "light":
-				return "bg-gray-200 text-black"
+				return "bg-white text-black"
 			default:
 				break
 		}
@@ -56,8 +45,7 @@ export const useSettingStore = defineStore("settings", () => {
 		theme,
 		isCollapse,
 		themeClass,
-		sidebarBgClass,
-		headerBgClass,
+		globalBgClass,
 		changeTheme,
 		toggleTheme,
 		toggleSidebar,

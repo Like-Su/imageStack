@@ -2,7 +2,11 @@ import type { RouteRecordRaw } from "vue-router"
 import { createRouter, createWebHistory } from "vue-router"
 import Layout from "@/layout/index.vue"
 import { getAccessToken } from "@/utils.ts"
-import { MailOutlined, SettingOutlined } from "@ant-design/icons-vue"
+import {
+	MailOutlined,
+	SettingOutlined,
+	UserOutlined,
+} from "@ant-design/icons-vue"
 
 declare module "vue-router" {
 	interface RouteRecordRaw {
@@ -23,10 +27,17 @@ export const fixedRoutes: RouteRecordRaw[] = [
 		path: "/dashboard",
 		name: "Dashboard",
 		component: Layout,
-		meta: {
-			icon: () => MailOutlined,
-			title: "dashboard",
-		},
+		children: [
+			{
+				path: "index",
+				name: "DashboardIndex",
+				component: () => import("@/views/dashboard/index.vue"),
+				meta: {
+					icon: () => MailOutlined,
+					title: "dashboard",
+				},
+			},
+		],
 	},
 ]
 
@@ -75,6 +86,22 @@ export const sidebarRoutes: RouteRecordRaw[] = [
 				meta: {
 					icon: () => SettingOutlined,
 					title: "trash",
+				},
+			},
+		],
+	},
+	{
+		path: "/profile",
+		component: Layout,
+		redirect: "profile/index",
+		children: [
+			{
+				path: "index",
+				name: "Profile",
+				component: () => import("@/views/profile/index.vue"),
+				meta: {
+					icon: () => UserOutlined,
+					title: "profile",
 				},
 			},
 		],

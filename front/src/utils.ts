@@ -1,5 +1,6 @@
-import { ACCESS_TOKEN, REFRESH_TOKEN, SETTINGS } from "./constants"
+import { ACCESS_TOKEN, REFRESH_TOKEN, SETTINGS, USER_INFO } from "./constants"
 import * as punycode from "punycode"
+import type { UserInfo } from "@/api/user.ts"
 
 export interface Settings {
 	theme: string
@@ -27,6 +28,15 @@ export const setAccessToken = (value: string) => {
 export const setRefreshToken = (value: string) => {
 	localStorage.setItem(REFRESH_TOKEN, value)
 	return true
+}
+
+export const getUser = () => {
+	const user = localStorage.getItem(USER_INFO)
+	return user ? JSON.parse(user) : null
+}
+
+export const setUserInfo = (userInfo: UserInfo) => {
+	localStorage.setItem(USER_INFO, JSON.stringify(userInfo))
 }
 
 export const isSuccessCode = (code: number) => {

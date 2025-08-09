@@ -4,17 +4,9 @@
 			:class="[
 				'sidebar-containertransition-all duration-500',
 				useSettings.isCollapse ? 'w-16' : 'w-64',
-				useSettings.sidebarBgClass,
+				useSettings.globalBgClass,
 			]"
 		>
-			<!--			<div v-if="!useSettings.isCollapse"></div>-->
-			<!--			<div v-else class="text-center">≡</div>-->
-			<!--			<button-->
-			<!--				@click="useSettings.toggleSidebar"-->
-			<!--				class="mt-4 w-full border px-2 py-1 rounded text-xs"-->
-			<!--			>-->
-			<!--				{{ useSettings.isCollapse ? "展开" : "收起" }}-->
-			<!--			</button>-->
 			<Sidebar
 				:theme="useSettings.theme"
 				:toggleCollapsed="useSettings.toggleSidebar"
@@ -24,16 +16,10 @@
 
 		<div class="main-container">
 			<div
-				class="header p-4 flex justify-between"
-				:class="useSettings.headerBgClass"
+				class="header h-16 px-4 border-b border-white/10 flex justify-between"
+				:class="useSettings.globalBgClass"
 			>
-				<span>Header</span>
-				<button
-					@click="useSettings.toggleTheme"
-					class="border px-3 py-1 rounded"
-				>
-					切换主题（当前：{{ useSettings.theme }})
-				</button>
+				<Header></Header>
 			</div>
 			<div class="app-main p-6">
 				<router-view />
@@ -44,7 +30,8 @@
 
 <script setup lang="ts">
 import { useSettingStore } from "@/stores/settings.ts"
-import Sidebar from "@/layout/components/Sidebar/Sidebar.vue"
+import Sidebar from "./components/Sidebar/Sidebar.vue"
+import Header from "./components/Header/Header.vue"
 
 const useSettings = useSettingStore()
 </script>

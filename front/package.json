@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.11.0",
+    "echarts": "^6.0.0",
     "pinia": "^3.0.3",
     "sass-embedded": "^1.89.2",
     "scss": "^0.2.4",
