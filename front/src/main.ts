@@ -3,6 +3,7 @@ import App from "./App.vue"
 import router from "./router"
 import { createPinia } from "pinia"
 import antDesign from "./plugins/antDesign"
+import VueLazyLoad from "vue3-lazy"
 import "tailwindcss/index.css"
 import "ant-design-vue/dist/reset.css"
 import "./assets/css/tailwind.css"
@@ -13,6 +14,9 @@ const app = createApp(App)
 app.use(router)
 app.use(pinia)
 app.use(antDesign)
+app.use(VueLazyLoad, {
+	// loading: "",
+})
 
 app.config.errorHandler = (err) => {
 	console.error("global", err)

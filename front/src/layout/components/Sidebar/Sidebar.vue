@@ -5,7 +5,9 @@ import type { MenuProps, ItemType } from "ant-design-vue"
 import { sidebarRoutes, fixedRoutes } from "@/router" // ← 请确保这两个是独立导出
 import type { RouteRecordRaw } from "vue-router"
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons-vue"
+import { useSettingStore } from "@/stores/settings.ts"
 
+const useSettings = useSettingStore()
 const props = defineProps({
 	theme: String,
 	toggleCollapsed: Function,
@@ -72,6 +74,10 @@ const handleClick: MenuProps["onClick"] = ({ key }) => {
 	selectedKeys.value = [key]
 	routerInstance.push(key)
 }
+
+const themeClass = computed(() =>
+	props.theme === "dark" ? "!text-white" : "!text-black",
+)
 </script>
 
 <template>
@@ -83,19 +89,10 @@ const handleClick: MenuProps["onClick"] = ({ key }) => {
 			class="sidebar-header h-16 flex items-center justify-between px-4 text-xl font-bold border-b border-white/10"
 		>
 			<!-- Logo 区域 -->
-			<span
-				v-show="!collapsed"
-				:class="theme === 'dark' ? 'text-white' : 'text-black'"
-			>
-				ImageStack
-			</span>
+			<span v-show="!collapsed" :class="themeClass"> ImageStack </span>
 
 			<!-- 收缩按钮 -->
-			<a-button
-				type="text"
-				@click="toggleCollapsed"
-				:class="theme === 'dark' ? '!text-white' : '!text-black'"
-			>
+			<a-button type="text" @click="toggleCollapsed" :class="themeClass">
 				<component :is="collapsed ? MenuUnfoldOutlined : MenuFoldOutlined" />
 			</a-button>
 		</div>

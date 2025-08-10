@@ -48,7 +48,8 @@
     "redis": "^5.6.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.25"
+    "typeorm": "^0.3.25",
+    "vue-virtual-scroller": "^1.1.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
