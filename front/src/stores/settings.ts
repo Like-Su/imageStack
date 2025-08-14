@@ -13,7 +13,7 @@ export const useSettingStore = defineStore("settings", () => {
 	const globalBgClass = computed(() => {
 		switch (theme.value) {
 			case "dark":
-				return "bg-gray-800 text-white"
+				return "bg-[#1f1f1f] text-white"
 			case "light":
 				return "bg-white text-black"
 			default:

@@ -23,7 +23,7 @@ import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { PermissionGuard } from 'src/permission.guard';
 
-@UnNeedLogin()
+// @UnNeedLogin()
 @Controller('picture')
 export class PictureController {
   @Inject(MinioService)
@@ -45,7 +45,7 @@ export class PictureController {
   @NeedPermissions(PERMISSIONS.UPLOAD)
   async uploadFile(
     @Query('file_name') fileName: string,
-    @UserInfo('id') userId: number,
+    @UserInfo('userId') userId: number,
   ) {
     const imageInfo = buildFileName(userId, fileName);
 
@@ -54,13 +54,13 @@ export class PictureController {
         'images',
         imageInfo.fileName,
       ),
-      fullName: imageInfo,
+      uploadInfo: imageInfo,
     };
   }
 
   // 通知上传完毕
   @Post('upload/confirm')
-  @NeedPermissions(PERMISSIONS.UPLOAD)
+  // @NeedPermissions(PERMISSIONS.UPLOAD)
   async confirmUpload(
     @Body() confirmUploadDto: ConfirmUploadDto,
     @UserInfo('id') userId: number,
@@ -72,13 +72,12 @@ export class PictureController {
           // 获取文件信息
           const stat = await this.minioService.statObject(
             'images',
-            picture.fullName,
+            picture.originname,
           );
-
           return {
             name: picture.originname,
             size: stat.size,
-            uri: picture.fullName,
+            uri: picture.originname,
             bucketName: 'images',
             owner: user,
             status: PICTURE_STATUS.NORMAL,
@@ -88,8 +87,11 @@ export class PictureController {
         }
       }),
     );
+
     return await Promise.all(
-      uploaded.map((picture) => this.pictureService.uploadFile(picture)),
+      uploaded.map(
+        async (picture) => await this.pictureService.uploadFile(picture),
+      ),
     );
   }
 
@@ -98,8 +100,8 @@ export class PictureController {
   @NeedPermissions(PERMISSIONS.MODIFIER)
   async updateImage(
     @Body() updatePictureDto: UpdatePictureDto,
-    @Body('id') imageId,
-    @UserInfo('id') userId: number,
+    @Body('image_id') imageId,
+    @UserInfo('userId') userId: number,
   ) {
     // 检查用户是否存在该图片
     await this.pictureService.existImage(userId, imageId);
@@ -108,10 +110,13 @@ export class PictureController {
 
   // 下载图片
   @Get('download')
+  @UnNeedLogin()
   async download(@UserInfo('userId') userId, @Query('id') imageId: number) {
-    console.log(userId, imageId);
     return await this.pictureService.download(userId, imageId);
   }
+
+  @Get('delete')
+  async deleteImage(@UserInfo('userId') userid) {}
 
   // 删除图片
 

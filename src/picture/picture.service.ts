@@ -74,12 +74,14 @@ export class PictureService {
 
   async uploadFile(pictureInfo: CreatePictureDto) {
     const picture = new Picture();
+    console.log(pictureInfo);
     picture.name = pictureInfo.name;
     picture.size = pictureInfo.size;
     picture.uri = pictureInfo.uri;
     picture.owner = pictureInfo.owner;
 
     await this.pictureRepository.save(picture);
+    return picture;
   }
 
   async updateImageInfo(id: number, updatePictureDto: UpdatePictureDto) {
@@ -102,10 +104,12 @@ export class PictureService {
       owner: { id: userId },
       status: PICTURE_STATUS.NORMAL,
     });
+
+    const fileName = image.name.split('_')[1];
     const stream = await this.minioService.getObject('images', image.uri);
 
     return new StreamableFile(stream, {
-      disposition: `attachment; filename=${Date.now()}-${image.name}`,
+      disposition: `attachment; filename=${Date.now()}-${encodeURIComponent(fileName)}`,
     });
   }
 
@@ -113,7 +117,8 @@ export class PictureService {
     const images = await this.pictureRepository.find({
       where: { owner: { id: user.id }, status: PICTURE_STATUS.NORMAL },
       take: limit,
-      skip: page,
+      skip: (page - 1) * limit,
+      order: { createTime: 'DESC' },
     });
 
     const parserImages = await Promise.all(
@@ -129,15 +134,18 @@ export class PictureService {
   }
 
   async pictureById(id: number) {
-    return await this.pictureRepository.findOneBy({
-      id,
+    return await this.pictureRepository.findOne({
+      where: {
+        id,
+        status: PICTURE_STATUS.NORMAL,
+      },
+      relations: ['owner'],
     });
   }
 
   // 检查用户是否有该图片
   async existImage(userId: number, imageId: number) {
     const image = await this.pictureById(imageId);
-
     if (userId !== image.owner.id) {
       throw new HttpException('图片不存在', HttpStatus.ACCEPTED);
     }

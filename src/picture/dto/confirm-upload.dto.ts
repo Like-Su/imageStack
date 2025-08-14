@@ -1,5 +1,5 @@
-import { Type } from "class-transformer";
-import { IsArray, IsString, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import { IsArray, IsString, ValidateNested } from 'class-validator';
 
 export class ConfirmUploadDto {
   @IsArray()
@@ -13,5 +13,4 @@ class PictureInfo {
   fullName: string;
   @IsString()
   originname: string;
-
 }

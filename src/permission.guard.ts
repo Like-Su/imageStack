@@ -40,12 +40,10 @@ export class PermissionGuard implements CanActivate {
         isTargetPermissionInUserPermission = permissions.some(
           (per) => per.code === currentPermissionCode,
         );
-      console.log(isTargetPermissionInUserPermission);
       if (!isTargetPermissionInUserPermission) {
         throw new UnauthorizedException('无该接口访问权限');
       }
     }
-
     return true;
   }
 }

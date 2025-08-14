@@ -2,14 +2,14 @@ import * as crypto from 'crypto';
 
 const extMatch = /(\w|\W)+\.(\w+)$/;
 const nameStrategy = {
-  'images': [''],
-  'videos': ['']
-}
+  images: [''],
+  videos: [''],
+};
 export function buildFileName(userId: number, fileName: string) {
   if (!extMatch.test(fileName)) return { _is_suc: false };
 
   const now = Date.now(),
-    ext = fileName.match(extMatch),
+    ext = fileName.match(extMatch)[2],
     newFileName = `${userId}_${fileName}_${now}`,
     hex = Buffer.from(newFileName, 'hex'),
     fullName = `${newFileName}_${hex}.${ext}`;
@@ -19,10 +19,9 @@ export function buildFileName(userId: number, fileName: string) {
     fileName: newFileName,
     hex,
     fullName,
-    _is_suc: true
-  }
+    _is_suc: true,
+  };
 }
-
 
 export function md5(str) {
   const hash = crypto.createHash('md5');

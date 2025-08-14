@@ -21,8 +21,10 @@
 			>
 				<Header></Header>
 			</div>
-			<div class="app-main p-6">
+			<div class="app-main p-6" :class="useSettings.globalBgClass">
+				<!--				<Transition name="fade">-->
 				<router-view />
+				<!--				</Transition>-->
 			</div>
 		</div>
 	</div>
@@ -38,6 +40,15 @@ const useSettings = useSettingStore()
 
 <style scoped>
 @import "@/style/global.scss";
+
+.fade-enter-active,
+.fade-leave-active {
+	transition: all 0.6s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+	opacity: 0;
+}
 
 .app-wrapper {
 	display: flex;

@@ -25,6 +25,8 @@ export class Picture {
 
   @Column({
     comment: '图片描述',
+    nullable: true,
+    default: '',
   })
   description: string;
 
@@ -35,9 +37,9 @@ export class Picture {
 
   @Column({
     comment: '图片大小',
+    nullable: true,
   })
   size: number;
-
 
   @ManyToOne(() => User)
   // @OneToOne(() => User)
@@ -53,7 +55,7 @@ export class Picture {
     type: 'enum',
     comment: '图片状态',
     enum: PICTURE_STATUS,
-    default: PICTURE_STATUS.NORMAL
+    default: PICTURE_STATUS.NORMAL,
   })
   status: PICTURE_STATUS;
 

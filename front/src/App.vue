@@ -3,9 +3,12 @@ import { provide } from "vue"
 import { message } from "ant-design-vue"
 import Emitter from "@/emitter.ts"
 import { MESSAGE_EMITTER } from "@/constants.ts"
+import { useSettingStore } from "@/stores/settings.ts"
+import { theme as themeAlgorithms } from "ant-design-vue"
 
 type MessageType = "success" | "error" | "info" | "warning"
 const messageEmitter = new Emitter<MessageType>()
+const useSettings = useSettingStore()
 
 messageEmitter.on("success", message.success)
 messageEmitter.on("error", message.error)
@@ -19,7 +22,16 @@ const componentSize = "small"
 </script>
 
 <template>
-	<a-config-provider :component-size="componentSize">
+	<a-config-provider
+		:component-size="componentSize"
+		:theme="{
+			token: {},
+			algorithm:
+				useSettings.theme === 'dark'
+					? themeAlgorithms.darkAlgorithm
+					: themeAlgorithms.defaultAlgorithm,
+		}"
+	>
 		<router-view></router-view>
 	</a-config-provider>
 </template>

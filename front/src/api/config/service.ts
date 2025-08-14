@@ -22,7 +22,6 @@ export const newRefreshToken = async () => {
 	const oldRefreshToken = getRefreshToken(),
 		response = await refreshToken(oldRefreshToken),
 		tokens = response.data
-
 	if (tokens.access_token && tokens.refresh_token) {
 		setAccessToken(tokens.access_token)
 		setRefreshToken(tokens.refresh_token)
@@ -35,13 +34,17 @@ const config: AxiosRequestConfig = {
 	timeout: 30000,
 	method: "get",
 	// responseType: 'json'
-	validateStatus: isErrorCode,
+	// validateStatus: isErrorCode,
 }
 
 const axiosInstance = axios.create(config)
 
 axiosInstance.interceptors.request.use((config) => {
 	const accessToken = getAccessToken()
+	if (config.url.includes("/api/picture/download")) {
+		window.open(`${config.url}?id=${config.params.id}`, "_blank")
+		return config
+	}
 	if (accessToken) {
 		config.headers.Authorization = `Bearer ${accessToken}`
 	}
@@ -50,32 +53,36 @@ axiosInstance.interceptors.request.use((config) => {
 
 axiosInstance.interceptors.response.use(
 	(response: AxiosResponse) => {
-		const { statusCode, config } = response.data
-		// console.log(response)
-		// token 失效
-		if (statusCode === 401 && !config.url.includes("/user/refresh")) {
+		// if (response.data instanceof Blob) {
+		// 	const image = new Blob([response.data])
+		// 	const url = URL.createObjectURL(image)
+		// 	const a = document.createElement("a")
+		// 	a.href = url
+		// 	a.download = "image.jpg"
+		// 	a.click()
+		// }
+		return response.data
+	},
+	async (err) => {
+		const { data, config } = err.response
+
+		if (refreshsing) {
+			return new Promise((resolve) => taskQueue.push({ config, resolve }))
+		}
+
+		if (data.statusCode === 401 && !config.url.includes("/user/refresh")) {
 			refreshsing = true
-			const res = newRefreshToken()
+			const res = await newRefreshToken()
 			refreshsing = false
 			if (res.status === 200) {
-				taskQueue.forEach(({ config, resolve }) => resolve(axios(config)))
-				return axios(config)
+				takeQueue.forEach(({ config, resolve }) => {
+					resolve(axios(config))
+				})
 			} else {
 				return Promise.reject(res.data)
 			}
 		}
 
-		// 处理文件下载
-		// TODO
-
-		return response.data
-	},
-	(err) => {
-		const { config } = err.response
-
-		if (refreshsing) {
-			return new Promise((resolve) => taskQueue.push({ config, resolve }))
-		}
 		return err.response
 	},
 )
