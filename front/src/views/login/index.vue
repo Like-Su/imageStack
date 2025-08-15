@@ -6,7 +6,9 @@ import { useUserStore } from "@/stores/user.ts"
 import { inject } from "vue"
 import { MESSAGE_EMITTER } from "@/constants.ts"
 import { useRouter } from "vue-router"
+import { useSettingStore } from "@/stores/settings.ts"
 
+const useSettings = useSettingStore()
 const messageEmitter = inject(MESSAGE_EMITTER)
 
 const router = useRouter()
@@ -40,7 +42,10 @@ const rules = {
 </script>
 
 <template>
-	<div class="w-screen h-screen flex items-center justify-center">
+	<div
+		class="w-screen h-screen flex items-center justify-center"
+		:class="useSettings.globalBgClass"
+	>
 		<a-card :bordered="true" hoverable="true" class="w-[500px] h-[600px]">
 			<div class="w-full flex flex-col items-center mt-[40px]">
 				<img :src="logo" alt="logo" class="w-[96px] h-[96px] rounded-full" />

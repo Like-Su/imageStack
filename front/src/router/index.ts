@@ -126,7 +126,7 @@ router.beforeEach((to, from, next) => {
 	}
 
 	if (token && to.name === "Login") {
-		return next({ name: "Dashboard" })
+		return next({ name: "DashboardIndex" })
 	}
 	return next()
 })

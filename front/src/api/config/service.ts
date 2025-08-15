@@ -1,5 +1,6 @@
 import axios, { type AxiosResponse, type AxiosRequestConfig } from "axios"
 import {
+	clearToken,
 	getAccessToken,
 	getRefreshToken,
 	setAccessToken,
@@ -38,6 +39,7 @@ const config: AxiosRequestConfig = {
 }
 
 const axiosInstance = axios.create(config)
+const isHttp = (url: string) => /^(http|https).*/.test(url)
 
 axiosInstance.interceptors.request.use((config) => {
 	const accessToken = getAccessToken()
@@ -45,26 +47,23 @@ axiosInstance.interceptors.request.use((config) => {
 		window.open(`${config.url}?id=${config.params.id}`, "_blank")
 		return config
 	}
-	if (accessToken) {
+	if (!isHttp(config.url!) && accessToken) {
 		config.headers.Authorization = `Bearer ${accessToken}`
 	}
+
 	return config
 }, Promise.reject)
 
 axiosInstance.interceptors.response.use(
 	(response: AxiosResponse) => {
-		// if (response.data instanceof Blob) {
-		// 	const image = new Blob([response.data])
-		// 	const url = URL.createObjectURL(image)
-		// 	const a = document.createElement("a")
-		// 	a.href = url
-		// 	a.download = "image.jpg"
-		// 	a.click()
-		// }
 		return response.data
 	},
 	async (err) => {
 		const { data, config } = err.response
+
+		if (data.statusCode === 401 && config.url.includes("/user/refresh")) {
+			clearToken()
+		}
 
 		if (refreshsing) {
 			return new Promise((resolve) => taskQueue.push({ config, resolve }))
@@ -73,7 +72,7 @@ axiosInstance.interceptors.response.use(
 		if (data.statusCode === 401 && !config.url.includes("/user/refresh")) {
 			refreshsing = true
 			const res = await newRefreshToken()
-			refreshsing = false
+			reafreshsing = false
 			if (res.status === 200) {
 				takeQueue.forEach(({ config, resolve }) => {
 					resolve(axios(config))

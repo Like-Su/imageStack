@@ -2,11 +2,12 @@
 import { computed, ref } from "vue"
 import { UploadOutlined } from "@ant-design/icons-vue"
 import { useUserStore } from "@/stores/user.ts"
-import type { UserInfo } from "@/api/user.ts"
+import { type UserInfo } from "@/api/user.ts"
 import { useSettingStore } from "@/stores/settings.ts"
 
 const useUser = useUserStore()
 const useSettings = useSettingStore()
+const files = ref<File[]>([])
 
 const user = reactive<UserInfo>(useUser.user)
 const userStatus = computed(() => (user.status === 0 ? "正常" : "禁用"))
@@ -16,8 +17,12 @@ const userPermissions = computed(() => {
 })
 const accountCreate = computed(() => new Date(user.createTime).toLocaleString())
 
-const saveUserProfile = () => {
-	console.log("save success")
+const saveUserProfile = async () => {
+	if (files.value.length !== 0) {
+		// 更新头像
+		await useUser.updateProfile(files.value[0].originFileObj)
+	}
+	// await useUser.updateUser(user)
 }
 </script>
 <template>
@@ -25,7 +30,12 @@ const saveUserProfile = () => {
 		<a-form :model="user" :label-col="{ span: 4 }" :wrapper-col="{ span: 14 }">
 			<!--			头像-->
 			<a-form-item label="头像">
-				<a-upload name="file" :show-upload-list="false">
+				<a-upload
+					name="file"
+					v-model:file-list="files"
+					:show-upload-list="false"
+					@change="updateProfile"
+				>
 					<img
 						v-if="user.picture"
 						:src="user.picture"

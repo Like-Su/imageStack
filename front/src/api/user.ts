@@ -69,6 +69,18 @@ export const uploadProfile = async (
 	})
 }
 
+export const uploadProfileHeader = async (url: string, file: File) => {
+	return await request.put(url, file)
+}
+
+export const uploadConfirm = async (headerInfo) => {
+	return await request.post("/api/user/upload/confirm", headerInfo)
+}
+
+export const getUserInfo = async () => {
+	return await request.post("/api/user/user_info")
+}
+
 export const refreshToken = async (
 	refreshToken: string,
 ): Promise<ApiResponse<TokenResponse>> => {

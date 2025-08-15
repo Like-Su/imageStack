@@ -20,6 +20,7 @@ import { CAPTCHA_TYPE, PERMISSIONS } from 'src/constants';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 import { UserInfo } from 'src/user.decorator';
 import { LoginUserVo } from './vo/login-user.vo';
 import { RefreshToken } from './vo/refresh-token.vo';
@@ -42,7 +43,7 @@ export class UserController {
   @Inject(EmailService)
   private readonly emailService: EmailService;
 
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Get('init')
   async initData() {
@@ -69,7 +70,7 @@ export class UserController {
       await this.emailService.sendMail({
         to: email,
         subject: type,
-        text: `<h1>${captchaCode}</h1>`
+        text: `<h1>${captchaCode}</h1>`,
       });
     }
 
@@ -82,6 +83,11 @@ export class UserController {
   @Post('login')
   async login(@UserInfo() loginUserVo: LoginUserVo) {
     const userInfo = loginUserVo.userInfo;
+    userInfo.picture = await this.minioService.presignedUrl(
+      'GET',
+      'headers',
+      userInfo.picture,
+    );
     // 创建 accessToken
     const accessToken = this.jwtService.sign(
       {
@@ -162,20 +168,53 @@ export class UserController {
 
   @Post('update_user_info')
   async updateUserInfo(
-    @UserInfo('id') userId,
+    @UserInfo('userId') userId,
     @Body() updateUserVo: UpdateUserVo,
   ) {
     return await this.userService.update(userId, updateUserVo);
   }
 
-  @UnNeedLogin()
   @Get('upload')
-  async uploadHeadPicture(@Query('file_name') fileName: string, @UserInfo('id') userId: number) { 
+  async uploadHeadPicture(
+    @Query('file_name') fileName: string,
+    @UserInfo('userId') userId: number,
+  ) {
     const headerInfo = buildFileName(userId, fileName);
     if (!headerInfo._is_suc) {
       throw new HttpException('图片格式错误', HttpStatus.ACCEPTED);
     }
 
-    return await this.minioService.presignedPutObject('headers', headerInfo.fullName);
+    return {
+      url: await this.minioService.presignedPutObject(
+        'headers',
+        headerInfo.fullName,
+      ),
+      headerInfo,
+    };
+  }
+
+  @Post('upload/confirm')
+  async confirmUpload(
+    @UserInfo('userId') userId: number,
+    @Body() confirmUploadDto: ConfirmUploadDto,
+  ) {
+    try {
+      await this.minioService.statObject('headers', confirmUploadDto.fullName);
+      return await this.userService.confirmUpload(userId, confirmUploadDto);
+    } catch (e) {
+      throw new HttpException('图片不存在', HttpStatus.ACCEPTED);
+    }
+  }
+
+  @Post('user_info')
+  async getUserInfo(@UserInfo('userId') userId: number) {
+    const user = await this.userService.findUserById(userId);
+    user.picture = await this.minioService.presignedUrl(
+      'GET',
+      'headers',
+      user.picture,
+      7 * 3600,
+    );
+    return user;
   }
 }

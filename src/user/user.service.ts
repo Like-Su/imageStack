@@ -18,7 +18,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserVo } from './vo/login-user.vo';
 import { UpdateUserVo } from './vo/update-user.vo';
 import { md5 } from 'src/utils';
-
+import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 
 @Injectable()
 export class UserService {
@@ -189,6 +189,13 @@ export class UserService {
       where: { id },
       relations: ['roles', 'roles.permissions'],
     });
+  }
+
+  async confirmUpload(id: number, confirmUploadDto: ConfirmUploadDto) {
+    const user = await this.findUserById(id);
+    user.picture = confirmUploadDto.fullName;
+    await this.userRepository.save(user);
+    return true;
   }
 
   // 效验验证码

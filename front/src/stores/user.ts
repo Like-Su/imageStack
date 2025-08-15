@@ -1,6 +1,13 @@
 import { defineStore } from "pinia"
 import type { User, UserInfo } from "@/api/user.ts"
-import { login } from "@/api/user.ts"
+import {
+	getUserInfo,
+	login,
+	updateUserInfo,
+	uploadConfirm,
+	uploadProfile,
+	uploadProfileHeader,
+} from "@/api/user.ts"
 import {
 	isSuccessCode,
 	setAccessToken,
@@ -47,8 +54,33 @@ export const useUserStore = defineStore("user", () => {
 		}
 	}
 
+	const updateUser = async (userInfo: UserInfo) => {
+		await updateUserInfo(user)
+		Object.assign(user, userInfo)
+		setUserInfo(userInfo)
+	}
+
+	const updateProfile = async (profile: File) => {
+		const data = (await uploadProfile(profile.name)).data
+		if (!data) return false
+		const { headerInfo, url } = data
+		const res = await uploadProfileHeader(url as string, profile)
+
+		const confirmResult = await uploadConfirm(headerInfo)
+		if (!confirmResult.data) return false
+
+		const userInfo = (await getUserInfo()).data
+		if (!data) return false
+
+		Object.assign(user, userInfo)
+		setUserInfo(user)
+		return true
+	}
+
 	return {
 		user,
 		loginUser,
+		updateUser,
+		updateProfile,
 	}
 })
