@@ -69,15 +69,17 @@ export class PictureController {
     const uploaded = await Promise.all(
       confirmUploadDto.pictures.map(async (picture) => {
         try {
+          // 1_2ef2c9238688a8ff9ee581eab55e86b5_720w.webp_1755315485622
+
           // 获取文件信息
           const stat = await this.minioService.statObject(
             'images',
-            picture.originname,
+            picture.fileName,
           );
           return {
             name: picture.originname,
             size: stat.size,
-            uri: picture.originname,
+            uri: picture.fileName,
             bucketName: 'images',
             owner: user,
             status: PICTURE_STATUS.NORMAL,
@@ -130,5 +132,12 @@ export class PictureController {
   ) {
     const user = await this.userService.findUserById(userId);
     return await this.pictureService.listImage(user, limit, page);
+  }
+
+  // 最近 7 天的图片上传趋势
+  @UnNeedLogin()
+  @Get('trend')
+  async getTrend() {
+    return await this.pictureService.getTrend();
   }
 }

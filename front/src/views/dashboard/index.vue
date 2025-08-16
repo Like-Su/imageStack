@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import BaseChart from "@/components/BaseChart.vue"
-import { ref } from "vue"
+import { computed, ref, watch } from "vue"
+import { trend, getDiskInfo } from "@/api/dashboard"
+
+const trendCount = ref(Array.from(7).fill(0))
+const diskInfo = ref({})
+const usage = ref(0)
+onMounted(async () => {
+	trendCount.value = (await trend()).data.map((date) => date.count)
+	diskInfo.value = (await getDiskInfo()).data[0]
+	usage.value = parseFloat(diskInfo.value?.usage) || 0
+})
 
 // 上传趋势（折线图）
 const uploadTrendOptions = ref({
@@ -16,7 +26,7 @@ const uploadTrendOptions = ref({
 			name: "上传量",
 			type: "line",
 			smooth: true,
-			data: [120, 200, 150, 80, 70, 110, 130],
+			data: trendCount,
 		},
 	],
 })
@@ -63,7 +73,7 @@ const diskOptions = ref({
 			type: "gauge",
 			progress: { show: true },
 			detail: { valueAnimation: true, formatter: "{value}%" },
-			data: [{ value: 65, name: "磁盘" }],
+			data: [{ value: usage, name: "磁盘" }],
 		},
 	],
 })

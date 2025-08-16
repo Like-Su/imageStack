@@ -16,6 +16,7 @@ import { MinioService } from 'src/minio/minio.service';
 import { PICTURE_STATUS } from 'src/constants';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class PictureService {
@@ -56,25 +57,10 @@ export class PictureService {
     await this.minioService.presignedUrl('GET', 'images', results[0].uri);
 
     return results;
-
-    // this.pictureRepository.save(results);
-    // const results = await Promise.all(Object.keys(images).map(async key => {
-    //   const picture1 = new Picture();
-    //   picture1.name = images[key];
-    //   picture1.uri = images[key];
-    //   picture1.description = key;
-    //   picture1.owner = user1;
-    //   picture1.size = (await this.minioService.statObject('images', images[key])).size;
-    //   return picture1;
-    // }));
-    // //
-    //
-    // await this.pictureRepository.save(results);
   }
 
   async uploadFile(pictureInfo: CreatePictureDto) {
     const picture = new Picture();
-    console.log(pictureInfo);
     picture.name = pictureInfo.name;
     picture.size = pictureInfo.size;
     picture.uri = pictureInfo.uri;
@@ -149,5 +135,38 @@ export class PictureService {
     if (userId !== image.owner.id) {
       throw new HttpException('图片不存在', HttpStatus.ACCEPTED);
     }
+  }
+
+  // 最近 7 天的图片上传趋势, 若当前没有上传则为 0
+  async getTrend() {
+    const trendQueryBuilder =
+      await this.pictureRepository.createQueryBuilder('picture');
+
+    const thred = await trendQueryBuilder
+      .select('DATE_FORMAT(picture.createTime, "%Y-%m-%d")', 'date')
+      .addSelect('COUNT(*) AS count')
+      .where('picture.createTime >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)')
+      .groupBy('date')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    const trendMap = new Map<string, number>(
+      thred.map((r) => [r.date, Number(r.count)]),
+    );
+
+    const currentDate = (i) =>
+      dayjs()
+        .subtract(6 - i, 'day')
+        .format('YYYY-MM-DD');
+
+    const trend = Array.from({ length: 7 }).map((_, i) => {
+      const date = currentDate(i);
+      return {
+        date,
+        count: trendMap.get(date) ?? 0,
+      };
+    });
+
+    return trend;
   }
 }

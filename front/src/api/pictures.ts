@@ -1,6 +1,5 @@
 import type { ApiResponse } from "@/api/response.ts"
 import request from "./config/service.ts"
-import { PICTURE_STATUS } from "../../../src/constants.ts"
 
 interface Picture {
 	id: number
@@ -39,4 +38,20 @@ export const downloadImage = (id: number) => {
 		params: { id },
 		responseType: "blob",
 	})
+}
+
+export const uploadImage = (fileName: string) => {
+	return request.get("/api/picture/upload", {
+		params: {
+			file_name: fileName,
+		},
+	})
+}
+
+export const uploadImageByUrl = (url: string, file: File) => {
+	return request.put(url, file)
+}
+
+export const uploadConfirm = (uploadInfos: any) => {
+	return request.post("/api/picture/upload/confirm", { pictures: uploadInfos })
 }

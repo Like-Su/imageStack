@@ -78,7 +78,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue"
-import { getListImages, updateImage, downloadImage } from "@/api/pictures"
+import {
+	getListImages,
+	updateImage,
+	downloadImage,
+	uploadImage,
+	uploadImageByUrl,
+	uploadConfirm,
+} from "@/api/pictures"
 import { message } from "ant-design-vue"
 
 const gap = 8
@@ -105,6 +112,7 @@ function onDragLeave(e: DragEvent) {
 }
 async function onDrop(e: DragEvent) {
 	isDragOver.value = false
+
 	const files = Array.from(e.dataTransfer?.files || []).filter((file) =>
 		file.type.startsWith("image/"),
 	)
@@ -113,10 +121,24 @@ async function onDrop(e: DragEvent) {
 		message.warning("请拖入图片文件")
 		return
 	}
+
 	try {
+		const uploaded = []
 		for (const file of files) {
-			await uploadImage(file) // 你自己的上传 API
+			// 获取与签名上传链接
+			const uploadRes = await uploadImage(file.name)
+			if (!uploadRes.data) throw new Error()
+			const { uploadInfo, url } = uploadRes.data
+			uploadInfo.originname = file.name
+			// 上传到 OSS
+			await uploadImageByUrl(url, file)
+			uploaded.push(uploadInfo)
 		}
+
+		// 确认上传
+		const confirmRes = await uploadConfirm(uploaded)
+		console.log(confirmRes)
+
 		message.success("上传成功")
 		page.value = 1
 		allItems.length = 0

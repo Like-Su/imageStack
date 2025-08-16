@@ -10,6 +10,8 @@ export class ConfirmUploadDto {
 
 class PictureInfo {
   @IsString()
+  fileName: string;
+  @IsString()
   fullName: string;
   @IsString()
   originname: string;
