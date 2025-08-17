@@ -65,7 +65,7 @@ const toggleTheme = () => {
 						v-else
 						class="w-full h-full bg-green-800 rounded flex justify-center items-center text-2xl"
 					>
-						{{ useUser.user.nickname.slice(0, 1) }}
+						{{ useUser.user?.nickname?.slice(0, 1) || "" }}
 					</div>
 				</div>
 			</a-Dropdown>

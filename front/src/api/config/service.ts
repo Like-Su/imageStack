@@ -72,9 +72,9 @@ axiosInstance.interceptors.response.use(
 		if (data.statusCode === 401 && !config.url.includes("/user/refresh")) {
 			refreshsing = true
 			const res = await newRefreshToken()
-			reafreshsing = false
+			refreshsing = false
 			if (res.status === 200) {
-				takeQueue.forEach(({ config, resolve }) => {
+				taskQueue.forEach(({ config, resolve }) => {
 					resolve(axios(config))
 				})
 			} else {

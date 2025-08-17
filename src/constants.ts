@@ -25,4 +25,5 @@ export enum CAPTCHA_TYPE {
 export enum PICTURE_STATUS {
   DELETE = 1,
   NORMAL = 2,
+  TRASH = 3,
 }

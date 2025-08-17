@@ -117,10 +117,60 @@ export class PictureController {
     return await this.pictureService.download(userId, imageId);
   }
 
-  @Get('delete')
-  async deleteImage(@UserInfo('userId') userid) {}
+  // 删除图片
+  @Post('delete')
+  async deleteImage(
+    @UserInfo('userId') userid: number,
+    @Body('image_id') imageId: number,
+  ) {
+    await this.pictureService.existImage(userid, imageId);
+    return await this.pictureService.deleteImage(
+      imageId,
+      PICTURE_STATUS.NORMAL,
+      PICTURE_STATUS.DELETE,
+    );
+  }
+
+  // 回收站列表
+  @Get('recycle')
+  async recycle(@UserInfo('userId') userId: number) {
+    return await this.pictureService.recycle(userId);
+  }
+
+  @Post('recycle/restore')
+  async restoreImageFromRecycle(
+    @UserInfo('userId') userId: number,
+    @Body('image_id') imageId: number,
+  ) {
+    await this.pictureService.existImage(
+      userId,
+      imageId,
+      PICTURE_STATUS.DELETE,
+    );
+    return await this.pictureService.deleteImage(
+      imageId,
+      PICTURE_STATUS.DELETE,
+      PICTURE_STATUS.NORMAL,
+    );
+  }
 
   // 删除图片
+  @Post('recycle/delete')
+  async deleteImageFromRecycle(
+    @UserInfo('userId') userId: number,
+    @Body('image_id') imageId: number,
+  ) {
+    await this.pictureService.existImage(
+      userId,
+      imageId,
+      PICTURE_STATUS.DELETE,
+    );
+    return await this.pictureService.deleteImage(
+      imageId,
+      PICTURE_STATUS.DELETE,
+      PICTURE_STATUS.TRASH,
+    );
+  }
 
   // 获取所有图片
   @Get('list_image')

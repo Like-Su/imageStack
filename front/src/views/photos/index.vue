@@ -67,7 +67,7 @@
 				<a-button
 					type="primary"
 					danger
-					@click="handleDelete"
+					@click="handleDelete(detailForm.id)"
 					style="float: right"
 					>删除</a-button
 				>
@@ -85,6 +85,7 @@ import {
 	uploadImage,
 	uploadImageByUrl,
 	uploadConfirm,
+	deleteImage,
 } from "@/api/pictures"
 import { message } from "ant-design-vue"
 
@@ -199,7 +200,20 @@ async function handleSubmit() {
 	}
 }
 
-const handleDelete = () => {}
+const handleDelete = async (id: number) => {
+	try {
+		await deleteImage(id)
+		allItems.splice(
+			allItems.findIndex((i) => i.id === id),
+			1,
+		)
+		showDetail.value = false
+		message.success("删除成功")
+	} catch (e) {
+		message.error("删除失败, 请重试")
+	}
+}
+
 const download = async (id: number) => await downloadImage(id)
 function closeDetail() {
 	showDetail.value = false

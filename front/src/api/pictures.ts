@@ -48,10 +48,28 @@ export const uploadImage = (fileName: string) => {
 	})
 }
 
-export const uploadImageByUrl = (url: string, file: File) => {
-	return request.put(url, file)
+export const uploadImageByUrl = async (url: string, file: File) => {
+	return await request.put(url, file)
 }
 
-export const uploadConfirm = (uploadInfos: any) => {
-	return request.post("/api/picture/upload/confirm", { pictures: uploadInfos })
+export const uploadConfirm = async (uploadInfos: any) => {
+	return await request.post("/api/picture/upload/confirm", {
+		pictures: uploadInfos,
+	})
+}
+
+export const deleteImage = async (id: number) => {
+	return await request.post("/api/picture/delete", { image_id: id })
+}
+
+export const recycleList = async () => {
+	return await request.get("/api/picture/recycle")
+}
+
+export const recycleDelete = async (id: number) => {
+	return await request.post("/api/picture/recycle/delete", { image_id: id })
+}
+
+export const recycleRestore = async (id: number) => {
+	return await request.post("/api/picture/recycle/restore", { image_id: id })
 }

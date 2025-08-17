@@ -100,11 +100,12 @@ export class PictureService {
   }
 
   async listImage(user: User, limit: number, page: number) {
+    console.log(PICTURE_STATUS.NORMAL);
     const images = await this.pictureRepository.find({
       where: { owner: { id: user.id }, status: PICTURE_STATUS.NORMAL },
       take: limit,
       skip: (page - 1) * limit,
-      order: { createTime: 'DESC' },
+      order: { createTime: 'DESC', updateTime: 'DESC' },
     });
 
     const parserImages = await Promise.all(
@@ -119,20 +120,69 @@ export class PictureService {
     return parserImages;
   }
 
-  async pictureById(id: number) {
+  async pictureById(
+    id: number,
+    status: PICTURE_STATUS = PICTURE_STATUS.NORMAL,
+  ) {
     return await this.pictureRepository.findOne({
       where: {
         id,
-        status: PICTURE_STATUS.NORMAL,
+        status,
       },
       relations: ['owner'],
     });
   }
 
+  async deleteImage(
+    imageId: number,
+    fromStatus: PICTURE_STATUS,
+    toStatus: PICTURE_STATUS,
+  ) {
+    const image = await this.pictureRepository.findOneBy({
+      id: imageId,
+      status: fromStatus,
+    });
+
+    image.status = toStatus;
+
+    console.log(image);
+    await this.pictureRepository.save(image);
+
+    return image;
+  }
+
+  // 回收站列表
+  async recycle(userId: number) {
+    const images = await this.pictureRepository.find({
+      where: {
+        owner: { id: userId },
+        status: PICTURE_STATUS.DELETE,
+      },
+      order: {
+        updateTime: 'DESC',
+      },
+    });
+
+    const parserImages = await Promise.all(
+      images.map(async (image) => {
+        return {
+          ...image,
+          uri: await this.minioService.presignedUrl('GET', 'images', image.uri),
+        };
+      }),
+    );
+
+    return parserImages;
+  }
+
   // 检查用户是否有该图片
-  async existImage(userId: number, imageId: number) {
-    const image = await this.pictureById(imageId);
-    if (userId !== image.owner.id) {
+  async existImage(
+    userId: number,
+    imageId: number,
+    status: PICTURE_STATUS = PICTURE_STATUS.NORMAL,
+  ) {
+    const image = await this.pictureById(imageId, status);
+    if (!image || userId !== image.owner.id) {
       throw new HttpException('图片不存在', HttpStatus.ACCEPTED);
     }
   }
