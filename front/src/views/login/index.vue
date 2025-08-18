@@ -7,6 +7,7 @@ import { inject } from "vue"
 import { MESSAGE_EMITTER } from "@/constants.ts"
 import { useRouter } from "vue-router"
 import { useSettingStore } from "@/stores/settings.ts"
+import { useHead } from "@vueuse/head"
 
 const useSettings = useSettingStore()
 const messageEmitter = inject(MESSAGE_EMITTER)
@@ -26,7 +27,7 @@ const onFinish = async () => {
 		return
 	}
 	messageEmitter.emit("success", "登录成功")
-	router.push({ name: "Dashboard" })
+	router.push({ name: "DashboardIndex" })
 }
 
 const onFinishFailed = () => {}
@@ -39,6 +40,10 @@ const rules = {
 	],
 	password: [{ required: true, message: "请输入密码" }],
 }
+
+useHead({
+	title: "登录 | ImageStack",
+})
 </script>
 
 <template>

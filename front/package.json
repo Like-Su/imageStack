@@ -13,6 +13,7 @@
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@tailwindcss/vite": "^4.1.11",
+    "@vueuse/head": "^2.0.0",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.11.0",
     "dayjs": "^1.11.13",

@@ -88,6 +88,7 @@ import {
 	deleteImage,
 } from "@/api/pictures"
 import { message } from "ant-design-vue"
+import { useHead } from "@vueuse/head"
 
 const gap = 8
 const container = ref<HTMLElement | null>(null)
@@ -221,6 +222,10 @@ function closeDetail() {
 
 onMounted(() => {
 	loadImages()
+})
+
+useHead({
+	title: "图片管理 | ImageStack",
 })
 </script>
 

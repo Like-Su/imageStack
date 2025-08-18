@@ -22,9 +22,7 @@
 				<Header></Header>
 			</div>
 			<div class="app-main p-6" :class="useSettings.globalBgClass">
-				<!--				<Transition name="fade">-->
 				<router-view />
-				<!--				</Transition>-->
 			</div>
 		</div>
 	</div>

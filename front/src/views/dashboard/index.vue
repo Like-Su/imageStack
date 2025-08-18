@@ -2,6 +2,8 @@
 import BaseChart from "@/components/BaseChart.vue"
 import { computed, ref, watch } from "vue"
 import { trend, getDiskInfo } from "@/api/dashboard"
+import { useHead } from "@vueuse/head"
+import { useSettingStore } from "@/stores/settings.ts"
 
 const trendCount = ref(Array.from(7).fill(0))
 const diskInfo = ref({})
@@ -11,6 +13,8 @@ onMounted(async () => {
 	diskInfo.value = (await getDiskInfo()).data[0]
 	usage.value = parseFloat(diskInfo.value?.usage) || 0
 })
+
+const useSettings = useSettingStore()
 
 // 上传趋势（折线图）
 const uploadTrendOptions = ref({
@@ -77,27 +81,31 @@ const diskOptions = ref({
 		},
 	],
 })
+
+useHead({
+	title: "首页 | ImageStack",
+})
 </script>
 
 <template>
 	<div class="p-4 grid grid-cols-2 gap-4">
 		<!-- 上传趋势 -->
-		<div class="bg-white dark:bg-gray-800 p-4 rounded shadow">
+		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
 			<BaseChart :options="uploadTrendOptions" />
 		</div>
 
 		<!-- 分类占比 -->
-		<div class="bg-white dark:bg-gray-800 p-4 rounded shadow">
+		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
 			<BaseChart :options="categoryOptions" />
 		</div>
 
 		<!-- CPU 占用 -->
-		<div class="bg-white dark:bg-gray-800 p-4 rounded shadow">
+		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
 			<BaseChart :options="cpuOptions" />
 		</div>
 
 		<!-- 磁盘占用 -->
-		<div class="bg-white dark:bg-gray-800 p-4 rounded shadow">
+		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
 			<BaseChart :options="diskOptions" />
 		</div>
 	</div>

@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue"
 import { recycleList, recycleDelete, recycleRestore } from "@/api/pictures"
 import { message, Modal } from "ant-design-vue"
 import dayjs from "dayjs"
+import { useHead } from "@vueuse/head"
 
 const recycles = ref([]) // 回收站数据
 const loading = ref(false)
@@ -106,6 +107,10 @@ const columns = [
 		},
 	},
 ]
+
+useHead({
+	title: "回收站 | ImageStack",
+})
 </script>
 
 <template>

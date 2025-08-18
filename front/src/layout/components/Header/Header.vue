@@ -25,7 +25,10 @@ const toggleTheme = () => {
 	<header class="w-full h-14 flex items-center justify-between px-4 text-white">
 		<!-- 搜索框 -->
 		<div class="flex items-center flex-1 max-w-xl">
-			<div class="flex items-center bg-[#1f1f1f] rounded-full px-4 py-2 flex-1">
+			<div
+				class="flex items-center rounded-full px-4 py-2 flex-1"
+				:class="useSettings.globalBgClass"
+			>
 				<SearchOutlined class="text-gray-400 text-lg" />
 				<input
 					type="text"
@@ -47,8 +50,11 @@ const toggleTheme = () => {
 			</button>
 
 			<!-- 通知 -->
-			<button class="p-2 hover:bg-gray-800 rounded-full cursor-pointer">
-				<BellOutlined class="text-lg" />
+			<button
+				class="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
+				:class="useSettings.globalBgClass"
+			>
+				<BellOutlined class="text-gray-400 text-lg cursor-pointer" />
 			</button>
 
 			<!-- 用户头像 -->
@@ -56,17 +62,19 @@ const toggleTheme = () => {
 				<div
 					class="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
 				>
-					<img
-						:src="useUser.user.picture"
-						v-if="useUser.user.picture"
-						class="w-full h-full rounded-full"
-					/>
-					<div
-						v-else
-						class="w-full h-full bg-green-800 rounded flex justify-center items-center text-2xl"
-					>
-						{{ useUser.user?.nickname?.slice(0, 1) || "" }}
-					</div>
+					<template v-if="useUser.user && useUser.user.picture">
+						<img
+							:src="useUser.user.picture"
+							class="w-full h-full rounded-full"
+						/>
+					</template>
+					<template v-else>
+						<div
+							class="w-full h-full bg-green-800 rounded flex justify-center items-center text-2xl"
+						>
+							{{ useUser.user?.nickname?.slice(0, 1) || "" }}
+						</div>
+					</template>
 				</div>
 			</a-Dropdown>
 		</div>

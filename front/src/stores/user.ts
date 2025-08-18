@@ -15,6 +15,7 @@ import {
 	getUser,
 	setUserInfo,
 } from "@/utils.ts"
+import { computed, ref } from "vue"
 
 export const useUserStore = defineStore("user", () => {
 	const defaultUser: UserInfo = {
@@ -29,7 +30,7 @@ export const useUserStore = defineStore("user", () => {
 		updateTime: 0,
 	}
 
-	const user = reactive<UserInfo>(Object.assign(defaultUser, getUser()))
+	const user = ref<UserInfo>({ ...defaultUser, ...getUser() })
 
 	const loginUser = async (user: User) => {
 		const userResponse = await login(user)
@@ -44,9 +45,10 @@ export const useUserStore = defineStore("user", () => {
 
 		const res = userResponse.data
 		// 写入用户信息
-		Object.assign(user, res.userInfo)
-		setUserInfo(res.userInfo)
+		// Object.assign(user, res.userInfo)
+		user.value = res.userInfo
 
+		setUserInfo(res.userInfo)
 		setAccessToken(res.access_token)
 		setRefreshToken(res.refresh_token)
 		return {
@@ -72,7 +74,8 @@ export const useUserStore = defineStore("user", () => {
 		const userInfo = (await getUserInfo()).data
 		if (!data) return false
 
-		Object.assign(user, userInfo)
+		// Object.assign(user, userInfo)
+		user.value = userInfo
 		setUserInfo(user)
 		return true
 	}

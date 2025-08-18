@@ -100,7 +100,6 @@ export class PictureService {
   }
 
   async listImage(user: User, limit: number, page: number) {
-    console.log(PICTURE_STATUS.NORMAL);
     const images = await this.pictureRepository.find({
       where: { owner: { id: user.id }, status: PICTURE_STATUS.NORMAL },
       take: limit,

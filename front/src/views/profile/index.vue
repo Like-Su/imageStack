@@ -4,6 +4,7 @@ import { UploadOutlined } from "@ant-design/icons-vue"
 import { useUserStore } from "@/stores/user.ts"
 import { type UserInfo } from "@/api/user.ts"
 import { useSettingStore } from "@/stores/settings.ts"
+import { useHead } from "@vueuse/head"
 
 const useUser = useUserStore()
 const useSettings = useSettingStore()
@@ -24,6 +25,10 @@ const saveUserProfile = async () => {
 	}
 	// await useUser.updateUser(user)
 }
+
+useHead({
+	title: "个人中心 | ImageStack",
+})
 </script>
 <template>
 	<div class="profile-page" :class="useSettings.globalBgClass">
