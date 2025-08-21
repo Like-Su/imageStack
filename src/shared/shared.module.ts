@@ -10,6 +10,12 @@ import { Picture } from 'src/picture/entities/picture.entity';
 import { Tags } from 'src/picture/entities/tags.entity';
 import { MinioModule } from 'src/minio/minio.module';
 import { EmailModule } from 'src/email/email.module';
+import { ElasticsearchModule } from 'src/elasticsearch/elasticsearch.module';
+import { ShortLongUrl } from '../picture/entities/shortLongUrl.entity';
+import { UniqueShortUrl } from '../picture/entities/uniqueShortUrl.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+import { RequestLog } from '../request-log/eneity/request-log';
+import { HttpModule } from '@nestjs/axios';
 
 @Global()
 @Module({
@@ -27,7 +33,16 @@ import { EmailModule } from 'src/email/email.module';
           synchronize: configService.get('db.mysql.synchronize'),
           logging: configService.get('db.mysql.logging'),
           // entities: ['../**/entity/*.entity.ts'],
-          entities: [User, Role, Permission, Picture, Tags],
+          entities: [
+            User,
+            Role,
+            Permission,
+            Picture,
+            Tags,
+            ShortLongUrl,
+            UniqueShortUrl,
+            RequestLog,
+          ],
           poolSize: configService.get('db.mysql.poolSize'),
           connectorPackage: 'mysql2',
           extra: {
@@ -49,8 +64,21 @@ import { EmailModule } from 'src/email/email.module';
       inject: [ConfigService],
     }),
     MinioModule,
-    EmailModule
+    EmailModule,
+    // ElasticsearchModule.registerAsync({
+    //   useFactory(configService: ConfigService) {
+    //     return {
+    //       node: `${configService.get('db.es.protocol')}://${configService.get('db.es.host')}:${configService.get('db.es.port')}`,
+    //       requestTimeout: 60000,
+    //     };
+    //   },
+    //   inject: [ConfigService],
+    // }),
+    ScheduleModule.forRoot(),
+    HttpModule.register({
+      timeout: 10000,
+    }),
   ],
-  exports: [RedisModule, JwtModule, MinioModule, EmailModule],
+  exports: [RedisModule, JwtModule, MinioModule, EmailModule, HttpModule],
 })
-export class SharedModule { }
+export class SharedModule {}

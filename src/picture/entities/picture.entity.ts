@@ -3,14 +3,18 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Tags } from './tags.entity';
 import { PICTURE_STATUS } from 'src/constants';
+import { UniqueShortUrl } from './uniqueShortUrl.entity';
+import { ShortLongUrl } from './shortLongUrl.entity';
 
 // 图片实体
 @Entity()
@@ -49,6 +53,9 @@ export class Picture {
   // 图片标签
   @ManyToMany(() => Tags, (tag) => tag.pictures)
   tags: Tags[];
+
+  @OneToOne(() => ShortLongUrl, (shortLongUrl) => shortLongUrl.picture)
+  shortLongUrl: ShortLongUrl;
 
   // 图片状态
   @Column({

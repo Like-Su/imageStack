@@ -22,6 +22,7 @@ import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { PermissionGuard } from 'src/permission.guard';
+import { GenerateShortUrlDto } from './dto/generate-short-url.dto';
 
 // @UnNeedLogin()
 @Controller('picture')
@@ -189,5 +190,14 @@ export class PictureController {
   @Get('trend')
   async getTrend() {
     return await this.pictureService.getTrend();
+  }
+
+  // 短链生成
+  @Post('generate_short_url')
+  async generateShortUrl(@Body() generateShortUrlDto: GenerateShortUrlDto) {
+    return await this.pictureService.generateShortUrl(
+      generateShortUrlDto.longUrl,
+      generateShortUrlDto.imageId,
+    );
   }
 }

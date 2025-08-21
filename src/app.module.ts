@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { SharedModule } from './shared/shared.module';
-import { RedisModule } from './redis/redis.module';
 
 // config
 import config from './config';
@@ -15,8 +14,9 @@ import { PermissionGuard } from './permission.guard';
 import { AuthModule } from './auth/auth.module';
 import { PictureModule } from './picture/picture.module';
 import { SystemModule } from './system/system.module';
-import { MinioModule } from './minio/minio.module';
-import { EmailModule } from './email/email.module';
+import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
+import { RequestLogModule } from './request-log/request-log.module';
+import { RequestLogInterceptor } from './request-log/request-log.interceptor';
 
 @Module({
   imports: [
@@ -29,10 +29,17 @@ import { EmailModule } from './email/email.module';
     AuthModule,
     PictureModule,
     SystemModule,
+    ElasticsearchModule,
+    RequestLogModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    // 请求拦截器
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLogInterceptor,
+    },
     // 构造 响应返回对象
     {
       provide: APP_INTERCEPTOR,
@@ -49,4 +56,4 @@ import { EmailModule } from './email/email.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

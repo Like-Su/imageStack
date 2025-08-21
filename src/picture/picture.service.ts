@@ -13,19 +13,31 @@ import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { MinioService } from 'src/minio/minio.service';
-import { PICTURE_STATUS } from 'src/constants';
+import { PICTURE_STATUS, UNIQUE_SHORT_URL_STATUS } from 'src/constants';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as dayjs from 'dayjs';
+import * as base62 from 'base62';
+import { UniqueShortUrl } from './entities/uniqueShortUrl.entity';
+import { ShortLongUrl } from './entities/shortLongUrl.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class PictureService {
   @InjectRepository(Picture)
   private readonly pictureRepository: Repository<Picture>;
+  @InjectRepository(UniqueShortUrl)
+  private readonly uniqueShortUrlRepository: Repository<UniqueShortUrl>;
+  @InjectRepository(ShortLongUrl)
+  private readonly shortLongUrlRepository: Repository<ShortLongUrl>;
   @Inject(UserService)
   private readonly userService: UserService;
   @Inject(MinioService)
   private readonly minioService: MinioService;
+  // 短链接长度
+  private readonly shortUrlLength = 6;
+  // 批量生成短链 数量
+  private readonly batchGenerateShortUrlCount = 100;
 
   async initData() {
     const user1 = await this.userService.findUserById(1);
@@ -217,5 +229,68 @@ export class PictureService {
     });
 
     return trend;
+  }
+
+  // 短链生成
+  async generateShortUrl(longUrl: string, imageId: number) {
+    const picture = await this.pictureById(imageId);
+
+    let uniqueCode = await this.uniqueShortUrlRepository.findOneBy({
+      status: UNIQUE_SHORT_URL_STATUS.UNUSED,
+    });
+    if (!uniqueCode) {
+      uniqueCode = await this.generateUniqueCode();
+    }
+
+    const shortLongUrl = new ShortLongUrl();
+    shortLongUrl.longUrl = longUrl;
+    shortLongUrl.shortUrl = uniqueCode.code;
+    shortLongUrl.picture = picture;
+    await this.shortLongUrlRepository.insert(shortLongUrl);
+    await this.uniqueShortUrlRepository.update(
+      { id: uniqueCode.id },
+      { status: UNIQUE_SHORT_URL_STATUS.NORMAL },
+    );
+  }
+
+  // 历史短链
+  async getHistoryShortUrl(imageId: number) {
+    return await this.shortLongUrlRepository.find({
+      where: {
+        picture: {
+          id: imageId,
+        },
+      },
+    });
+  }
+
+  // 生成短链接
+  generateCode(length: number) {
+    let shortUrl = '';
+    for (let i = 0; i < length; i++) {
+      shortUrl += base62.encode(Math.floor(Math.random() * 62));
+    }
+    return shortUrl;
+  }
+
+  async generateUniqueCode() {
+    const code = this.generateCode(this.shortUrlLength);
+    const uniqueCode = await this.uniqueShortUrlRepository.findOneBy({ code });
+
+    // 没有重复短链
+    if (!uniqueCode) {
+      const uniqueCodeOnly = new UniqueShortUrl();
+      uniqueCodeOnly.code = code;
+      return await this.uniqueShortUrlRepository.insert(uniqueCodeOnly);
+    }
+    // 若短链重复则重新生成
+    return this.generateUniqueCode();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async batchGenerateShortUrl() {
+    for (let i = 0; i < this.batchGenerateShortUrlCount; i++) {
+      this.generateUniqueCode();
+    }
   }
 }

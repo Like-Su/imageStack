@@ -27,3 +27,9 @@ export enum PICTURE_STATUS {
   NORMAL = 2,
   TRASH = 3,
 }
+
+export enum UNIQUE_SHORT_URL_STATUS {
+  UNUSED = 0,
+  NORMAL = 1,
+  DELETE = 2,
+}
