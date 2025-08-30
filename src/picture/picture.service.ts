@@ -9,11 +9,15 @@ import { CreatePictureDto } from './dto/create-picture.dto';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { Picture } from './entities/picture.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { MinioService } from 'src/minio/minio.service';
-import { PICTURE_STATUS, UNIQUE_SHORT_URL_STATUS } from 'src/constants';
+import {
+  PICTURE_STATUS,
+  SEARCH_TYPE,
+  UNIQUE_SHORT_URL_STATUS,
+} from 'src/constants';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as dayjs from 'dayjs';
@@ -21,11 +25,15 @@ import * as base62 from 'base62';
 import { UniqueShortUrl } from './entities/uniqueShortUrl.entity';
 import { ShortLongUrl } from './entities/shortLongUrl.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import * as qrcode from 'qrcode';
+import { Tags } from './entities/tags.entity';
 
 @Injectable()
 export class PictureService {
   @InjectRepository(Picture)
   private readonly pictureRepository: Repository<Picture>;
+  @InjectRepository(Tags)
+  private readonly tagRepository: Repository<Tags>;
   @InjectRepository(UniqueShortUrl)
   private readonly uniqueShortUrlRepository: Repository<UniqueShortUrl>;
   @InjectRepository(ShortLongUrl)
@@ -43,7 +51,6 @@ export class PictureService {
     const user1 = await this.userService.findUserById(1);
     const dirPath = path.join(`E:\\desk\\图床`);
     const isImage = (fileName: string) => /\.(png|jpg|jpeg)$/i.test(fileName);
-
     const files = (await fs.readdir(dirPath))
       .filter(isImage)
       .map((fileName) => {
@@ -111,12 +118,36 @@ export class PictureService {
     });
   }
 
+  async generateQrcode(imageId: number) {
+    const image = await this.pictureById(imageId);
+    const url = await this.minioService.presignedUrl(
+      'GET',
+      'images',
+      image.uri,
+    );
+    const qrcodeBase64 = await qrcode.toDataURL(url);
+
+    return qrcodeBase64;
+  }
+
+  async downloadQrcode(imageId: number) {
+    const image = await this.pictureById(imageId);
+    const imageUri = await this.minioService.presignedGetObject(
+      'images',
+      image.uri,
+    );
+
+    const qrcodeBase64 = await qrcode.toDataURL(imageUri);
+    return qrcodeBase64;
+  }
+
   async listImage(user: User, limit: number, page: number) {
     const images = await this.pictureRepository.find({
       where: { owner: { id: user.id }, status: PICTURE_STATUS.NORMAL },
       take: limit,
       skip: (page - 1) * limit,
       order: { createTime: 'DESC', updateTime: 'DESC' },
+      relations: ['tags'],
     });
 
     const parserImages = await Promise.all(
@@ -292,5 +323,37 @@ export class PictureService {
     for (let i = 0; i < this.batchGenerateShortUrlCount; i++) {
       this.generateUniqueCode();
     }
+  }
+
+  // tag
+
+  async getTagList(userId: number) {
+    return await this.tagRepository.find({
+      where: {
+        owner_id: userId,
+      },
+    });
+  }
+
+  async search(type: SEARCH_TYPE, keyword: string) {
+    const queryBuilder = this.pictureRepository
+      .createQueryBuilder('picture')
+      .leftJoinAndSelect('picture.tags', 'tag');
+
+    let builderWhere = 'picture.name LIKE :keyword OR tag.name LIKE :keyword';
+
+    if (type === SEARCH_TYPE.TAG) {
+      builderWhere = 'tag.name LIKE :keyword';
+    } else if (type === SEARCH_TYPE.NAME) {
+      builderWhere = 'picture.name LIKE :keyword';
+    }
+
+    const results = await queryBuilder
+      .where(builderWhere, {
+        keyword: `%${keyword}%`,
+      })
+      .getMany();
+
+    return results;
   }
 }

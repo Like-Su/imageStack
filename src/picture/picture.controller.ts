@@ -3,25 +3,20 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
-  Header,
   Inject,
   ParseIntPipe,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { PictureService } from './picture.service';
-import * as Minio from 'minio';
-import { MINIO_CLIENT, PERMISSIONS, PICTURE_STATUS } from 'src/constants';
+import { PERMISSIONS, PICTURE_STATUS, SEARCH_TYPE } from 'src/constants';
 import { NeedPermissions, UnNeedLogin } from 'src/interface.guard.decorator';
 import { MinioService } from 'src/minio/minio.service';
 import { UserInfo } from 'src/user.decorator';
 import { buildFileName } from 'src/utils';
-import { CreatePictureDto } from './dto/create-picture.dto';
 import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
-import { PermissionGuard } from 'src/permission.guard';
 import { GenerateShortUrlDto } from './dto/generate-short-url.dto';
 
 // @UnNeedLogin()
@@ -53,7 +48,7 @@ export class PictureController {
     return {
       url: await this.minioService.presignedPutObject(
         'images',
-        imageInfo.fileName,
+        imageInfo?.fileName,
       ),
       uploadInfo: imageInfo,
     };
@@ -113,9 +108,29 @@ export class PictureController {
 
   // 下载图片
   @Get('download')
-  @UnNeedLogin()
   async download(@UserInfo('userId') userId, @Query('id') imageId: number) {
     return await this.pictureService.download(userId, imageId);
+  }
+
+  // 预览二维码
+  @Get('qrcode')
+  async generateQrcode(
+    @Query('image_id') imageId,
+    @UserInfo('userId') userId: number,
+  ) {
+    await this.pictureService.existImage(userId, imageId);
+    console.log(userId);
+    return await this.pictureService.generateQrcode(imageId);
+  }
+
+  // 下载二维码
+  @Get('download/qrcode')
+  async downloadQrcode(
+    @UserInfo('userId') userId: number,
+    @Query('image_id') imageId: number,
+  ) {
+    await this.pictureService.existImage(userId, imageId);
+    return await this.pictureService.downloadQrcode(imageId);
   }
 
   // 删除图片
@@ -186,7 +201,6 @@ export class PictureController {
   }
 
   // 最近 7 天的图片上传趋势
-  @UnNeedLogin()
   @Get('trend')
   async getTrend() {
     return await this.pictureService.getTrend();
@@ -199,5 +213,21 @@ export class PictureController {
       generateShortUrlDto.longUrl,
       generateShortUrlDto.imageId,
     );
+  }
+
+  // 获取 标签
+  @UnNeedLogin()
+  @Get('tag_list')
+  async getTagList(@UserInfo('userId') userId: number) {
+    return await this.pictureService.getTagList(userId);
+  }
+
+  @UnNeedLogin()
+  @Get('search')
+  async search(
+    @Query('type') type: SEARCH_TYPE = SEARCH_TYPE.ALL,
+    @Query('keyword') keyword: string,
+  ) {
+    return await this.pictureService.search(type, keyword);
   }
 }

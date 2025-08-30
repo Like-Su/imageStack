@@ -14,6 +14,7 @@ import {
 	setRefreshToken,
 	getUser,
 	setUserInfo,
+	clearToken,
 } from "@/utils.ts"
 import { computed, ref } from "vue"
 
@@ -80,10 +81,16 @@ export const useUserStore = defineStore("user", () => {
 		return true
 	}
 
+	const logout = () => {
+		user.value = { ...defaultUser, ...getUser() }
+		clearToken()
+	}
+
 	return {
 		user,
 		loginUser,
 		updateUser,
 		updateProfile,
+		logout,
 	}
 })

@@ -90,11 +90,6 @@ const themeClass = computed(() =>
 		>
 			<!-- Logo 区域 -->
 			<span v-show="!collapsed" :class="themeClass"> ImageStack </span>
-
-			<!-- 收缩按钮 -->
-			<a-button type="text" @click="toggleCollapsed" :class="themeClass">
-				<component :is="collapsed ? MenuUnfoldOutlined : MenuFoldOutlined" />
-			</a-button>
 		</div>
 
 		<!-- 菜单 -->

@@ -33,3 +33,9 @@ export enum UNIQUE_SHORT_URL_STATUS {
   NORMAL = 1,
   DELETE = 2,
 }
+
+export enum SEARCH_TYPE {
+  ALL = 'all',
+  TAG = 'tag',
+  NAME = 'name',
+}

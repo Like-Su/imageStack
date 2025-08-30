@@ -49,7 +49,7 @@ export class Picture {
   // @OneToOne(() => User)
   owner: User;
 
-  @JoinTable()
+  @JoinTable({ name: 'picture_as_tags' })
   // 图片标签
   @ManyToMany(() => Tags, (tag) => tag.pictures)
   tags: Tags[];

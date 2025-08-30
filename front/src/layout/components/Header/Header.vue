@@ -3,21 +3,39 @@ import { useSettingStore } from "@/stores/settings.ts"
 import {
 	SearchOutlined,
 	FilterOutlined,
-	BellOutlined,
+	// BellOutlined,
 } from "@ant-design/icons-vue"
 import { computed } from "vue"
 import sun from "@/assets/svg/sun.svg"
 import moon from "@/assets/svg/moon.svg"
 import { useUserStore } from "@/stores/user.ts"
+import { useRouter } from "vue-router"
+import { message } from "ant-design-vue"
 
 const useUser = useUserStore()
 const useSettings = useSettingStore()
+const router = useRouter()
 
 const themeIcon = computed(() => (useSettings.theme === "light" ? sun : moon))
 
 // 切换主题方法
 const toggleTheme = () => {
 	useSettings.toggleTheme()
+}
+
+// 菜单点击
+const onMenuClick = ({ key }: { key: string }) => {
+	const start = {
+		logout: () => {
+			useUser.logout() // store 里实现清空 token / user
+			message.success("已退出登录")
+			router.push("/login")
+		},
+		profile: () => {
+			router.push("/profile/index")
+		},
+	}
+	return start[key] ? start[key]() : null
 }
 </script>
 
@@ -49,16 +67,8 @@ const toggleTheme = () => {
 				<img :src="themeIcon" width="24" height="24" alt="" />
 			</button>
 
-			<!-- 通知 -->
-			<button
-				class="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
-				:class="useSettings.globalBgClass"
-			>
-				<BellOutlined class="text-gray-400 text-lg cursor-pointer" />
-			</button>
-
-			<!-- 用户头像 -->
-			<a-Dropdown trigger="click">
+			<!-- 用户头像 + 下拉菜单 -->
+			<a-dropdown trigger="click">
 				<div
 					class="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
 				>
@@ -70,15 +80,21 @@ const toggleTheme = () => {
 					</template>
 					<template v-else>
 						<div
-							class="w-full h-full bg-green-800 rounded flex justify-center items-center text-2xl"
+							class="w-full h-full bg-green-800 rounded flex justify-center items-center text-2xl text-white"
 						>
 							{{ useUser.user?.nickname?.slice(0, 1) || "" }}
 						</div>
 					</template>
 				</div>
-			</a-Dropdown>
+
+				<template #overlay>
+					<a-menu @click="onMenuClick">
+						<a-menu-item key="profile">个人中心</a-menu-item>
+						<a-menu-divider />
+						<a-menu-item key="logout">退出登录</a-menu-item>
+					</a-menu>
+				</template>
+			</a-dropdown>
 		</div>
 	</header>
 </template>
-
-<style scoped></style>

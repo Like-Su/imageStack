@@ -8,18 +8,27 @@
 		@dragleave.prevent="onDragLeave"
 		@drop.prevent="onDrop"
 	>
-		<div class="vm-columns" :style="{ columnGap: gap + 'px' }">
+		<!-- 占位区域（在可见内容上方留出空间） -->
+		<div :style="{ height: topPadding + 'px' }"></div>
+
+		<!-- 可见图片 -->
+		<div class="grid-container">
 			<div
-				v-for="item in allItems"
+				v-for="item in visibleItems"
 				:key="item.id"
 				class="vm-item cursor-pointer"
 				@click="openDetail(item.id)"
 			>
-				<img :src="item.uri" :alt="item.name" loading="lazy" class="vm-img" />
+				<img :src="item.uri" :alt="item.name" class="vm-img" loading="lazy" />
 			</div>
 		</div>
 
-		<div v-if="allItems.length === 0" class="loading">暂无数据</div>
+		<!-- 占位区域（在可见内容下方留出空间） -->
+		<div :style="{ height: bottomPadding + 'px' }"></div>
+
+		<div v-if="allItems.length === 0 && !loading" class="loading">暂无数据</div>
+		<div v-if="loading" class="loading">加载中...</div>
+		<div v-if="finished && allItems.length > 0" class="loading">没有更多了</div>
 
 		<!-- 拖拽遮罩层 -->
 		<div v-if="isDragOver" class="drag-overlay">
@@ -56,12 +65,12 @@
 			</a-form>
 			<div class="modal-footer">
 				<div class="w-[40%] flex justify-between">
-					<a-button type="primary" @click="download(detailForm.id)"
-						>下载</a-button
-					>
-					<a-button type="primary" @click="handleSubmit" :loading="submitting"
-						>保存</a-button
-					>
+					<a-button type="primary" @click="download(detailForm.id)">
+						下载
+					</a-button>
+					<a-button type="primary" @click="handleSubmit" :loading="submitting">
+						保存
+					</a-button>
 					<a-button @click="closeDetail">取消</a-button>
 				</div>
 				<a-button
@@ -69,15 +78,16 @@
 					danger
 					@click="handleDelete(detailForm.id)"
 					style="float: right"
-					>删除</a-button
 				>
+					删除
+				</a-button>
 			</div>
 		</a-modal>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue"
+import { ref, reactive, onMounted, computed } from "vue"
 import {
 	getListImages,
 	updateImage,
@@ -90,14 +100,82 @@ import {
 import { message } from "ant-design-vue"
 import { useHead } from "@vueuse/head"
 
-const gap = 8
-const container = ref<HTMLElement | null>(null)
-const allItems = reactive<any[]>([])
+// === 虚拟列表参数 ===
+const COLS = 4 // 一行显示 4 列
+const ITEM_HEIGHT = 220 // 每个 item 的高度
+const BUFFER_ROWS = 3 // 上下缓冲行
 
+// === 数据 ===
+const allItems = reactive<any[]>([])
 const page = ref(1)
 const limit = 20
+const container = ref<HTMLElement | null>(null)
+
+// 滚动状态
+const scrollTop = ref(0)
+const containerHeight = ref(0)
+
+// 加载状态
+const loading = ref(false)
+const finished = ref(false)
+
+// 拖拽上传状态
 const isDragOver = ref(false)
 
+// === 虚拟滚动计算 ===
+function onScroll() {
+	if (!container.value) return
+	scrollTop.value = container.value.scrollTop
+	containerHeight.value = container.value.clientHeight
+
+	// 判断是否接近底部，触发加载更多
+	const scrollBottom =
+		container.value.scrollHeight -
+		(container.value.scrollTop + container.value.clientHeight)
+
+	if (scrollBottom < ITEM_HEIGHT * 3) {
+		loadImages()
+	}
+}
+const totalRows = computed(() => Math.ceil(allItems.length / COLS))
+const startRow = computed(() =>
+	Math.max(Math.floor(scrollTop.value / ITEM_HEIGHT) - BUFFER_ROWS, 0),
+)
+const endRow = computed(() =>
+	Math.min(
+		Math.ceil((scrollTop.value + containerHeight.value) / ITEM_HEIGHT) +
+			BUFFER_ROWS,
+		totalRows.value,
+	),
+)
+const visibleItems = computed(() => {
+	const startIndex = startRow.value * COLS
+	const endIndex = endRow.value * COLS
+	return allItems.slice(startIndex, endIndex)
+})
+const topPadding = computed(() => startRow.value * ITEM_HEIGHT)
+const bottomPadding = computed(
+	() => (totalRows.value - endRow.value) * ITEM_HEIGHT,
+)
+
+// === 图片加载 ===
+async function loadImages() {
+	if (loading.value || finished.value) return
+	loading.value = true
+	try {
+		const res = await getListImages(limit, page.value)
+		if (res?.data?.length) {
+			allItems.push(...res.data)
+			page.value++
+		} else {
+			finished.value = true
+		}
+	} finally {
+		loading.value = false
+	}
+}
+
+// === 拖拽上传 ===
 function onDragEnter() {
 	isDragOver.value = true
 }
@@ -114,68 +192,35 @@ function onDragLeave(e: DragEvent) {
 }
 async function onDrop(e: DragEvent) {
 	isDragOver.value = false
-
 	const files = Array.from(e.dataTransfer?.files || []).filter((file) =>
 		file.type.startsWith("image/"),
 	)
-
 	if (!files.length) {
 		message.warning("请拖入图片文件")
 		return
 	}
-
 	try {
 		const uploaded = []
 		for (const file of files) {
-			// 获取与签名上传链接
 			const uploadRes = await uploadImage(file.name)
 			if (!uploadRes.data) throw new Error()
 			const { uploadInfo, url } = uploadRes.data
 			uploadInfo.originname = file.name
-			// 上传到 OSS
 			await uploadImageByUrl(url, file)
 			uploaded.push(uploadInfo)
 		}
-
-		// 确认上传
-		const confirmRes = await uploadConfirm(uploaded)
-		console.log(confirmRes)
-
+		await uploadConfirm(uploaded)
 		message.success("上传成功")
 		page.value = 1
 		allItems.length = 0
+		finished.value = false
 		loadImages()
 	} catch {
 		message.error("上传失败")
 	}
 }
 
-async function loadImages() {
-	const res = await getListImages(limit, page.value)
-	if (res?.data?.length) {
-		allItems.push(...res.data)
-		page.value++
-	}
-}
-
-function onScroll() {
-	if (!container.value) return
-	if (
-		container.value.scrollTop + container.value.clientHeight >=
-		container.value.scrollHeight - 200
-	) {
-		loadImages()
-	}
-}
-
-function openDetail(id: number) {
-	const item = allItems.find((img) => img.id === id)
-	if (item) {
-		Object.assign(detailForm, item)
-		showDetail.value = true
-	}
-}
-
+// === 详情操作 ===
 const showDetail = ref(false)
 const submitting = ref(false)
 const detailForm = reactive({
@@ -185,7 +230,13 @@ const detailForm = reactive({
 	status: 0,
 	uri: "",
 })
-
+function openDetail(id: number) {
+	const item = allItems.find((img) => img.id === id)
+	if (item) {
+		Object.assign(detailForm, item)
+		showDetail.value = true
+	}
+}
 async function handleSubmit() {
 	submitting.value = true
 	try {
@@ -200,8 +251,7 @@ async function handleSubmit() {
 		submitting.value = false
 	}
 }
-
-const handleDelete = async (id: number) => {
+async function handleDelete(id: number) {
 	try {
 		await deleteImage(id)
 		allItems.splice(
@@ -210,17 +260,19 @@ const handleDelete = async (id: number) => {
 		)
 		showDetail.value = false
 		message.success("删除成功")
-	} catch (e) {
+	} catch {
 		message.error("删除失败, 请重试")
 	}
 }
-
 const download = async (id: number) => await downloadImage(id)
 function closeDetail() {
 	showDetail.value = false
 }
 
 onMounted(() => {
+	if (container.value) {
+		containerHeight.value = container.value.clientHeight
+	}
 	loadImages()
 })
 
@@ -232,7 +284,7 @@ useHead({
 <style scoped>
 .vm-wrapper {
 	height: 88vh;
-	overflow-y: scroll;
+	overflow-y: auto;
 	padding: 8px;
 	box-sizing: border-box;
 	-ms-overflow-style: none;
@@ -241,23 +293,31 @@ useHead({
 .vm-wrapper::-webkit-scrollbar {
 	display: none;
 }
-.vm-columns {
-	column-width: 240px;
-	column-gap: 8px;
+
+/* 网格布局 */
+.grid-container {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr); /* 4 列 */
+	gap: 8px;
 }
 .vm-item {
-	break-inside: avoid;
-	margin-bottom: 8px;
+	height: 220px; /* 固定高度，配合虚拟滚动 */
 	border-radius: 8px;
 	overflow: hidden;
 	background: #f7f7f7;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .vm-img {
 	width: 100%;
+	height: 100%;
+	object-fit: cover;
 	display: block;
-	object-fit: contain;
-	user-select: none;
+}
+.loading {
+	text-align: center;
+	padding: 12px;
+	color: #666;
+	font-size: 14px;
 }
 .modal-footer {
 	margin-top: 16px;
@@ -266,7 +326,6 @@ useHead({
 	gap: 8px;
 }
 
-/* 遮罩层样式 */
 /* 遮罩层样式 */
 .drag-overlay {
 	position: fixed;
@@ -282,7 +341,6 @@ useHead({
 	z-index: 9999;
 	animation: fadeIn 0.25s ease-out;
 }
-
 .overlay-content {
 	padding: 40px 60px;
 	border: 3px dashed rgba(255, 255, 255, 0.7);
@@ -300,7 +358,6 @@ useHead({
 	animation: pulse 1.5s infinite;
 	backdrop-filter: blur(12px);
 }
-
 @keyframes fadeIn {
 	from {
 		opacity: 0;
@@ -309,7 +366,6 @@ useHead({
 		opacity: 1;
 	}
 }
-
 @keyframes pulse {
 	0%,
 	100% {
