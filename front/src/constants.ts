@@ -11,3 +11,9 @@ export enum CAPTCHA_TYPE {
 	REGISTER = "register",
 	FORGET = "forget",
 }
+
+export enum SEARCH_TYPE {
+	ALL = "all",
+	TAG = "tag",
+	NAME = "name",
+}

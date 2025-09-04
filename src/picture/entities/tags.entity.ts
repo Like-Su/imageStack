@@ -21,7 +21,10 @@ export class Tags {
   name: string;
 
   // 标签对应图片
-  @ManyToMany(() => Picture, (picture) => picture.tags)
+  @ManyToMany(() => Picture, (picture) => picture.tags, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   pictures: Picture[];
 
   // 标签 对应的 用户

@@ -1,56 +1,71 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue"
+import { computed, ref, reactive } from "vue"
 import { UploadOutlined } from "@ant-design/icons-vue"
 import { useUserStore } from "@/stores/user.ts"
 import { type UserInfo } from "@/api/user.ts"
 import { useSettingStore } from "@/stores/settings.ts"
 import { useHead } from "@vueuse/head"
+import { message } from "ant-design-vue"
 
 const useUser = useUserStore()
 const useSettings = useSettingStore()
-const files = ref<File[]>([])
+const files = ref<any[]>([]) // Antd file-list 类型
 
-const user = reactive<UserInfo>(useUser.user)
-const userStatus = computed(() => (user.status === 0 ? "正常" : "禁用"))
-const userRoles = computed(() => user.roles?.join("、"))
+const user = computed(() => useUser.user)
+
+const userStatus = computed(() => (user.value.status === 0 ? "正常" : "禁用"))
+const userRoles = computed(() => user.value.roles?.join("、"))
+const userPicture = computed(() => user.value.picture)
+
+console.log(user)
 const userPermissions = computed(() => {
-	return user?.permissions.map((permission) => permission.description).join(",")
+	return user.value.permissions
+		.map((permission) => permission.description)
+		.join(",")
 })
-const accountCreate = computed(() => new Date(user.createTime).toLocaleString())
+const accountCreate = computed(() =>
+	new Date(user.value.createTime).toLocaleString(),
+)
+
+// 自定义上传逻辑
+const beforeUpload = (file: File) => {
+	files.value = [file] // 覆盖，只保留一个头像
+	return false // 阻止 a-upload 自动上传
+}
 
 const saveUserProfile = async () => {
 	if (files.value.length !== 0) {
-		// 更新头像
-		await useUser.updateProfile(files.value[0].originFileObj)
+		// 更新头像：把文件传给后端
+		await useUser.updateProfile(files.value[0])
 	}
-	// await useUser.updateUser(user)
+	await useUser.updateUser(user.value)
 }
 
 useHead({
 	title: "个人中心 | ImageStack",
 })
 </script>
+
 <template>
 	<div class="profile-page" :class="useSettings.globalBgClass">
 		<a-form :model="user" :label-col="{ span: 4 }" :wrapper-col="{ span: 14 }">
-			<!--			头像-->
+			<!-- 头像 -->
 			<a-form-item label="头像">
 				<a-upload
 					name="file"
-					v-model:file-list="files"
 					:show-upload-list="false"
-					@change="updateProfile"
+					:before-upload="beforeUpload"
 				>
-					<img
-						v-if="user.picture"
-						:src="user.picture"
-						alt="picture"
-						class="avatar"
-					/>
-					<a-button v-else> <UploadOutlined /> 上传头像 </a-button>
+					<template v-if="userPicture">
+						<img :src="userPicture" alt="picture" class="avatar" />
+					</template>
+					<template v-else>
+						<a-button> <UploadOutlined /> 上传头像 </a-button>
+					</template>
 				</a-upload>
 			</a-form-item>
-			<!--	昵称 -->
+
+			<!-- 昵称 -->
 			<a-form-item label="昵称">
 				<a-input v-model:value="user.nickname" placeholder="请输入昵称" />
 			</a-form-item>
@@ -64,15 +79,18 @@ useHead({
 			<a-form-item label="用户状态">
 				<span>{{ userStatus }}</span>
 			</a-form-item>
+
 			<!-- 角色 -->
 			<a-form-item label="角色">
 				<span>{{ userRoles }}</span>
 			</a-form-item>
+
 			<!-- 权限 -->
 			<a-form-item label="权限">
 				<span>{{ userPermissions }}</span>
 			</a-form-item>
-			<!-- 账户注册时间 -->
+
+			<!-- 注册时间 -->
 			<a-form-item label="注册时间">
 				<span>{{ accountCreate }}</span>
 			</a-form-item>

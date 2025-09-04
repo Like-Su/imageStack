@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { PictureService } from './picture.service';
 import { PERMISSIONS, PICTURE_STATUS, SEARCH_TYPE } from 'src/constants';
-import { NeedPermissions, UnNeedLogin } from 'src/interface.guard.decorator';
+import { NeedPermissions } from 'src/interface.guard.decorator';
 import { MinioService } from 'src/minio/minio.service';
 import { UserInfo } from 'src/user.decorator';
 import { buildFileName } from 'src/utils';
@@ -18,6 +18,8 @@ import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 import { UserService } from 'src/user/user.service';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { GenerateShortUrlDto } from './dto/generate-short-url.dto';
+import { CreateTagDto } from './dto/create-tag.dto';
+import { UpdateTagDto } from './dto/update-tag.dto';
 
 // @UnNeedLogin()
 @Controller('picture')
@@ -135,6 +137,7 @@ export class PictureController {
 
   // 删除图片
   @Post('delete')
+  @NeedPermissions(PERMISSIONS.DELETE)
   async deleteImage(
     @UserInfo('userId') userid: number,
     @Body('image_id') imageId: number,
@@ -154,6 +157,7 @@ export class PictureController {
   }
 
   @Post('recycle/restore')
+  @NeedPermissions(PERMISSIONS.MODIFIER)
   async restoreImageFromRecycle(
     @UserInfo('userId') userId: number,
     @Body('image_id') imageId: number,
@@ -172,6 +176,7 @@ export class PictureController {
 
   // 删除图片
   @Post('recycle/delete')
+  @NeedPermissions(PERMISSIONS.DELETE)
   async deleteImageFromRecycle(
     @UserInfo('userId') userId: number,
     @Body('image_id') imageId: number,
@@ -216,13 +221,39 @@ export class PictureController {
   }
 
   // 获取 标签
-  @UnNeedLogin()
+  @Post('create_tag')
+  @NeedPermissions(PERMISSIONS.MODIFIER)
+  async createTag(
+    @UserInfo('userId') userId: number,
+    @Body() createTagDto: CreateTagDto,
+  ) {
+    return await this.pictureService.createTag(userId, createTagDto);
+  }
+
+  @Post('remove_tag')
+  @NeedPermissions(PERMISSIONS.MODIFIER)
+  async removeTag(
+    @UserInfo('userId') userId: number,
+    @Body('tag_id') tagId: number,
+  ) {
+    return await this.pictureService.removeTag(userId, tagId);
+  }
+
+  @Post('update_tag')
+  @NeedPermissions(PERMISSIONS.MODIFIER)
+  async updateTag(
+    @UserInfo('userId') userId: number,
+    @Body() updateTagDto: UpdateTagDto,
+  ) {
+    console.log(updateTagDto);
+    return await this.pictureService.updateTag(userId, updateTagDto);
+  }
+
   @Get('tag_list')
   async getTagList(@UserInfo('userId') userId: number) {
     return await this.pictureService.getTagList(userId);
   }
 
-  @UnNeedLogin()
   @Get('search')
   async search(
     @Query('type') type: SEARCH_TYPE = SEARCH_TYPE.ALL,

@@ -1,12 +1,15 @@
 import { defineStore } from "pinia"
-import type { User, UserInfo } from "@/api/user.ts"
+import type { Forget, Register, User, UserInfo } from "@/api/user.ts"
 import {
 	getUserInfo,
 	login,
+	register,
 	updateUserInfo,
 	uploadConfirm,
 	uploadProfile,
 	uploadProfileHeader,
+	sendCaptcha,
+	forget,
 } from "@/api/user.ts"
 import {
 	isSuccessCode,
@@ -16,7 +19,7 @@ import {
 	setUserInfo,
 	clearToken,
 } from "@/utils.ts"
-import { computed, ref } from "vue"
+import { ref } from "vue"
 
 export const useUserStore = defineStore("user", () => {
 	const defaultUser: UserInfo = {
@@ -58,9 +61,9 @@ export const useUserStore = defineStore("user", () => {
 	}
 
 	const updateUser = async (userInfo: UserInfo) => {
-		await updateUserInfo(user)
-		Object.assign(user, userInfo)
-		setUserInfo(userInfo)
+		const newUserInfo = (await updateUserInfo(user)).data
+		user.value = newUserInfo
+		setUserInfo(newUserInfo)
 	}
 
 	const updateProfile = async (profile: File) => {
@@ -68,7 +71,7 @@ export const useUserStore = defineStore("user", () => {
 		if (!data) return false
 		const { headerInfo, url } = data
 		const res = await uploadProfileHeader(url as string, profile)
-
+		console.log(res)
 		const confirmResult = await uploadConfirm(headerInfo)
 		if (!confirmResult.data) return false
 
@@ -77,8 +80,82 @@ export const useUserStore = defineStore("user", () => {
 
 		// Object.assign(user, userInfo)
 		user.value = userInfo
-		setUserInfo(user)
+		setUserInfo(user.value)
 		return true
+	}
+
+	const registerUser = async (user: Register & { confirmPassword: string }) => {
+		// 效验验证码
+		if (user.captcha.length < 4) {
+			return {
+				success: false,
+				message: "验证码错误",
+			}
+		}
+		// 对比密码
+		if (user.password !== user.confirmPassword) {
+			return {
+				success: false,
+				message: "两次密码不一致",
+			}
+		}
+		const res = await register({
+			email: user.email,
+			username: user.username,
+			password: user.password,
+			captcha: user.captcha,
+		})
+		if (!isSuccessCode(res.code)) {
+			return {
+				success: false,
+				message: res.message,
+			}
+		}
+		return {
+			success: true,
+		}
+	}
+
+	const forgetPassword = async (user: Forget) => {
+		if (user.captcha.length < 4) {
+			return {
+				success: false,
+				message: "验证码错误",
+			}
+		}
+		if (user.password !== user.confirmPassword) {
+			return {
+				success: false,
+				message: "两次密码不一致",
+			}
+		}
+		const res = await forget({
+			email: user.email,
+			password: user.password,
+			captcha: user.captcha,
+		})
+		if (!isSuccessCode(res.code)) {
+			return {
+				success: false,
+				message: res.message,
+			}
+		}
+		return {
+			success: true,
+		}
+	}
+
+	const sendCaptcha = async (email: string) => {
+		const res = await sendCaptcha(email)
+		if (!isSuccessCode(res.code)) {
+			return {
+				success: false,
+				message: res.message,
+			}
+		}
+		return {
+			success: true,
+		}
 	}
 
 	const logout = () => {
@@ -91,6 +168,8 @@ export const useUserStore = defineStore("user", () => {
 		loginUser,
 		updateUser,
 		updateProfile,
+		registerUser,
+		forgetPassword,
 		logout,
 	}
 })

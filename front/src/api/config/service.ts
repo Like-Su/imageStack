@@ -34,8 +34,6 @@ const config: AxiosRequestConfig = {
 	baseURL: import.meta.env.BASE_URL,
 	timeout: 30000,
 	method: "get",
-	// responseType: 'json'
-	// validateStatus: isErrorCode,
 }
 
 const axiosInstance = axios.create(config)
@@ -59,30 +57,34 @@ axiosInstance.interceptors.response.use(
 		return response.data
 	},
 	async (err) => {
-		const { data, config } = err.response
+		if (axios.isAxiosError(err)) {
+			const { data, config } = err.response || {}
 
-		if (data.statusCode === 401 && config.url.includes("/user/refresh")) {
-			clearToken()
-		}
-
-		if (refreshsing) {
-			return new Promise((resolve) => taskQueue.push({ config, resolve }))
-		}
-
-		if (data.statusCode === 401 && !config.url.includes("/user/refresh")) {
-			refreshsing = true
-			const res = await newRefreshToken()
-			refreshsing = false
-			if (res.status === 200) {
-				taskQueue.forEach(({ config, resolve }) => {
-					resolve(axios(config))
-				})
-			} else {
-				return Promise.reject(res.data)
+			if (data?.statusCode === 401 && config?.url?.includes("/user/refresh")) {
+				clearToken()
 			}
+
+			if (refreshsing) {
+				return new Promise((resolve) => taskQueue.push({ config, resolve }))
+			}
+
+			if (data?.statusCode === 401 && !config?.url?.includes("/user/refresh")) {
+				refreshsing = true
+				const res = await newRefreshToken()
+				refreshsing = false
+				if (res.status === 200) {
+					taskQueue.forEach(({ config, resolve }) => resolve(axios(config)))
+					return axios(config) // 关键：重新发起当前请求
+				} else {
+					return Promise.reject(res.data)
+				}
+			}
+
+			// 只返回纯净数据
+			return Promise.reject(data || err.message)
 		}
 
-		return err.response
+		return Promise.reject(err)
 	},
 )
 

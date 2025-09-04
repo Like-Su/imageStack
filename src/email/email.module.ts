@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { EMAIL_CLIENT } from 'src/constants';
-import { createTransport, Transporter } from 'nodemailer';
+import { createTransport } from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 
-
 @Module({
-  providers: [EmailService,
+  providers: [
+    EmailService,
     {
       provide: EMAIL_CLIENT,
       useFactory(configService: ConfigService) {
@@ -18,9 +18,9 @@ import { ConfigService } from '@nestjs/config';
         });
         return transporter;
       },
-      inject: [ConfigService]
-    }
+      inject: [ConfigService],
+    },
   ],
-  exports: [EmailService]
+  exports: [EmailService],
 })
-export class EmailModule { }
+export class EmailModule {}

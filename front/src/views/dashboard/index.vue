@@ -35,27 +35,6 @@ const uploadTrendOptions = ref({
 	],
 })
 
-// 分类占比（饼图）
-const categoryOptions = ref({
-	title: { text: "图片分类占比", left: "center" },
-	tooltip: { trigger: "item" },
-	legend: { bottom: "0%" },
-	series: [
-		{
-			name: "分类",
-			type: "pie",
-			radius: "50%",
-			data: [
-				{ value: 1048, name: "风景" },
-				{ value: 735, name: "人物" },
-				{ value: 580, name: "美食" },
-				{ value: 484, name: "建筑" },
-				{ value: 300, name: "其他" },
-			],
-		},
-	],
-})
-
 // CPU 占用（仪表盘）
 const cpuOptions = ref({
 	title: { text: "CPU 占用率", left: "center" },
@@ -92,11 +71,6 @@ useHead({
 		<!-- 上传趋势 -->
 		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
 			<BaseChart :options="uploadTrendOptions" />
-		</div>
-
-		<!-- 分类占比 -->
-		<div class="p-4 rounded shadow" :class="useSettings.globalBgClass">
-			<BaseChart :options="categoryOptions" />
 		</div>
 
 		<!-- CPU 占用 -->

@@ -5,8 +5,5 @@ export class RegisterUserDto extends LoginUserDto {
   @IsNotEmpty({
     message: '昵称不能为空',
   })
-  nickname: string;
-
-  @PasswordValidators()
-  enter_password: string;
+  username: string;
 }

@@ -36,7 +36,7 @@ const rules = {
 	email: [
 		{ required: true, message: "请输入用户名" },
 		{ min: 3, message: "用户名不能少于3个字符" },
-		{ max: 10, message: "用户名不能超过10个字符" },
+		{ max: 20, message: "用户名不能超过20个字符" },
 	],
 	password: [{ required: true, message: "请输入密码" }],
 }
@@ -102,9 +102,9 @@ useHead({
 					</a-form-item>
 
 					<a-form-item class="flex justify-center items-center">
-						<a href="">现在注册</a>
+						<router-link to="/register">现在注册</router-link>
 						/
-						<a class="login-form-forgot" href="">忘记密码</a>
+						<router-link to="/forget">忘记密码</router-link>
 					</a-form-item>
 				</a-form>
 			</div>

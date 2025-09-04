@@ -18,7 +18,9 @@ export class Role {
   })
   name: string;
 
-  @ManyToMany(() => Permission)
+  @ManyToMany(() => Permission, {
+    onDelete: 'CASCADE', // 删除 Permission 时自动删除中间表数据
+  })
   @JoinTable({
     name: 'role_permissions',
   })

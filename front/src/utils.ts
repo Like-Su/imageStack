@@ -42,6 +42,7 @@ export const getUser = () => {
 }
 
 export const setUserInfo = (userInfo: UserInfo) => {
+	console.log(userInfo)
 	localStorage.setItem(USER_INFO, JSON.stringify(userInfo))
 }
 

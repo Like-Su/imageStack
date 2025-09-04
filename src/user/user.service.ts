@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +13,7 @@ import { LoginUserVo } from './vo/login-user.vo';
 import { UpdateUserVo } from './vo/update-user.vo';
 import { md5 } from 'src/utils';
 import { ConfirmUploadDto } from './dto/confirm-upload.dto';
+import { ForgetUserDto } from './dto/forget-user.dto';
 
 @Injectable()
 export class UserService {
@@ -31,67 +26,37 @@ export class UserService {
   @Inject(RedisService)
   private readonly redisService: RedisService;
 
-  async initData() {
-    const password = md5('123456');
-    const user1 = new User();
-    user1.nickname = 'test1';
-    user1.email = '123@qq.com';
-    user1.password = password;
+  private async createAdmin(user: RegisterUserDto) {
+    const admin = new User();
+    admin.nickname = user.username;
+    admin.email = user.email;
+    admin.password = md5(user.password);
 
-    const user2 = new User();
-    user2.nickname = 'test2';
-    user2.email = '234@qq.com';
-    user2.password = password;
+    const role = await this.roleRepository.findOneBy({
+      name: '管理员',
+    });
 
-    const role1 = new Role();
-    role1.name = '管理员';
+    admin.roles = [role];
+    await this.userRepository.save(admin);
+  }
 
-    const role2 = new Role();
-    role2.name = '阅览者';
+  private async createUser(user: RegisterUserDto) {
+    const regularUser = new User();
+    regularUser.nickname = user.username;
+    regularUser.email = user.email;
+    regularUser.password = md5(user.password);
 
-    const permission1 = new Permission();
-    permission1.code = '1001';
-    permission1.description = '上传';
+    const role = await this.roleRepository.findOneBy({
+      name: '阅览者',
+    });
 
-    const permission2 = new Permission();
-    permission2.code = '1002';
-    permission2.description = '修改';
+    regularUser.roles = [role];
 
-    const permission3 = new Permission();
-    permission3.code = '1003';
-    permission3.description = '浏览';
-
-    const permission4 = new Permission();
-    permission4.code = '1004';
-    permission4.description = '删除';
-
-    role1.permissions = [permission1, permission2, permission3, permission4];
-    role2.permissions = [permission3];
-
-    user1.roles = [role1];
-    user2.roles = [role2];
-
-    await this.permissionRepository.save([
-      permission1,
-      permission2,
-      permission3,
-      permission4,
-    ]);
-
-    await this.roleRepository.save([role1, role2]);
-
-    await this.userRepository.save([user1, user2]);
+    await this.userRepository.save(regularUser);
   }
 
   // 登录
   async login(loginUserDto: LoginUserDto) {
-    // 校验验证码
-    // await this.validationCaptcha(
-    //   loginUserDto.email,
-    //   loginUserDto.captcha,
-    //   CAPTCHA_TYPE.LOGIN,
-    // );
-
     // 查找用户
     const user = await this.userRepository.findOne({
       where: { email: loginUserDto.email },
@@ -135,11 +100,6 @@ export class UserService {
       CAPTCHA_TYPE.REGISTER,
     );
 
-    // 验证 两次输入密码是yizhi
-    if (registerUserDto.password !== registerUserDto.enter_password) {
-      throw new HttpException('密码输入不一致', HttpStatus.ACCEPTED);
-    }
-
     // 通过邮箱查找用户
     const foundUser = await this.userRepository.findOneBy({
       email: registerUserDto.email,
@@ -149,21 +109,49 @@ export class UserService {
       throw new HttpException('用户已存在', HttpStatus.BAD_REQUEST);
     }
 
-    // 创建用户
-    const createUser = new User();
-    createUser.email = registerUserDto.email;
-    createUser.nickname = registerUserDto.email;
-    createUser.password = md5(registerUserDto.password);
+    const isAdmin = await this.userRepository.exists();
 
     try {
-      await this.userRepository.save(createUser);
+      if (!isAdmin) {
+        this.createAdmin(registerUserDto);
+      } else {
+        this.createUser(registerUserDto);
+      }
       return 'success';
     } catch (e) {
       return e.message;
     }
   }
 
-  async update(id: number, updateUserVo: UpdateUserVo) {
+  // 忘记密码
+  async forget(forgetUserDto: ForgetUserDto) {
+    // 验证 验证码
+    await this.validationCaptcha(
+      forgetUserDto.email,
+      forgetUserDto.captcha,
+      CAPTCHA_TYPE.FORGET,
+    );
+
+    // 通过邮箱查找用户
+    const foundUser = await this.userRepository.findOneBy({
+      email: forgetUserDto.email,
+    });
+
+    if (!foundUser) {
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    // 更新密码
+    foundUser.password = md5(forgetUserDto.password);
+
+    try {
+      return await this.userRepository.save(foundUser);
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  async update(id: number, updateUserVo: UpdateUserDto) {
     const foundUser = await this.findUserById(id);
 
     if (updateUserVo.nickname) {
@@ -172,12 +160,26 @@ export class UserService {
     if (updateUserVo.picture) {
       foundUser.picture = updateUserVo.picture;
     }
-    if (updateUserVo.password) {
-      foundUser.password = md5(updateUserVo.password);
-    }
 
     try {
-      return await this.userRepository.save(foundUser);
+      const user = await this.userRepository.save(foundUser);
+      const vo = new UpdateUserVo();
+      vo.id = user.id;
+      vo.email = user.email;
+      vo.status = user.status;
+      vo.nickname = user.nickname;
+      vo.picture = user.picture;
+      vo.roles = user.roles.map((role) => role.name);
+      vo.permissions = user.roles.reduce((prev, cur) => {
+        cur.permissions.forEach((permission) =>
+          !prev.includes(permission) ? prev.push(permission) : null,
+        );
+        return prev;
+      }, []);
+      vo.createTime = user.createTime;
+      vo.updateTime = user.updateTime;
+
+      return vo;
     } catch (e) {
       return e.message;
     }

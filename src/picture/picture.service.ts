@@ -9,7 +9,7 @@ import { CreatePictureDto } from './dto/create-picture.dto';
 import { UpdatePictureDto } from './dto/update-picture.dto';
 import { Picture } from './entities/picture.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { MinioService } from 'src/minio/minio.service';
@@ -27,6 +27,10 @@ import { ShortLongUrl } from './entities/shortLongUrl.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as qrcode from 'qrcode';
 import { Tags } from './entities/tags.entity';
+import { CreateTagDto } from './dto/create-tag.dto';
+import { UpdateTagDto } from './dto/update-tag.dto';
+import { ExtractJwt } from 'passport-jwt';
+import fromAuthHeaderWithScheme = ExtractJwt.fromAuthHeaderWithScheme;
 
 @Injectable()
 export class PictureService {
@@ -96,6 +100,9 @@ export class PictureService {
     }
     if (updatePictureDto.description) {
       image.description = updatePictureDto.description;
+    }
+    if (updatePictureDto.tags.length) {
+      image.tags = await this.tagRepository.findByIds(updatePictureDto.tags);
     }
     if (updatePictureDto.status) {
       image.status = updatePictureDto.status;
@@ -355,5 +362,39 @@ export class PictureService {
       .getMany();
 
     return results;
+  }
+
+  async createTag(userId: number, createTagDto: CreateTagDto) {
+    if (await this.tagRepository.findOneBy({ name: createTagDto.name })) {
+      throw new HttpException('标签已存在', HttpStatus.ACCEPTED);
+    }
+    const tag = new Tags();
+    tag.name = createTagDto.name;
+    tag.owner_id = userId;
+    const results = await this.tagRepository.insert(tag);
+    return results;
+  }
+
+  async updateTag(userId: number, updateTagDto: UpdateTagDto) {
+    await this.tagRepository.findOneByOrFail({
+      id: updateTagDto.id,
+      owner_id: userId,
+    });
+    return await this.tagRepository.update(
+      {
+        id: updateTagDto.id,
+        owner_id: userId,
+      },
+      {
+        name: updateTagDto.name,
+      },
+    );
+  }
+
+  async removeTag(userId: number, tagId: number) {
+    return await this.tagRepository.delete({
+      id: tagId,
+      owner_id: userId,
+    });
   }
 }

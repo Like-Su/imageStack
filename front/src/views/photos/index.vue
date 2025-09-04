@@ -56,21 +56,52 @@
 				<a-form-item label="图片名称">
 					<a-input v-model:value="detailForm.name" disabled />
 				</a-form-item>
+
 				<a-form-item label="描述">
 					<a-textarea v-model:value="detailForm.description" :rows="3" />
 				</a-form-item>
+
 				<a-form-item label="状态">
 					<span>{{ detailForm.status === 2 ? "正常" : "回收站" }}</span>
 				</a-form-item>
+
+				<!-- 标签编辑 -->
+				<a-form-item label="标签">
+					<div class="tag-list">
+						<a-tag
+							v-for="(tag, index) in detailForm.tags"
+							:key="tag.id || tag.name"
+							closable
+							@close="removeTag(index)"
+						>
+							{{ tag.name }}
+						</a-tag>
+
+						<a-input
+							v-if="inputVisible"
+							ref="inputRef"
+							type="text"
+							size="small"
+							v-model:value="inputValue"
+							@blur="handleInputConfirm"
+							@keyup.enter="handleInputConfirm"
+							style="width: 100px"
+						/>
+						<a-tag v-else @click="showInput" style="borderstyle: dashed">
+							<plus-outlined /> 新增标签
+						</a-tag>
+					</div>
+				</a-form-item>
 			</a-form>
+
 			<div class="modal-footer">
 				<div class="w-[40%] flex justify-between">
-					<a-button type="primary" @click="download(detailForm.id)">
-						下载
-					</a-button>
-					<a-button type="primary" @click="handleSubmit" :loading="submitting">
-						保存
-					</a-button>
+					<a-button type="primary" @click="download(detailForm.id)"
+						>下载</a-button
+					>
+					<a-button type="primary" @click="handleSubmit" :loading="submitting"
+						>保存</a-button
+					>
 					<a-button @click="closeDetail">取消</a-button>
 				</div>
 				<a-button
@@ -87,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from "vue"
+import { ref, reactive, onMounted, computed, nextTick } from "vue"
 import {
 	getListImages,
 	updateImage,
@@ -96,14 +127,15 @@ import {
 	uploadImageByUrl,
 	uploadConfirm,
 	deleteImage,
+	createTag,
 } from "@/api/pictures"
 import { message } from "ant-design-vue"
 import { useHead } from "@vueuse/head"
 
 // === 虚拟列表参数 ===
-const COLS = 4 // 一行显示 4 列
-const ITEM_HEIGHT = 220 // 每个 item 的高度
-const BUFFER_ROWS = 3 // 上下缓冲行
+const COLS = 4
+const ITEM_HEIGHT = 220
+const BUFFER_ROWS = 3
 
 // === 数据 ===
 const allItems = reactive<any[]>([])
@@ -128,7 +160,6 @@ function onScroll() {
 	scrollTop.value = container.value.scrollTop
 	containerHeight.value = container.value.clientHeight
 
-	// 判断是否接近底部，触发加载更多
 	const scrollBottom =
 		container.value.scrollHeight -
 		(container.value.scrollTop + container.value.clientHeight)
@@ -229,18 +260,77 @@ const detailForm = reactive({
 	description: "",
 	status: 0,
 	uri: "",
+	tags: [] as { id: number; name: string }[], // 标签字段
 })
+
+// 打开详情
 function openDetail(id: number) {
 	const item = allItems.find((img) => img.id === id)
 	if (item) {
-		Object.assign(detailForm, item)
+		Object.assign(detailForm, {
+			id: item.id ?? 0,
+			name: item.name ?? "",
+			description: item.description ?? "",
+			status: item.status ?? 0,
+			uri: item.uri ?? "",
+			tags: Array.isArray(item.tags) ? item.tags : [],
+		})
 		showDetail.value = true
 	}
 }
+
+// === 标签编辑逻辑 ===
+const inputVisible = ref(false)
+const inputValue = ref("")
+const inputRef = ref()
+
+function showInput() {
+	inputVisible.value = true
+	nextTick(() => inputRef.value?.focus())
+}
+
+async function handleInputConfirm() {
+	if (!inputValue.value) {
+		inputVisible.value = false
+		return
+	}
+
+	if (detailForm.tags.some((t) => t.name === inputValue.value)) {
+		message.warning("标签已存在")
+	} else {
+		try {
+			const { data } = await createTag(inputValue.value)
+			detailForm.tags.push(
+				...data.identifiers.map((item) => ({
+					id: item.id,
+					name: inputValue.value,
+				})),
+			)
+			message.success("标签已创建")
+		} catch {
+			message.error("创建标签失败")
+		}
+	}
+	inputVisible.value = false
+	inputValue.value = ""
+}
+
+function removeTag(index: number) {
+	detailForm.tags.splice(index, 1)
+}
+
+// === 提交保存 ===
 async function handleSubmit() {
 	submitting.value = true
 	try {
-		await updateImage(detailForm.id, detailForm.description, detailForm.status)
+		const tags = detailForm.tags.map((t) => t.id)
+		console.log(tags)
+		await updateImage(
+			detailForm.id,
+			detailForm.description,
+			tags,
+			detailForm.status,
+		)
 		message.success("图片信息已更新")
 		const index = allItems.findIndex((i) => i.id === detailForm.id)
 		if (index !== -1) Object.assign(allItems[index], detailForm)
@@ -251,6 +341,7 @@ async function handleSubmit() {
 		submitting.value = false
 	}
 }
+
 async function handleDelete(id: number) {
 	try {
 		await deleteImage(id)
@@ -282,6 +373,7 @@ useHead({
 </script>
 
 <style scoped>
+/* 保留已有样式 */
 .vm-wrapper {
 	height: 88vh;
 	overflow-y: auto;
@@ -293,15 +385,13 @@ useHead({
 .vm-wrapper::-webkit-scrollbar {
 	display: none;
 }
-
-/* 网格布局 */
 .grid-container {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr); /* 4 列 */
+	grid-template-columns: repeat(4, 1fr);
 	gap: 8px;
 }
 .vm-item {
-	height: 220px; /* 固定高度，配合虚拟滚动 */
+	height: 220px;
 	border-radius: 8px;
 	overflow: hidden;
 	background: #f7f7f7;
@@ -325,8 +415,6 @@ useHead({
 	justify-content: space-between;
 	gap: 8px;
 }
-
-/* 遮罩层样式 */
 .drag-overlay {
 	position: fixed;
 	top: 0;
@@ -376,5 +464,11 @@ useHead({
 		transform: scale(1.05);
 		border-color: rgba(255, 255, 255, 0.9);
 	}
+}
+.tag-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
 }
 </style>

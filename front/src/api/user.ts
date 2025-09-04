@@ -25,6 +25,15 @@ export interface UserInfo {
 	createTime: number
 	updateTime: number
 }
+
+export interface Register extends User {
+	username: string
+}
+
+export interface Forget extends User {
+	confirmPassword: string
+}
+
 interface TokenResponse {
 	access_token: string
 	refresh_token: string
@@ -48,15 +57,34 @@ export const login = async (user: User): Promise<ApiResponse<UserResponse>> => {
 }
 
 export const register = async (
-	user: User,
+	user: Register,
 ): Promise<ApiResponse<UserResponse>> => {
-	return await request.post("/api/user/register", user)
+	return await request.post("/api/user/register", {
+		email: user.email,
+		username: user.username,
+		password: user.password,
+		captcha: user.captcha,
+	})
+}
+
+export const forget = async (
+	user: Forget,
+): Promise<ApiResponse<TokenResponse>> => {
+	return await request.post("/api/user/forget", {
+		email: user.email,
+		password: user.password,
+		captcha: user.captcha,
+	})
 }
 
 export const updateUserInfo = async (
 	user: User,
 ): Promise<ApiResponse<UserResponse>> => {
-	return await request.post("/api/user/update_user_info", user)
+	return await request.post("/api/user/update_user_info", {
+		email: user.email,
+		password: user.password,
+		captcha: user.captcha,
+	})
 }
 
 export const uploadProfile = async (
@@ -65,6 +93,15 @@ export const uploadProfile = async (
 	return await request.get("/api/user/upload", {
 		params: {
 			file_name: fileName,
+		},
+	})
+}
+
+export const sendCaptcha = async (email: string, type: CAPTCHA_TYPE) => {
+	return await request.get("/api/user/captcha", {
+		params: {
+			email: encodeURIComponent(email),
+			type,
 		},
 	})
 }

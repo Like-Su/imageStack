@@ -24,6 +24,16 @@ export const fixedRoutes: RouteRecordRaw[] = [
 		component: () => import("@/views/login/index.vue"),
 	},
 	{
+		path: "/register",
+		name: "Register",
+		component: () => import("@/views/register/index.vue"),
+	},
+	{
+		path: "/forget",
+		name: "Forget",
+		component: () => import("@/views/forget/index.vue"),
+	},
+	{
 		path: "/dashboard",
 		name: "Dashboard",
 		component: Layout,
@@ -116,18 +126,20 @@ const router = createRouter({
 })
 
 // 路由守卫
+const whiteList = ["Login", "Register", "Forget"]
 router.beforeEach((to, from, next) => {
 	const token = getAccessToken()
-	if (to.name !== "Login") {
-		if (!token) {
-			return next({ name: "Login" })
-		}
-		return next()
+
+	// 不需要登录就能访问的页面
+
+	if (!whiteList.includes(to.name as string) && !token) {
+		return next({ name: "Login" })
 	}
 
 	if (token && to.name === "Login") {
 		return next({ name: "DashboardIndex" })
 	}
+
 	return next()
 })
 

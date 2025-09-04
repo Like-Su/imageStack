@@ -29,6 +29,8 @@ import { PermissionGuard } from 'src/permission.guard';
 import { MinioService } from 'src/minio/minio.service';
 import { buildFileName } from 'src/utils';
 import { EmailService } from 'src/email/email.service';
+import { ForgetUserDto } from './dto/forget-user.dto';
+import { CaptchaUserDto } from './dto/captcha-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -45,16 +47,13 @@ export class UserController {
 
   constructor(private readonly userService: UserService) {}
 
-  @Get('init')
-  async initData() {
-    await this.userService.initData();
-    return 'done';
-  }
-
   // 发送验证码
   @Get('captcha')
   @UnNeedLogin()
-  async captcha(@Query('email') email: string, type: CAPTCHA_TYPE) {
+  async captcha(@Query() captchaUserDto: any) {
+    let { email, type } = captchaUserDto;
+    email = decodeURIComponent(email);
+
     const captchaCode = Math.random().toString().slice(2, 8);
 
     // 保存到 redis
@@ -72,6 +71,7 @@ export class UserController {
         subject: type,
         text: `<h1>${captchaCode}</h1>`,
       });
+      return 'success';
     }
 
     return captchaCode;
@@ -83,11 +83,14 @@ export class UserController {
   @Post('login')
   async login(@UserInfo() loginUserVo: LoginUserVo) {
     const userInfo = loginUserVo.userInfo;
-    userInfo.picture = await this.minioService.presignedUrl(
-      'GET',
-      'headers',
-      userInfo.picture,
-    );
+    if (userInfo.picture) {
+      userInfo.picture = await this.minioService.presignedUrl(
+        'GET',
+        'headers',
+        userInfo.picture,
+        60 * 60 * 76,
+      );
+    }
     // 创建 accessToken
     const accessToken = this.jwtService.sign(
       {
@@ -122,6 +125,12 @@ export class UserController {
   @UnNeedLogin()
   async register(@Body() registerUser: RegisterUserDto) {
     return await this.userService.register(registerUser);
+  }
+
+  @Post('forget')
+  @UnNeedLogin()
+  async forget(@Body() forgetUserDto: ForgetUserDto) {
+    return await this.userService.forget(forgetUserDto);
   }
 
   // 刷新 token
@@ -169,9 +178,18 @@ export class UserController {
   @Post('update_user_info')
   async updateUserInfo(
     @UserInfo('userId') userId,
-    @Body() updateUserVo: UpdateUserVo,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
-    return await this.userService.update(userId, updateUserVo);
+    const updateVo = await this.userService.update(userId, updateUserDto);
+    if (updateVo.picture) {
+      updateVo.picture = await this.minioService.presignedUrl(
+        'GET',
+        'headers',
+        updateVo.picture,
+        7 * 3600,
+      );
+    }
+    return updateVo;
   }
 
   @Get('upload')

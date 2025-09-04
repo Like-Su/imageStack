@@ -1,5 +1,6 @@
 import type { ApiResponse } from "@/api/response.ts"
 import request from "./config/service.ts"
+import type { SEARCH_TYPE } from "@/constants.ts"
 
 interface Picture {
 	id: number
@@ -24,10 +25,12 @@ export const getListImages = async (
 export const updateImage = async (
 	imageId: number,
 	description: string,
+	tags: number[],
 	status: number,
 ) => {
 	return await request.post("/api/picture/update_image", {
 		image_id: imageId,
+		tags,
 		description,
 		status,
 	})
@@ -72,4 +75,26 @@ export const recycleDelete = async (id: number) => {
 
 export const recycleRestore = async (id: number) => {
 	return await request.post("/api/picture/recycle/restore", { image_id: id })
+}
+
+export const search = async (keyword: string, type: SEARCH_TYPE) => {
+	return await request.get("/api/picture/search", {
+		params: { keyword, type },
+	})
+}
+
+export const createTag = async (name: string) => {
+	return await request.post("/api/picture/create_tag", { name })
+}
+
+export const getTagList = async () => {
+	return await request.get("/api/picture/tag_list")
+}
+
+export const deleteTag = async (id: number) => {
+	return await request.post("/api/picture/remove_tag", { tag_id: id })
+}
+
+export const updateTag = async (id: number, name: string) => {
+	return await request.post("/api/picture/update_tag", { id, name })
 }

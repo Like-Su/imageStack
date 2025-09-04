@@ -55,7 +55,9 @@ export class User {
   @UpdateDateColumn()
   updateTime: Date;
 
-  @ManyToMany(() => Role)
+  @ManyToMany(() => Role, {
+    onDelete: 'CASCADE', // 删除 Role 时自动删除中间表数据
+  })
   @JoinTable({
     name: 'user_roles',
   })
