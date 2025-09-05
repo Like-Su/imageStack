@@ -1,13 +1,38 @@
 application:
-  port: 3000
+  name: 'ImageStack'
+  port: 3001
+
+jwt:
+  secret: 'image_stack'
+  expiresIn: '7d'
+  access_token: '30m'
+  refresh_token: '7d'
+
+smtp:
+  host: 'smtp.qq.com'
+  port: 587
+  secure: false
+  auth:
+    user: '<qq.email>@qq.com'
+    pass: '<smtp.password>'
+oss:
+  uri: 'localhost'
+  port: 9000
+  useSSL: false
+  accessKey: '<oss.accessKey>'
+  secretKey: '<oss.secretKey>'
 
 db:
   mysql:
     host: 'localhost'
-    port: 3306
-    username: 'root'
-    password: '123456'
-    database: 'image_stack'
+    port: 3307
+    username: '<db.mysql.username>'
+    password: '<db.mysql.password>'
+    database: '<db.mysql.database>'
+    synchronize: false
+    logging: true
+    poolSize: 10
+
   redis:
-    host: 'localhost'
-    port: 6379
+    host: '<db.redis.host>'
+    port: '<db.redis.port>'

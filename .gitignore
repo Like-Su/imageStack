@@ -60,3 +60,10 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # yaml
 config.yaml
+
+# vscode
+.vscode
+front/.vscode
+
+# ai-service
+ai-service
