@@ -3,6 +3,25 @@
 ## 项目简介
 ImageStack 是一个开源的图片管理系统，提供图片上传、浏览、下载等功能，采用前后端分离的架构设计。系统支持用户管理、权限控制、图片处理和搜索等功能，是一个功能完善的图片存储与管理平台。
 
+# 界面
+1. 登录
+![img_8.png](img.png)
+2. 注册
+![img_1.png](img_1.png)
+3. 忘记密码
+![img_2.png](img_2.png)
+4. dashboard
+![img_3.png](img_3.png)
+5. photos
+![img_4.png](img_4.png)
+6. tags
+![img_5.png](img_5.png)
+7. trash
+![img_6.png](img_6.png)
+8. profile
+![img_7.png](img_7.png)
+
+
 ## 技术栈
 
 ### 后端 (NestJS)

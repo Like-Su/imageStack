@@ -14,7 +14,6 @@ import { PermissionGuard } from './permission.guard';
 import { AuthModule } from './auth/auth.module';
 import { PictureModule } from './picture/picture.module';
 import { SystemModule } from './system/system.module';
-import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
 import { RequestLogModule } from './request-log/request-log.module';
 import { RequestLogInterceptor } from './request-log/request-log.interceptor';
 
@@ -29,7 +28,6 @@ import { RequestLogInterceptor } from './request-log/request-log.interceptor';
     AuthModule,
     PictureModule,
     SystemModule,
-    ElasticsearchModule,
     RequestLogModule,
   ],
   controllers: [AppController],

@@ -10,7 +10,6 @@ import { Picture } from 'src/picture/entities/picture.entity';
 import { Tags } from 'src/picture/entities/tags.entity';
 import { MinioModule } from 'src/minio/minio.module';
 import { EmailModule } from 'src/email/email.module';
-import { ElasticsearchModule } from 'src/elasticsearch/elasticsearch.module';
 import { ShortLongUrl } from '../picture/entities/shortLongUrl.entity';
 import { UniqueShortUrl } from '../picture/entities/uniqueShortUrl.entity';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -65,15 +64,6 @@ import { HttpModule } from '@nestjs/axios';
     }),
     MinioModule,
     EmailModule,
-    // ElasticsearchModule.registerAsync({
-    //   useFactory(configService: ConfigService) {
-    //     return {
-    //       node: `${configService.get('db.es.protocol')}://${configService.get('db.es.host')}:${configService.get('db.es.port')}`,
-    //       requestTimeout: 60000,
-    //     };
-    //   },
-    //   inject: [ConfigService],
-    // }),
     ScheduleModule.forRoot(),
     HttpModule.register({
       timeout: 10000,

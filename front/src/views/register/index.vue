@@ -21,11 +21,11 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const formState = reactive<Register>({
-	email: "1325465198@qq.com",
-	username: "test",
-	password: "123456",
-	confirmPassword: "123456",
-	captcha: "530821", // 新增字段
+	email: "",
+	username: "",
+	password: "",
+	confirmPassword: "",
+	captcha: "",
 })
 
 // 倒计时

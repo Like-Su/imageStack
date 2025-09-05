@@ -15,8 +15,8 @@ const messageEmitter = inject(MESSAGE_EMITTER)
 const router = useRouter()
 const userStore = useUserStore()
 const formState = reactive<User>({
-	email: "123@qq.com",
-	password: "123456",
+	email: "",
+	password: "",
 })
 
 const onFinish = async () => {
