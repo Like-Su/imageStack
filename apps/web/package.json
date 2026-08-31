@@ -1,0 +1,26 @@
+{
+  "name": "web-base",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.14",
+    "vue": "^3.5.41",
+    "vue-i18n": "^11.4.10",
+    "vue-router": "^5.3.0",
+    "vue-virtual-scroller": "^3.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2",
+    "vue-tsc": "^3.3.11"
+  }
+}

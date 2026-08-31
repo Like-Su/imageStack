@@ -1,0 +1,4 @@
+allowBuilds:
+  '@nestjs/core': false
+  '@prisma/engines': false
+  prisma: false

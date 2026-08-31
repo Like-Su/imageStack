@@ -1,0 +1,4 @@
+# 检查代码格式
+# 检查是否有未提交的变更
+pnpm exec lint-staged
+git diff --cached --check

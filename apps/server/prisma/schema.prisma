@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// @@map 给表指定另一个名字
+// @@index 创建联合索引
+// @@unique 给表指定另一个名字
+// @@id 创建联合主键
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  // 模块格式
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EmailVerified {
+  SUC_VALIDATE
+  FAIL_VALIDATE
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVE
+}
+
+model User {
+  id              String           @id @default(cuid())
+  // 账户
+  account         String           @unique
+  // 用户名
+  username        String
+  // 密码
+  password        String
+  // 邮箱
+  email           String?          @unique
+  // 头像
+  avatar          String?
+  // 是否通过邮箱验证
+  emailVerified   EmailVerified    @default(FAIL_VALIDATE)
+  // 账户状态
+  status          UserStatus       @default(ACTIVE)
+  // 创建与更新时间
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  // 最后登录事件
+  lastLoginAt     DateTime?
+  // 账户是否删除
+  deleted         Boolean          @default(false)
+  // 一个角色 可以拥有多个用户
+  role            Role             @relation(fields: [roleId], references: [id])
+  roleId          String
+  fileNodes       FileNode[]
+  uploadSessions  UploadSession[]
+  fileShares      FileShare[]
+  filePermissions FilePermission[]
+}
+
+// 文件 类型
+enum FileType {
+  FILE
+  FOLDER
+}
+
+enum UploadStatus {
+  PENDING
+  UPLOADING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// 角色表
+model Role {
+  id          String           @id @default(cuid())
+  roleName    String           @unique
+  roleCode    String           @unique
+  description String?          @unique
+  status      Int              @default(1)
+  // 创建与更新时间
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  // 一个 Roles 可以拥有多个用户
+  users       User[]
+  // 一个角色拥有多个权限
+  permissions RolePermission[]
+}
+
+model Permission {
+  id             String  @id @default(cuid())
+  parentId       String?
+  permissionName String
+  permissionCode String
+
+  parent Permission? @relation("PermissionTree", fields: [parentId], references: [id])
+
+  // 子权限
+  children Permission[] @relation("PermissionTree")
+
+  // 被哪些角色拥有
+  roles RolePermission[]
+
+  // 创建与更新时间
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model FileNode {
+  id       String    @id @default(cuid())
+  name     String
+  type     FileType
+  parentId String?
+  parent   FileNode? @relation("FileTree", fields: [parentId], references: [id])
+
+  children FileNode[] @relation("FileTree")
+
+  // 所属用户
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  // TODO: 存储对象信息
+
+  size     BigInt?
+  mimeType String?
+  deleted  Boolean @default(false)
+
+  // 创建与更新时间
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  fileShares      FileShare[]
+  filePermissions FilePermission[]
+}
+
+model UploadSession {
+  id String @id @default(cuid())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  fileName String
+
+  size BigInt?
+
+  mimeType String?
+
+  hash String?
+
+  storageKey String
+
+  status UploadStatus @default(PENDING)
+
+  // 创建与更新时间
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FileShare {
+  id String @id @default(cuid())
+
+  fileId String
+  userId String
+
+  token String @unique
+
+  expiresAt DateTime?
+
+  passwordHash String?
+
+  enabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  file FileNode @relation(fields: [fileId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum FileAccess {
+  READ
+  WRITE
+  DELETE
+}
+
+model FilePermission {
+  id String @id @default(cuid())
+
+  fileId String
+  userId String
+
+  access FileAccess
+
+  file FileNode @relation(fields: [fileId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([fileId, userId])
+}

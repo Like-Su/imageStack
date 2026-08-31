@@ -1,0 +1,41 @@
+{
+  "name": "imageStack",
+  "version": "1.0.0",
+  "description": "Multimodal Image Management Solution",
+  "scripts": {
+    "prepare": "husky",
+    "typecheck:web": "pnpm --dir apps/web exec vue-tsc --noEmit",
+    "typecheck:server": "pnpm --dir apps/server exec tsc --noEmit",
+    "typecheck": "pnpm run typecheck:web && pnpm run typecheck:server",
+    "test:web": "pnpm --dir apps/web test",
+    "test:server": "pnpm --dir apps/server test",
+    "test": "pnpm run test:web && pnpm run test:server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.20.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/types": "^21.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.4.1",
+    "prettier": "^3.9.6"
+  },
+  "lint-staged": {
+    "*.{ts,vue,js,json}": [
+      "prettier --write"
+    ],
+    "*.{md,mdx}": [
+      "prettier --write"
+    ]
+  }
+}
