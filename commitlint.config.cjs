@@ -13,7 +13,7 @@ module.exports = {
         'fix',
         // 文档
         'docs',
-        // 代码个hi
+        // 代码格式
         'style',
         // 重构
         'refactor',
