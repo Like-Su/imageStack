@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsString, IsEmail } from 'class-validator';
 
 // 登录
 export class LoginDto {
@@ -8,6 +8,8 @@ export class LoginDto {
   password: string;
   @IsString()
   captcha: string;
+  @IsString()
+  captchaId: string;
 }
 
 // 注册
@@ -15,13 +17,16 @@ export class RegisterDto {
   @IsString()
   username: string;
   @IsString()
-  account: string;
+  @IsEmail()
+  email: string;
   @IsString()
   password: string;
   @IsString()
   enterPassword: string;
   @IsString()
   captcha: string;
+  @IsString()
+  captchaId: string;
 }
 
 // 刷新

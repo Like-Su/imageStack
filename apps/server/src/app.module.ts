@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 // Custom Module
 import { AppController } from './app.controller';
@@ -21,6 +23,7 @@ import { redisConfig } from './common/redis/redis.config';
 
 @Module({
   imports: [
+    // 配置
     ConfigModule.forRoot({
       isGlobal: true,
       // 匹配 环境 文件列表
@@ -41,6 +44,15 @@ import { redisConfig } from './common/redis/redis.config';
         return result.data;
       },
     }),
+    // 限流
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60_000,
+          limit: 100,
+        },
+      ],
+    }),
     // Custom Module
     IamModule,
     AssetsModule,
@@ -56,6 +68,13 @@ import { redisConfig } from './common/redis/redis.config';
     CommonModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // TODO: 截流问题
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard
+    // }
+  ],
 })
 export class AppModule {}

@@ -1,22 +1,57 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
-import { RegisterDto } from './dto/auth.dto';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { RefreshTokenDto, RegisterDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // 需要限流
+  @Get('verify')
+  async verify() {
+    return this.authService.test();
+  }
+
   // captcha
   @Get('captcha')
-  async captcha(@Res() res: Response) {
+  // 局部限流
+  @Throttle({
+    default: {
+      ttl: 60_000,
+      limit: 10,
+    },
+  })
+  async captcha() {
     return await this.authService.captcha();
   }
+
+  // 登录
+  @Post('login')
+  async login() {}
 
   // 注册
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return await this.authService.register(registerDto);
   }
+
+  // 忘记密码
+  @Post('forget')
+  async forget() {}
+
+  // 重置密码
+  @Post('reset')
+  async reset() {}
+
+  // 无感登录
+  @Post('refresh')
+  refresh(@Body() RefreshTokenDto) {}
+
+  // 登出
+  @Post('logout')
+  logout() {}
+
+  // 获取自己的信息
+  @Get('self')
+  self() {}
 }
