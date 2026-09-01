@@ -10,7 +10,7 @@
 
 generator client {
   provider     = "prisma-client"
-  output       = "../generated/prisma"
+  output       = "./generated/prisma"
   // 模块格式
   moduleFormat = "cjs"
 }
