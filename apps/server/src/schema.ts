@@ -16,4 +16,12 @@ export const envSchema = z.object({
   REDIS_KEY_PREFIX: z.string().default('image-stack:'),
   REDIS_CONNECT_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   REDIS_MAX_RETRIES_PER_REQUEST: z.coerce.number().int().min(0).default(3),
+
+  // 邮箱配置
+  MAIL_HOST: z.string().min(1),
+  MAIL_PORT: z.string(),
+  MAIL_SECURE: z.string(),
+  MAIL_PASS: z.string(),
+  MAIL_USER: z.string(),
+  MAIL_SEND_FROM: z.string(),
 });

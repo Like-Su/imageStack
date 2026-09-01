@@ -26,7 +26,6 @@ export type AggregateUser = {
 
 export type UserMinAggregateOutputType = {
   id: string | null;
-  account: string | null;
   username: string | null;
   password: string | null;
   email: string | null;
@@ -42,7 +41,6 @@ export type UserMinAggregateOutputType = {
 
 export type UserMaxAggregateOutputType = {
   id: string | null;
-  account: string | null;
   username: string | null;
   password: string | null;
   email: string | null;
@@ -58,7 +56,6 @@ export type UserMaxAggregateOutputType = {
 
 export type UserCountAggregateOutputType = {
   id: number;
-  account: number;
   username: number;
   password: number;
   email: number;
@@ -75,7 +72,6 @@ export type UserCountAggregateOutputType = {
 
 export type UserMinAggregateInputType = {
   id?: true;
-  account?: true;
   username?: true;
   password?: true;
   email?: true;
@@ -91,7 +87,6 @@ export type UserMinAggregateInputType = {
 
 export type UserMaxAggregateInputType = {
   id?: true;
-  account?: true;
   username?: true;
   password?: true;
   email?: true;
@@ -107,7 +102,6 @@ export type UserMaxAggregateInputType = {
 
 export type UserCountAggregateInputType = {
   id?: true;
-  account?: true;
   username?: true;
   password?: true;
   email?: true;
@@ -202,7 +196,6 @@ export type UserGroupByArgs<
 
 export type UserGroupByOutputType = {
   id: string;
-  account: string;
   username: string;
   password: string;
   email: string | null;
@@ -237,7 +230,6 @@ export type UserWhereInput = {
   OR?: Prisma.UserWhereInput[];
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[];
   id?: Prisma.StringFilter<'User'> | string;
-  account?: Prisma.StringFilter<'User'> | string;
   username?: Prisma.StringFilter<'User'> | string;
   password?: Prisma.StringFilter<'User'> | string;
   email?: Prisma.StringNullableFilter<'User'> | string | null;
@@ -258,7 +250,6 @@ export type UserWhereInput = {
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
-  account?: Prisma.SortOrder;
   username?: Prisma.SortOrder;
   password?: Prisma.SortOrder;
   email?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -280,7 +271,6 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
-    account?: string;
     email?: string;
     AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[];
     OR?: Prisma.UserWhereInput[];
@@ -302,12 +292,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     fileShares?: Prisma.FileShareListRelationFilter;
     filePermissions?: Prisma.FilePermissionListRelationFilter;
   },
-  'id' | 'account' | 'email'
+  'id' | 'email'
 >;
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
-  account?: Prisma.SortOrder;
   username?: Prisma.SortOrder;
   password?: Prisma.SortOrder;
   email?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -333,7 +322,6 @@ export type UserScalarWhereWithAggregatesInput = {
     | Prisma.UserScalarWhereWithAggregatesInput
     | Prisma.UserScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<'User'> | string;
-  account?: Prisma.StringWithAggregatesFilter<'User'> | string;
   username?: Prisma.StringWithAggregatesFilter<'User'> | string;
   password?: Prisma.StringWithAggregatesFilter<'User'> | string;
   email?: Prisma.StringNullableWithAggregatesFilter<'User'> | string | null;
@@ -352,7 +340,6 @@ export type UserScalarWhereWithAggregatesInput = {
 
 export type UserCreateInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -372,7 +359,6 @@ export type UserCreateInput = {
 
 export type UserUncheckedCreateInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -392,7 +378,6 @@ export type UserUncheckedCreateInput = {
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -414,7 +399,6 @@ export type UserUpdateInput = {
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -436,7 +420,6 @@ export type UserUncheckedUpdateInput = {
 
 export type UserCreateManyInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -452,7 +435,6 @@ export type UserCreateManyInput = {
 
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -469,7 +451,6 @@ export type UserUpdateManyMutationInput = {
 
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -487,7 +468,6 @@ export type UserUncheckedUpdateManyInput = {
 
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  account?: Prisma.SortOrder;
   username?: Prisma.SortOrder;
   password?: Prisma.SortOrder;
   email?: Prisma.SortOrder;
@@ -503,7 +483,6 @@ export type UserCountOrderByAggregateInput = {
 
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  account?: Prisma.SortOrder;
   username?: Prisma.SortOrder;
   password?: Prisma.SortOrder;
   email?: Prisma.SortOrder;
@@ -519,7 +498,6 @@ export type UserMaxOrderByAggregateInput = {
 
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  account?: Prisma.SortOrder;
   username?: Prisma.SortOrder;
   password?: Prisma.SortOrder;
   email?: Prisma.SortOrder;
@@ -768,7 +746,6 @@ export type UserUpdateOneRequiredWithoutFilePermissionsNestedInput = {
 
 export type UserCreateWithoutRoleInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -787,7 +764,6 @@ export type UserCreateWithoutRoleInput = {
 
 export type UserUncheckedCreateWithoutRoleInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -850,7 +826,6 @@ export type UserScalarWhereInput = {
   OR?: Prisma.UserScalarWhereInput[];
   NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
   id?: Prisma.StringFilter<'User'> | string;
-  account?: Prisma.StringFilter<'User'> | string;
   username?: Prisma.StringFilter<'User'> | string;
   password?: Prisma.StringFilter<'User'> | string;
   email?: Prisma.StringNullableFilter<'User'> | string | null;
@@ -866,7 +841,6 @@ export type UserScalarWhereInput = {
 
 export type UserCreateWithoutFileNodesInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -885,7 +859,6 @@ export type UserCreateWithoutFileNodesInput = {
 
 export type UserUncheckedCreateWithoutFileNodesInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -932,7 +905,6 @@ export type UserUpdateToOneWithWhereWithoutFileNodesInput = {
 
 export type UserUpdateWithoutFileNodesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -953,7 +925,6 @@ export type UserUpdateWithoutFileNodesInput = {
 
 export type UserUncheckedUpdateWithoutFileNodesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -974,7 +945,6 @@ export type UserUncheckedUpdateWithoutFileNodesInput = {
 
 export type UserCreateWithoutUploadSessionsInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -993,7 +963,6 @@ export type UserCreateWithoutUploadSessionsInput = {
 
 export type UserUncheckedCreateWithoutUploadSessionsInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1040,7 +1009,6 @@ export type UserUpdateToOneWithWhereWithoutUploadSessionsInput = {
 
 export type UserUpdateWithoutUploadSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1061,7 +1029,6 @@ export type UserUpdateWithoutUploadSessionsInput = {
 
 export type UserUncheckedUpdateWithoutUploadSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1082,7 +1049,6 @@ export type UserUncheckedUpdateWithoutUploadSessionsInput = {
 
 export type UserCreateWithoutFileSharesInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1101,7 +1067,6 @@ export type UserCreateWithoutFileSharesInput = {
 
 export type UserUncheckedCreateWithoutFileSharesInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1148,7 +1113,6 @@ export type UserUpdateToOneWithWhereWithoutFileSharesInput = {
 
 export type UserUpdateWithoutFileSharesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1169,7 +1133,6 @@ export type UserUpdateWithoutFileSharesInput = {
 
 export type UserUncheckedUpdateWithoutFileSharesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1190,7 +1153,6 @@ export type UserUncheckedUpdateWithoutFileSharesInput = {
 
 export type UserCreateWithoutFilePermissionsInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1209,7 +1171,6 @@ export type UserCreateWithoutFilePermissionsInput = {
 
 export type UserUncheckedCreateWithoutFilePermissionsInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1256,7 +1217,6 @@ export type UserUpdateToOneWithWhereWithoutFilePermissionsInput = {
 
 export type UserUpdateWithoutFilePermissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1277,7 +1237,6 @@ export type UserUpdateWithoutFilePermissionsInput = {
 
 export type UserUncheckedUpdateWithoutFilePermissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1298,7 +1257,6 @@ export type UserUncheckedUpdateWithoutFilePermissionsInput = {
 
 export type UserCreateManyRoleInput = {
   id?: string;
-  account: string;
   username: string;
   password: string;
   email?: string | null;
@@ -1313,7 +1271,6 @@ export type UserCreateManyRoleInput = {
 
 export type UserUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1334,7 +1291,6 @@ export type UserUpdateWithoutRoleInput = {
 
 export type UserUncheckedUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1355,7 +1311,6 @@ export type UserUncheckedUpdateWithoutRoleInput = {
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  account?: Prisma.StringFieldUpdateOperationsInput | string;
   username?: Prisma.StringFieldUpdateOperationsInput | string;
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1450,7 +1405,6 @@ export type UserSelect<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    account?: boolean;
     username?: boolean;
     password?: boolean;
     email?: boolean;
@@ -1478,7 +1432,6 @@ export type UserSelectCreateManyAndReturn<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    account?: boolean;
     username?: boolean;
     password?: boolean;
     email?: boolean;
@@ -1501,7 +1454,6 @@ export type UserSelectUpdateManyAndReturn<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    account?: boolean;
     username?: boolean;
     password?: boolean;
     email?: boolean;
@@ -1520,7 +1472,6 @@ export type UserSelectUpdateManyAndReturn<
 
 export type UserSelectScalar = {
   id?: boolean;
-  account?: boolean;
   username?: boolean;
   password?: boolean;
   email?: boolean;
@@ -1539,7 +1490,6 @@ export type UserOmit<
     runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetOmit<
   | 'id'
-  | 'account'
   | 'username'
   | 'password'
   | 'email'
@@ -1592,7 +1542,6 @@ export type $UserPayload<
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
       id: string;
-      account: string;
       username: string;
       password: string;
       email: string | null;
@@ -2249,7 +2198,6 @@ export interface Prisma__UserClient<
  */
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<'User', 'String'>;
-  readonly account: Prisma.FieldRef<'User', 'String'>;
   readonly username: Prisma.FieldRef<'User', 'String'>;
   readonly password: Prisma.FieldRef<'User', 'String'>;
   readonly email: Prisma.FieldRef<'User', 'String'>;
