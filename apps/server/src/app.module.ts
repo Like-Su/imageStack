@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { z } from 'zod';
 
 // Custom Module
 import { AppController } from './app.controller';
@@ -17,16 +16,8 @@ import { LibrariesModule } from './modules/libraries/libraries.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { SystemModule } from './modules/system/system.module';
 import { CommonModule } from './common/common.module';
-
-const envSchema = z.object({
-  NODE_ENV: z
-    .enum(['development', 'production', 'test'])
-    .default('development'),
-  PORT: z.coerce.number().int().positive().default(3000),
-  API_PREFIX: z.string().default('/api'),
-  CORS_ORIGIN: z.string().default('*'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-});
+import { envSchema } from './schema';
+import { redisConfig } from './common/redis/redis.config';
 
 @Module({
   imports: [
@@ -36,6 +27,7 @@ const envSchema = z.object({
       envFilePath: ['.env', '.env.local'],
       // 缓存配置，避免重复解析
       cache: true,
+      load: [redisConfig],
       // 校验环境变量
       validate: (config) => {
         const result = envSchema.safeParse(config);
