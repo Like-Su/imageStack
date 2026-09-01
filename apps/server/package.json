@@ -30,8 +30,10 @@
     "@nestjs/mapped-types": "^12.0.0",
     "@nestjs/passport": "^12.0.0",
     "@nestjs/platform-express": "^10.4.22",
+    "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "7.9.1",
+    "@types/passport-jwt": "^4.0.1",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^2.0.1",
     "bcryptjs": "^3.0.3",
@@ -46,6 +48,7 @@
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "svg-captcha": "^1.4.0",
     "uuid": "^14.0.2",
     "zod": "^4.5.4"
   },

@@ -31,9 +31,7 @@ enum UserStatus {
 
 model User {
   id              String           @id @default(cuid())
-  // 账户
-  account         String           @unique
-  // 用户名
+  // 昵称
   username        String
   // 密码
   password        String
@@ -110,7 +108,9 @@ model Permission {
   updatedAt DateTime @updatedAt
 }
 
+// 角色中间表
 model RolePermission {
+  // 角色 和 权限对应
   roleId       String
   permissionId String
 
