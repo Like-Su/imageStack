@@ -16,6 +16,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { LibrariesModule } from './modules/libraries/libraries.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { SystemModule } from './modules/system/system.module';
+import { CommonModule } from './common/common.module';
 
 const envSchema = z.object({
   NODE_ENV: z
@@ -60,6 +61,7 @@ const envSchema = z.object({
     LibrariesModule,
     PluginsModule,
     SystemModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
