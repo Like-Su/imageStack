@@ -69,6 +69,8 @@ export class AuthService {
     };
   }
 
+  private createToken(email: string) {}
+
   async register(dto: RegisterDto) {
     const { username, email, password, enterPassword, captcha, captchaId } =
       dto;
@@ -88,5 +90,7 @@ export class AuthService {
     });
 
     if (validEmail) throw new BadRequestException('邮箱已注册');
+
+    // 通过 发送邮件 打开 邮件中的地址来激活账户
   }
 }

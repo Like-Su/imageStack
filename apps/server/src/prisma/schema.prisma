@@ -30,34 +30,32 @@ enum UserStatus {
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id          String     @id @default(cuid())
   // 用户名
-  username      String
+  username    String
   // 密码
-  password      String
+  password    String
   // 邮箱
-  email         String?       @unique
+  email       String     @unique
   // 头像
-  avatar        String?
-  // 是否通过邮箱验证
-  emailVerified EmailVerified @default(FAIL_VALIDATE)
+  avatar      String?
   // 账户状态
-  status        UserStatus    @default(ACTIVE)
+  status      UserStatus @default(ACTIVE)
   // 创建与更新时间
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   // 最后登录事件
-  lastLoginAt   DateTime?
+  lastLoginAt DateTime?
   // 账户是否删除
-  deleted       Boolean       @default(false)
+  deleted     Boolean    @default(false)
   // 一个角色 可以拥有多个用户
-  role          Role          @relation(fields: [roleId], references: [id])
-  roleId        String
+  role        Role       @relation(fields: [roleId], references: [id])
+  roleId      String
 
   fileNodes       FileNode[]
-  uploadSessions  UploadSession[]
   fileShares      FileShare[]
   filePermissions FilePermission[]
+  uploadSessions  UploadSession[]
 }
 
 // 文件 类型
