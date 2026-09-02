@@ -12,6 +12,7 @@ import { RedisConfig } from './redis.config';
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   private redis: Redis | null = null;
+  private prefixKey: string;
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -28,11 +29,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       lazyConnect: true,
     });
 
-    this.redis.on('connect', this.connectionEnable);
-    this.redis.on('error', this.connectionError);
+    this.redis.on('connect', this.onConnect);
+    this.redis.on('error', this.onError);
 
-    await this.redis.connect();
-    await this.redis.ping();
+    try {
+      await this.redis.connect();
+      await this.redis.ping();
+    } catch (e) {
+      this.redis.disconnect();
+      throw e;
+    }
   }
 
   async onModuleDestroy() {
@@ -50,15 +56,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       this.redis.disconnect();
     } finally {
       this.redis = null;
+      this.prefixKey = null;
     }
   }
 
   // 监听 启动成功与错误
-  connectionEnable = () => {
+  private readonly onConnect = () => {
     this.logger.log(`Redis connected`);
   };
 
-  connectionError = (error) => {
+  private readonly onError = (error: Error) => {
     this.logger.error(`Redis error: ${error.message}`, error.stack);
   };
 
@@ -72,31 +79,37 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return (await this.client.ping()) === 'PONG' ? 'success' : 'error';
   }
 
+  get prefix() {
+    if (this.prefixKey === null) {
+      const prefix = this.configService.get<string>('REDIS_KEY_PREFIX');
+      this.prefixKey = prefix.endsWith(':') ? prefix : prefix + ':';
+    }
+    return this.prefixKey;
+  }
+
   // redis 基础操作
   async get(key: string) {
-    return await this.client.get(key);
+    return await this.client.get(this.prefix + key);
   }
 
   async set(key: string, value: string, ttlSeconds?: number) {
-    return await this.client.set(
-      key,
-      value,
-      ttlSeconds ? 'EX' : void 0,
-      ttlSeconds,
-    );
+    if (ttlSeconds !== undefined) {
+      return this.client.set(this.prefix + key, value, 'EX', ttlSeconds);
+    }
+    return this.client.set(this.prefix + key, value);
   }
 
   async del(...keys: string[]) {
     if (keys.length === 0) return 0;
-    return await this.client.del(...keys);
+    return await this.client.del(...keys.map((key) => this.prefix + key));
   }
 
   async expire(key: string, ttlSeconds: number) {
-    const res = await this.client.expire(key, ttlSeconds);
+    const res = await this.client.expire(this.prefix + key, ttlSeconds);
     return res === 1;
   }
 
   async ttl(key: string) {
-    return this.client.ttl(key);
+    return this.client.ttl(this.prefix + key);
   }
 }
