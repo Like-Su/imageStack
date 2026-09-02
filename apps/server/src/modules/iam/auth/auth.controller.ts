@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RefreshTokenDto, RegisterDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { Throttle } from '@nestjs/throttler';
@@ -42,6 +42,10 @@ export class AuthController {
   // 重置密码
   @Post('reset')
   async reset() {}
+
+  // 激活账户
+  @Get('verify-activate')
+  async verifyActivate(@Param('token') token: string) {}
 
   // 无感登录
   @Post('refresh')
