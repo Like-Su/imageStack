@@ -1,4 +1,4 @@
 export interface User {
-  roles: string[];
+  roles: string;
   permissions: string[];
 }
