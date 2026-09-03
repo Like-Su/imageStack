@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Injectable,
@@ -13,7 +13,10 @@ import { RegisterDto } from './dto/auth.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from 'src/common/redis/redis.service';
 import { EmailService } from './email.service';
+import { UserService } from '../user/user.service';
 
+const EMAIL_ACTIVATE_TOKEN = 'email_activate_token';
+const USER_ACTIVATE_TOKEN = 'user_activate_token';
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,6 +25,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
+    private readonly userService: UserService,
   ) {}
 
   async test() {
@@ -69,7 +73,16 @@ export class AuthService {
     };
   }
 
-  private createToken(email: string) {}
+  private async createToken(email: string) {
+    const token = randomBytes(64).toString('hex');
+    const expire = 60 * 5;
+
+    // 存储到 缓存
+    // 通过 token 判断 user 是否存在
+    await this.redisService.set(token, JSON.stringify({ email }), expire);
+    // 用户查询 token 是否存在
+    await this.redisService.set(email, JSON.stringify({ token }), expire);
+  }
 
   async register(dto: RegisterDto) {
     const { username, email, password, enterPassword, captcha, captchaId } =
@@ -83,11 +96,7 @@ export class AuthService {
       throw new BadRequestException('两次密码不一致');
 
     // 查询邮箱是否注册
-    const validEmail = await this.prismaService.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const validEmail = await this.userService.findByEmail(email);
 
     if (validEmail) throw new BadRequestException('邮箱已注册');
 
