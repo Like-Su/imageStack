@@ -11,6 +11,9 @@ import { AuthController } from './auth.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { EmailService } from './email.service';
 import { UserModule } from '../user/user.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { PermissionGuard } from './guards/permission.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -21,7 +24,10 @@ import { UserModule } from '../user/user.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         return {
-          secret: config.get<string>('JWT_SECRET', 'image-stack'),
+          secret: config.getOrThrow<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: config.getOrThrow<number>('JWT_ACCESS_TTL'),
+          },
         };
       },
     }),
@@ -32,8 +38,8 @@ import { UserModule } from '../user/user.module';
         return {
           transport: {
             host: config.get<string>('MAIL_HOST'),
-            port: config.get<string>('MAIL_PORT'),
-            secure: config.get<string>('MAIL_SECURE'),
+            port: Number(config.get<string>('MAIL_PORT')),
+            secure: config.get<string>('MAIL_SECURE') === 'true',
             auth: {
               user: config.get<string>('MAIL_USER'),
               pass: config.get<string>('MAIL_PASS'),
@@ -49,11 +55,21 @@ import { UserModule } from '../user/user.module';
   ],
   providers: [
     AuthService,
+    EmailService,
+    JwtStrategy,
+    // JwtAuthGuard -> RoleGuard -> PermissionGuard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
     },
-    EmailService,
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
+    },
   ],
   controllers: [AuthController],
 })

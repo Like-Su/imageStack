@@ -24,4 +24,18 @@ export const envSchema = z.object({
   MAIL_PASS: z.string(),
   MAIL_USER: z.string(),
   MAIL_SEND_FROM: z.string(),
+
+  // JWT
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET 最少 32 位'),
+  JWT_ACCESS_TTL: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(2 * 60 * 60),
+  JWT_REFRESH_TTL: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(7 * 24 * 60 * 60),
+  APP_DOMAIN: z.string().min(1),
 });

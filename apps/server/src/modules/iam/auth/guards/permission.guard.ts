@@ -24,20 +24,17 @@ export class PermissionGuard implements CanActivate {
 
     if (!permissions?.length) return true;
 
-    const req = context.switchToHttp().getRequest<{ user: User }>();
-    const user = req.user;
-    if (!user) throw new ForbiddenException('权限不足');
+    const { user } = context.switchToHttp().getRequest<{ user: User }>();
+    if (!user) throw new ForbiddenException('未登录');
+
     // 管理员直接放行
-    if (user.roles.includes(RoleCode.ADMIN)) return true;
+    if (user.roleCode === RoleCode.ADMIN) return true;
 
-    const ownerPermission = new Set(user.permissions ?? []);
-    const isPermission = permissions.some((permission) =>
-      ownerPermission.has(permission),
-    );
+    const ownerd = new Set(user.permissions ?? []);
+    // 满足任意一个即可
+    const allowed = permissions.some((permission) => ownerd.has(permission));
 
-    if (!isPermission) {
-      throw new ForbiddenException('权限不足');
-    }
+    if (!allowed) throw new ForbiddenException('权限不足');
 
     return true;
   }
