@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { EmailService } from './email.service';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { EmailService } from './email.service';
         } as MailerOptions;
       },
     }),
+    UserModule,
   ],
   providers: [
     AuthService,
