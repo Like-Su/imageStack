@@ -3,11 +3,13 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
-import { User } from '../auth.type';
+import { RequestUser } from '../auth.type';
+import { ROLES_KEY } from '../decorators/roles-permissions.decorator';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -15,7 +17,7 @@ export class RoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const isRoles = this.reflector.getAllAndOverride('ROLES', [
+    const isRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -23,13 +25,13 @@ export class RoleGuard implements CanActivate {
     // 没有设置权限
     if (!isRoles?.length) return true;
 
-    const request = context.switchToHttp().getRequest<{ user: User }>();
-    const user = request.user;
+    const { user } = context
+      .switchToHttp()
+      .getRequest<{ user?: RequestUser }>();
+    // JwtAuthGuard 在前面已经拦截
+    if (!user) throw new UnauthorizedException('未登录');
 
-    if (!user?.roles?.length) throw new ForbiddenException('权限不足');
-
-    const hasRole = user.roles.includes(isRoles[0]);
-    if (!hasRole) {
+    if (!isRoles.includes(user.roleCode)) {
       throw new ForbiddenException('权限不足');
     }
 

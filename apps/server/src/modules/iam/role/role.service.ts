@@ -8,20 +8,24 @@ import {
   RoleUpdateInput,
   RoleWhereInput,
 } from 'src/prisma/generated/prisma/models';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class RoleService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
+  ) {}
 
   // 创建角色
   async create(roleName: string, roleCode: string, description?: string) {
     const existRole = this.prismaService.role.findFirst({
       where: {
-        roleName,
+        OR: [{ roleName }, { roleCode }],
       },
     });
 
-    if (existRole) throw new BadRequestException('角色名称重复');
+    if (existRole) throw new BadRequestException('角色名称或编码重复');
 
     return await this.prismaService.role.create({
       data: {
@@ -97,7 +101,7 @@ export class RoleService {
       permissions.map((permission) => permission.permissionCode),
     );
 
-    const missingCodes = codes.filter((code) => foundCodes.has(code));
+    const missingCodes = codes.filter((code) => !foundCodes.has(code));
 
     if (missingCodes.length > 0) {
       throw new BadRequestException(
@@ -151,6 +155,8 @@ export class RoleService {
 
     if (!updatedRole) throw new NotFoundException('角色不存在');
 
+    await this.userService.evictAuthUsersByRole(roleId);
+
     return {
       id: updatedRole.id,
       roleName: updatedRole.roleName,
@@ -176,22 +182,45 @@ export class RoleService {
 
   // 查询角色拥有的权限
   async getRolePermission(roleId: string) {
-    const result = await this.prismaService.$queryRaw`
-      SELECT * FROM role_permission WHERE role_id = ${roleId}
-      JOIN permission ON role_permission.permission_id = permission.id
-    `;
-    return result;
+    const role = await this.prismaService.role.findUnique({
+      where: { id: roleId },
+      select: {
+        id: true,
+        roleName: true,
+        roleCode: true,
+        permissions: { select: { permission: true } },
+      },
+    });
+
+    if (!role) throw new NotFoundException('角色不存在');
+
+    return {
+      ...role,
+      permissions: role.permissions.map((rp) => rp.permission),
+    };
   }
 
   // 查询角色下的用户与用户数量
   async getRoleUser(roleId: string) {
-    const result = await this.prismaService.$queryRaw`
-      SELECT * FROM user_role WHERE role_id = ${roleId}
-      JOIN user ON user_role.user_id = user.id
-      JOIN role ON user_role.role_id = role.id
-      GROUP BY user.id DESC
-    `;
-    return result;
+    const where = { roleId, deleted: false };
+    const [total, users] = await this.prismaService.$transaction([
+      this.prismaService.user.count({ where }),
+      this.prismaService.user.findMany({
+        where,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      users,
+    };
   }
 
   // 角色列表

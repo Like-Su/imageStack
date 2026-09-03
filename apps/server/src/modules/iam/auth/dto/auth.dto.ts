@@ -1,10 +1,11 @@
-import { IsString, IsEmail } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsOptional } from 'class-validator';
 
 // 登录
 export class LoginDto {
   @IsString()
-  account: string;
+  email: string;
   @IsString()
+  @MinLength(6)
   password: string;
   @IsString()
   captcha: string;
@@ -27,6 +28,12 @@ export class RegisterDto {
   captcha: string;
   @IsString()
   captchaId: string;
+}
+
+export class LogoutDto {
+  @IsOptional()
+  @IsString()
+  refreshToken?: string;
 }
 
 // 刷新

@@ -6,14 +6,20 @@ import {
 import { hash } from 'bcryptjs';
 
 // Custom Module
-import { RoleCode } from 'src/common/constants';
+import { User as AuthUser } from '../auth/auth.type';
+import { RedisKey, RoleCode } from 'src/common/constants';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { RedisService } from 'src/common/redis/redis.service';
 import { User, UserStatus } from 'src/prisma/generated/prisma/client';
 
+const AUTH_USER_TTL = 30 * 60;
 @Injectable()
 export class UserService {
   private readonly slat = 10;
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly redisService: RedisService,
+  ) {}
 
   // 通过 email 查询用户
   async findByEmail(email: string) {
@@ -38,11 +44,81 @@ export class UserService {
     return user;
   }
 
-  // 注册
-  async register(username: string, email: string, password: string) {
-    const validEmail = await this.findByEmail(email);
+  // 获取已激活用户信息
+  private async loadAuthUser(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      // 被删除 未激活用户查不到表示 无权限
+      where: { id: userId, deleted: false, status: UserStatus.ACTIVE },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: {
+          select: {
+            roleCode: true,
+            status: true,
+            roleName: true,
+            permissions: {
+              select: { permission: { select: { permissionCode: true } } },
+            },
+          },
+        },
+      },
+    });
 
-    if (validEmail) throw new BadRequestException('邮箱已注册');
+    // 角色被禁用也无权限
+    if (!user || user.role.status !== 1) return null;
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      roles: user.role.roleName,
+      roleCode: user.role.roleCode,
+      permissions: user.role.permissions.map(
+        (rp) => rp.permission.permissionCode,
+      ),
+    };
+  }
+
+  // 每个带 Token 请求都会经过这里, 先调用 Redis miss 在查库
+  async getAuthUser(userId: string): Promise<AuthUser> {
+    const key = RedisKey.authUser(userId);
+    const cached = await this.redisService.get(key);
+    if (cached) return JSON.parse(cached) as AuthUser;
+
+    const user = await this.loadAuthUser(userId);
+    if (user) {
+      await this.redisService.set(key, JSON.stringify(user), AUTH_USER_TTL);
+    }
+    return user;
+  }
+
+  // 用户变化后 调用(改状态, 删除, 改角色, 重置密码等)
+  async evictAuthUser(userId: string) {
+    await this.redisService.del(RedisKey.authUser(userId));
+  }
+
+  async evictAuthUsersByRole(roleId: string) {
+    const users = await this.prismaService.user.findMany({
+      where: { roleId },
+      select: { id: true },
+    });
+    if (users.length === 0) return;
+    // 用户量大时改为分批 del
+    await this.redisService.del(...users.map((u) => RedisKey.authUser(u.id)));
+  }
+
+  // 注册
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    status: UserStatus = UserStatus.DEACTIVE,
+  ) {
+    const existEmail = await this.findByEmail(email);
+
+    if (existEmail) throw new BadRequestException('邮箱已注册');
 
     // 加密
     const hashPassword = await hash(password, this.slat);
@@ -52,6 +128,7 @@ export class UserService {
         username,
         email,
         password: hashPassword,
+        status,
         role: {
           connect: {
             // 设置默认权限
@@ -77,6 +154,19 @@ export class UserService {
     };
   }
 
+  // 激活账户
+  async activateUser(userId: string) {
+    const user = await this.findByIdOrThrow(userId);
+    if (user.status === UserStatus.ACTIVE) return '用户已经激活';
+    this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        status: UserStatus.ACTIVE,
+      },
+    });
+    return '账户激活成功, 请登录';
+  }
+
   // 重置密码
   async resetPassword(userId: string, newPassword) {
     const user = await this.findByIdOrThrow(userId);
@@ -93,8 +183,8 @@ export class UserService {
 
   // 设置账户状态
   async setStatus(userId: string, status: UserStatus) {
-    const user = await this.findByIdOrThrow(userId);
-    this.prismaService.user.update({
+    await this.findByIdOrThrow(userId);
+    await this.prismaService.user.update({
       where: {
         id: userId,
       },
@@ -102,6 +192,8 @@ export class UserService {
         status,
       },
     });
+    // 删除用户缓存
+    await this.evictAuthUser(userId);
     return true;
   }
 

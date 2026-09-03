@@ -13,7 +13,7 @@ export class EmailService {
     await this.mailerService.sendMail({
       to,
       subject: 'imageStack激活您的账户',
-      from: 'from@qq.com',
+      from: this.configService.get<string>('MAIL_FROM'),
       html: `
         <h1>激活您的账户</h1>
         <p>请前往 <a href="${this.configService.get<string>('APP_DOMAIN')}/auth/verify-activate?token=${token}">激活链接</a> 进行激活</p>

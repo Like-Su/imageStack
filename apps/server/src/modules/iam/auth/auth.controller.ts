@@ -1,18 +1,22 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { RefreshTokenDto, RegisterDto } from './dto/auth.dto';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  LoginDto,
+  LogoutDto,
+  RefreshTokenDto,
+  RegisterDto,
+} from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { Throttle } from '@nestjs/throttler';
+import { Open } from './decorators/open.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { RequestUser } from './auth.type';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('verify')
-  async verify() {
-    return this.authService.test();
-  }
-
   // captcha
+  @Open()
   @Get('captcha')
   // 局部限流
   @Throttle({
@@ -26,10 +30,15 @@ export class AuthController {
   }
 
   // 登录
+  @Open()
   @Post('login')
-  async login() {}
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
 
   // 注册
+  @Open()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return await this.authService.register(registerDto);
@@ -45,17 +54,27 @@ export class AuthController {
 
   // 激活账户
   @Get('verify-activate')
-  async verifyActivate(@Param('token') token: string) {}
+  verifyActivate(@Query('token') token: string) {
+    return this.authService.activate(token);
+  }
 
   // 无感登录
   @Post('refresh')
-  refresh(@Body() RefreshTokenDto) {}
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto.refreshToken);
+  }
 
   // 登出
   @Post('logout')
-  logout() {}
+  logout(@CurrentUser() user: RequestUser, @Body() dto: LogoutDto) {
+    return this.authService.logout(user, dto.refreshToken);
+  }
 
   // 获取自己的信息
   @Get('self')
-  self() {}
+  self(@CurrentUser() user: RequestUser) {
+    // 元信息不返回给前端
+    const { tokenJti, tokenExp, ...profile } = user;
+    return profile;
+  }
 }
