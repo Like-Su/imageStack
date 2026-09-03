@@ -28,7 +28,7 @@ export class RoleGuard implements CanActivate {
 
     if (!user?.roles?.length) throw new ForbiddenException('权限不足');
 
-    const hasRole = user.roles.some((role) => isRoles.includes(role));
+    const hasRole = user.roles.includes(isRoles[0]);
     if (!hasRole) {
       throw new ForbiddenException('权限不足');
     }

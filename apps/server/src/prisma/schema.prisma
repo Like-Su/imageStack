@@ -91,8 +91,8 @@ model Role {
 model Permission {
   id             String  @id @default(cuid())
   parentId       String?
-  permissionName String
-  permissionCode String
+  permissionName String  @unique
+  permissionCode String  @unique
 
   parent Permission? @relation("PermissionTree", fields: [parentId], references: [id])
 
