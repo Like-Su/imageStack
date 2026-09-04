@@ -51,12 +51,24 @@ export class AuthController {
   // 忘记密码
   @Open()
   @Post('forget')
-  async forget(@Body() forgetDto: ForgetDto) {}
+  async forget(@Body() forgetDto: ForgetDto) {
+    return this.authService.forgetPassword(
+      forgetDto.email,
+      forgetDto.emailCode,
+      forgetDto.password,
+    );
+  }
 
   // 重置密码
   @Open()
   @Post('reset')
-  async reset(@Body() resetDto: ResetDto) {}
+  async reset(@Body() resetDto: ResetDto) {
+    return this.authService.forgetPassword(
+      resetDto.email,
+      resetDto.emailCode,
+      resetDto.password,
+    );
+  }
 
   // 激活账户
   @Get('verify-activate')
@@ -74,13 +86,5 @@ export class AuthController {
   @Post('logout')
   logout(@CurrentUser() user: RequestUser, @Body() dto: LogoutDto) {
     return this.authService.logout(user, dto.refreshToken);
-  }
-
-  // 获取自己的信息
-  @Get('self')
-  self(@CurrentUser() user: RequestUser) {
-    // 元信息不返回给前端
-    const { tokenJti, tokenExp, ...profile } = user;
-    return profile;
   }
 }

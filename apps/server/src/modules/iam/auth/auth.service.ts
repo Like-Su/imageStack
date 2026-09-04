@@ -25,6 +25,8 @@ import { JwtPayload, RequestUser } from './auth.type';
 export class AuthService {
   private readonly accessTtl: number;
   private readonly refreshTtl: number;
+  private readonly forgetOrResetPasswordTtl: number = 30 * 60;
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
@@ -222,6 +224,35 @@ export class AuthService {
         await this.redisService.del(RedisKey.refresh(user.id, payload.jti));
       }
     }
+    return true;
+  }
+
+  // 发送忘记密码 或 重置密码邮件
+  async sendResetPasswordMail(email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user || user.deleted) throw new NotFoundException('用户不存在');
+    const token = randomUUID();
+    await this.redisService.set(
+      RedisKey.forgetPassword(email),
+      token,
+      this.forgetOrResetPasswordTtl,
+    );
+    return true;
+  }
+
+  async forgetPassword(email: string, emailCode: string, newPassword: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user || user.deleted) throw new NotFoundException('用户不存在');
+
+    const cachedToken = await this.redisService.get(
+      RedisKey.forgetPassword(email),
+    );
+    if (!cachedToken || cachedToken !== emailCode)
+      throw new BadRequestException('忘记密码链接无效或已过期');
+
+    // 重置密码操作
+    this.userService.resetPassword(user.id, newPassword);
+
     return true;
   }
 }

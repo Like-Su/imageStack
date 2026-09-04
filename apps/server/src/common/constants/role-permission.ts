@@ -20,6 +20,7 @@ export const PermissionCode = {
   ASSET_TAG: 'asset:tag',
   ASSET_CATEGORY: 'asset:category',
   ASSET_SEARCH: 'asset:search',
+  ASSET_DOWNLOAD: 'asset:download',
 
   // 用户类
   SYSTEM_USER: 'system:user',
@@ -41,33 +42,6 @@ export const PermissionCode = {
 } as const;
 
 export const PermissionCodeList = Object.values(PermissionCode);
-
-// export const PermissionCodeList = [
-//   // 资源类
-//   'asset:create',
-//   'asset:delete',
-//   'asset:edit',
-//   'asset:list',
-//   'asset:tag',
-//   'asset:category',
-//   'asset:search',
-//   // 用户类
-//   'system:user',
-//   'system:user:create',
-//   'system:user:delete',
-//   'system:user:edit',
-//   // 角色
-//   'system:role',
-//   'system:role:create',
-//   'system:role:delete',
-//   'system:role:edit',
-
-//   // 权限
-//   'system:permission',
-//   'system:permission:create',
-//   'system:permission:delete',
-//   'system:permission:edit',
-// ];
 
 // 运行时权限校验
 export const RuntimePermissionCode = {

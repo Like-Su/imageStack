@@ -9,4 +9,6 @@ export const RedisKey = {
   blacklist: (jti: string) => `auth:blacklist:${jti}`,
   // 用户权限快照缓存
   authUser: (userId: string) => `auth:user:${userId}`,
+  // 忘记密码
+  forgetPassword: (email: string) => `auth:forget:${email}`,
 } as const;
