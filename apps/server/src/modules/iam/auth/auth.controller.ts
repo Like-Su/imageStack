@@ -71,12 +71,14 @@ export class AuthController {
   }
 
   // 激活账户
+  @Open()
   @Get('verify-activate')
   verifyActivate(@Query('token') token: string) {
     return this.authService.activate(token);
   }
 
   // 无感登录
+  @Open()
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto.refreshToken);

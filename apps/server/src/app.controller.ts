@@ -3,6 +3,7 @@ import { AppService } from './app.service';
 import { BusinessException } from './common/exceptions/business.exception';
 import { RedisService } from './common/redis/redis.service';
 import { PrismaService } from './common/prisma/prisma.service';
+import { Open } from './modules/iam/auth/decorators/open.decorator';
 
 @Controller()
 export class AppController {
@@ -39,6 +40,7 @@ export class AppController {
     return await this.redisService.ping();
   }
 
+  @Open()
   @Get('pg-status')
   async checkPg() {
     return await this.prismaService.user.findMany();

@@ -20,8 +20,18 @@ export type UserModel =
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null;
+  _avg: UserAvgAggregateOutputType | null;
+  _sum: UserSumAggregateOutputType | null;
   _min: UserMinAggregateOutputType | null;
   _max: UserMaxAggregateOutputType | null;
+};
+
+export type UserAvgAggregateOutputType = {
+  sessionVersion: number | null;
+};
+
+export type UserSumAggregateOutputType = {
+  sessionVersion: number | null;
 };
 
 export type UserMinAggregateOutputType = {
@@ -36,6 +46,7 @@ export type UserMinAggregateOutputType = {
   lastLoginAt: Date | null;
   deleted: boolean | null;
   roleId: string | null;
+  sessionVersion: number | null;
 };
 
 export type UserMaxAggregateOutputType = {
@@ -50,6 +61,7 @@ export type UserMaxAggregateOutputType = {
   lastLoginAt: Date | null;
   deleted: boolean | null;
   roleId: string | null;
+  sessionVersion: number | null;
 };
 
 export type UserCountAggregateOutputType = {
@@ -64,7 +76,16 @@ export type UserCountAggregateOutputType = {
   lastLoginAt: number;
   deleted: number;
   roleId: number;
+  sessionVersion: number;
   _all: number;
+};
+
+export type UserAvgAggregateInputType = {
+  sessionVersion?: true;
+};
+
+export type UserSumAggregateInputType = {
+  sessionVersion?: true;
 };
 
 export type UserMinAggregateInputType = {
@@ -79,6 +100,7 @@ export type UserMinAggregateInputType = {
   lastLoginAt?: true;
   deleted?: true;
   roleId?: true;
+  sessionVersion?: true;
 };
 
 export type UserMaxAggregateInputType = {
@@ -93,6 +115,7 @@ export type UserMaxAggregateInputType = {
   lastLoginAt?: true;
   deleted?: true;
   roleId?: true;
+  sessionVersion?: true;
 };
 
 export type UserCountAggregateInputType = {
@@ -107,6 +130,7 @@ export type UserCountAggregateInputType = {
   lastLoginAt?: true;
   deleted?: true;
   roleId?: true;
+  sessionVersion?: true;
   _all?: true;
 };
 
@@ -152,6 +176,18 @@ export type UserAggregateArgs<
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    *
+   * Select which fields to average
+   **/
+  _avg?: UserAvgAggregateInputType;
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   *
+   * Select which fields to sum
+   **/
+  _sum?: UserSumAggregateInputType;
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   *
    * Select which fields to find the minimum value
    **/
   _min?: UserMinAggregateInputType;
@@ -184,6 +220,8 @@ export type UserGroupByArgs<
   take?: number;
   skip?: number;
   _count?: UserCountAggregateInputType | true;
+  _avg?: UserAvgAggregateInputType;
+  _sum?: UserSumAggregateInputType;
   _min?: UserMinAggregateInputType;
   _max?: UserMaxAggregateInputType;
 };
@@ -200,7 +238,10 @@ export type UserGroupByOutputType = {
   lastLoginAt: Date | null;
   deleted: boolean;
   roleId: string;
+  sessionVersion: number;
   _count: UserCountAggregateOutputType | null;
+  _avg: UserAvgAggregateOutputType | null;
+  _sum: UserSumAggregateOutputType | null;
   _min: UserMinAggregateOutputType | null;
   _max: UserMaxAggregateOutputType | null;
 };
@@ -233,6 +274,7 @@ export type UserWhereInput = {
   lastLoginAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
   deleted?: Prisma.BoolFilter<'User'> | boolean;
   roleId?: Prisma.StringFilter<'User'> | string;
+  sessionVersion?: Prisma.IntFilter<'User'> | number;
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>;
   fileNodes?: Prisma.FileNodeListRelationFilter;
   fileShares?: Prisma.FileShareListRelationFilter;
@@ -252,6 +294,7 @@ export type UserOrderByWithRelationInput = {
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
   roleId?: Prisma.SortOrder;
+  sessionVersion?: Prisma.SortOrder;
   role?: Prisma.RoleOrderByWithRelationInput;
   fileNodes?: Prisma.FileNodeOrderByRelationAggregateInput;
   fileShares?: Prisma.FileShareOrderByRelationAggregateInput;
@@ -275,6 +318,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     lastLoginAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
     deleted?: Prisma.BoolFilter<'User'> | boolean;
     roleId?: Prisma.StringFilter<'User'> | string;
+    sessionVersion?: Prisma.IntFilter<'User'> | number;
     role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>;
     fileNodes?: Prisma.FileNodeListRelationFilter;
     fileShares?: Prisma.FileShareListRelationFilter;
@@ -296,9 +340,12 @@ export type UserOrderByWithAggregationInput = {
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
   roleId?: Prisma.SortOrder;
+  sessionVersion?: Prisma.SortOrder;
   _count?: Prisma.UserCountOrderByAggregateInput;
+  _avg?: Prisma.UserAvgOrderByAggregateInput;
   _max?: Prisma.UserMaxOrderByAggregateInput;
   _min?: Prisma.UserMinOrderByAggregateInput;
+  _sum?: Prisma.UserSumOrderByAggregateInput;
 };
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -322,6 +369,7 @@ export type UserScalarWhereWithAggregatesInput = {
     Prisma.DateTimeNullableWithAggregatesFilter<'User'> | Date | string | null;
   deleted?: Prisma.BoolWithAggregatesFilter<'User'> | boolean;
   roleId?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  sessionVersion?: Prisma.IntWithAggregatesFilter<'User'> | number;
 };
 
 export type UserCreateInput = {
@@ -335,6 +383,7 @@ export type UserCreateInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
@@ -354,6 +403,7 @@ export type UserUncheckedCreateInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -372,6 +422,7 @@ export type UserUpdateInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
@@ -392,6 +443,7 @@ export type UserUncheckedUpdateInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -410,6 +462,7 @@ export type UserCreateManyInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
 };
 
 export type UserUpdateManyMutationInput = {
@@ -424,6 +477,7 @@ export type UserUpdateManyMutationInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
 };
 
 export type UserUncheckedUpdateManyInput = {
@@ -439,6 +493,7 @@ export type UserUncheckedUpdateManyInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
 };
 
 export type UserCountOrderByAggregateInput = {
@@ -453,6 +508,11 @@ export type UserCountOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
   roleId?: Prisma.SortOrder;
+  sessionVersion?: Prisma.SortOrder;
+};
+
+export type UserAvgOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder;
 };
 
 export type UserMaxOrderByAggregateInput = {
@@ -467,6 +527,7 @@ export type UserMaxOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
   roleId?: Prisma.SortOrder;
+  sessionVersion?: Prisma.SortOrder;
 };
 
 export type UserMinOrderByAggregateInput = {
@@ -481,6 +542,11 @@ export type UserMinOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
   roleId?: Prisma.SortOrder;
+  sessionVersion?: Prisma.SortOrder;
+};
+
+export type UserSumOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder;
 };
 
 export type UserListRelationFilter = {
@@ -520,6 +586,14 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean;
+};
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number;
+  increment?: number;
+  decrement?: number;
+  multiply?: number;
+  divide?: number;
 };
 
 export type UserCreateNestedManyWithoutRoleInput = {
@@ -723,6 +797,7 @@ export type UserCreateWithoutRoleInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -740,6 +815,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -802,6 +878,7 @@ export type UserScalarWhereInput = {
   lastLoginAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
   deleted?: Prisma.BoolFilter<'User'> | boolean;
   roleId?: Prisma.StringFilter<'User'> | string;
+  sessionVersion?: Prisma.IntFilter<'User'> | number;
 };
 
 export type UserCreateWithoutFileNodesInput = {
@@ -815,6 +892,7 @@ export type UserCreateWithoutFileNodesInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -833,6 +911,7 @@ export type UserUncheckedCreateWithoutFileNodesInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -878,6 +957,7 @@ export type UserUpdateWithoutFileNodesInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -897,6 +977,7 @@ export type UserUncheckedUpdateWithoutFileNodesInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -913,6 +994,7 @@ export type UserCreateWithoutUploadSessionsInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
@@ -931,6 +1013,7 @@ export type UserUncheckedCreateWithoutUploadSessionsInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -976,6 +1059,7 @@ export type UserUpdateWithoutUploadSessionsInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
@@ -995,6 +1079,7 @@ export type UserUncheckedUpdateWithoutUploadSessionsInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1011,6 +1096,7 @@ export type UserCreateWithoutFileSharesInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -1029,6 +1115,7 @@ export type UserUncheckedCreateWithoutFileSharesInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1074,6 +1161,7 @@ export type UserUpdateWithoutFileSharesInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1093,6 +1181,7 @@ export type UserUncheckedUpdateWithoutFileSharesInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1109,6 +1198,7 @@ export type UserCreateWithoutFilePermissionsInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
@@ -1127,6 +1217,7 @@ export type UserUncheckedCreateWithoutFilePermissionsInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   roleId: string;
+  sessionVersion?: number;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1172,6 +1263,7 @@ export type UserUpdateWithoutFilePermissionsInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
@@ -1191,6 +1283,7 @@ export type UserUncheckedUpdateWithoutFilePermissionsInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1207,6 +1300,7 @@ export type UserCreateManyRoleInput = {
   updatedAt?: Date | string;
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
+  sessionVersion?: number;
 };
 
 export type UserUpdateWithoutRoleInput = {
@@ -1221,6 +1315,7 @@ export type UserUpdateWithoutRoleInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1239,6 +1334,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1257,6 +1353,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   lastLoginAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
 };
 
 /**
@@ -1349,6 +1446,7 @@ export type UserSelect<
     lastLoginAt?: boolean;
     deleted?: boolean;
     roleId?: boolean;
+    sessionVersion?: boolean;
     role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>;
     fileNodes?: boolean | Prisma.User$fileNodesArgs<ExtArgs>;
     fileShares?: boolean | Prisma.User$fileSharesArgs<ExtArgs>;
@@ -1375,6 +1473,7 @@ export type UserSelectCreateManyAndReturn<
     lastLoginAt?: boolean;
     deleted?: boolean;
     roleId?: boolean;
+    sessionVersion?: boolean;
     role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['user']
@@ -1396,6 +1495,7 @@ export type UserSelectUpdateManyAndReturn<
     lastLoginAt?: boolean;
     deleted?: boolean;
     roleId?: boolean;
+    sessionVersion?: boolean;
     role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['user']
@@ -1413,6 +1513,7 @@ export type UserSelectScalar = {
   lastLoginAt?: boolean;
   deleted?: boolean;
   roleId?: boolean;
+  sessionVersion?: boolean;
 };
 
 export type UserOmit<
@@ -1429,7 +1530,8 @@ export type UserOmit<
   | 'updatedAt'
   | 'lastLoginAt'
   | 'deleted'
-  | 'roleId',
+  | 'roleId'
+  | 'sessionVersion',
   ExtArgs['result']['user']
 >;
 export type UserInclude<
@@ -1481,6 +1583,7 @@ export type $UserPayload<
       lastLoginAt: Date | null;
       deleted: boolean;
       roleId: string;
+      sessionVersion: number;
     },
     ExtArgs['result']['user']
   >;
@@ -2136,6 +2239,7 @@ export interface UserFieldRefs {
   readonly lastLoginAt: Prisma.FieldRef<'User', 'DateTime'>;
   readonly deleted: Prisma.FieldRef<'User', 'Boolean'>;
   readonly roleId: Prisma.FieldRef<'User', 'String'>;
+  readonly sessionVersion: Prisma.FieldRef<'User', 'Int'>;
 }
 
 // Custom InputTypes

@@ -1127,6 +1127,7 @@ export const UserScalarFieldEnum = {
   lastLoginAt: 'lastLoginAt',
   deleted: 'deleted',
   roleId: 'roleId',
+  sessionVersion: 'sessionVersion',
 } as const;
 
 export type UserScalarFieldEnum =

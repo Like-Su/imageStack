@@ -52,6 +52,9 @@ model User {
   role        Role       @relation(fields: [roleId], references: [id])
   roleId      String
 
+  // 会话版本
+  sessionVersion Int @default(0)
+
   fileNodes       FileNode[]
   fileShares      FileShare[]
   filePermissions FilePermission[]

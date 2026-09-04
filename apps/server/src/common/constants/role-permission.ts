@@ -21,6 +21,10 @@ export const PermissionCode = {
   ASSET_CATEGORY: 'asset:category',
   ASSET_SEARCH: 'asset:search',
   ASSET_DOWNLOAD: 'asset:download',
+  ASSET_SHARE: 'asset:share',
+
+  // 上传
+  UPLOAD_CREATE: 'upload:create',
 
   // 用户类
   SYSTEM_USER: 'system:user',

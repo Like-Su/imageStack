@@ -449,14 +449,6 @@ export type RoleUpdateOneRequiredWithoutUsersNestedInput = {
   >;
 };
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number;
-  increment?: number;
-  decrement?: number;
-  multiply?: number;
-  divide?: number;
-};
-
 export type RoleCreateNestedOneWithoutPermissionsInput = {
   create?: Prisma.XOR<
     Prisma.RoleCreateWithoutPermissionsInput,
