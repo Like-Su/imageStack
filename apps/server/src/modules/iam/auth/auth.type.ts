@@ -21,8 +21,8 @@ export interface JwtPayload {
   sub: string;
   type: TokenType;
   jti: string;
-  sid?: string;
-  sv?: number;
+  sid: string;
+  sv: number;
   iat?: number;
   exp?: number;
 }

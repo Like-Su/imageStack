@@ -20,6 +20,7 @@ import { UserService } from '../user/user.service';
 import { RedisKey } from 'src/common/constants';
 import { UserStatus } from 'src/prisma/generated/prisma/enums';
 import { JwtPayload, RequestUser } from './auth.type';
+import { withSerializable } from 'src/common/prisma/transaction';
 
 @Injectable()
 export class AuthService {
@@ -252,7 +253,13 @@ export class AuthService {
   }
 
   async logoutAll(user: RequestUser) {
-    await this.userService.bumpSessionVersion(user.id);
+    await withSerializable(this.prismaService, async (tx) => {
+      const version = this.userService.bumpSessionVersion(user.id);
+      if (version === null) {
+        throw new UnauthorizedException('用户不存在');
+      }
+      return version;
+    });
     return true;
   }
 

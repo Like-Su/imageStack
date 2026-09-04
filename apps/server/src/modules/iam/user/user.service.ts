@@ -246,39 +246,49 @@ export class UserService {
   // 获取会话数量
   async getSessionVersion(userId: string) {
     const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+        status: UserStatus.ACTIVE,
+        deleted: false,
+      },
       select: {
         sessionVersion: true,
-        status: true,
-        deleted: true,
       },
     });
 
     // 用户不存在或禁用
     if (!user) return null;
-    if (user.deleted) return null;
-    if (user.status !== UserStatus.ACTIVE) return null;
 
     return user.sessionVersion;
   }
 
   // 撤销全部会话
   async bumpSessionVersion(userId: string) {
-    const updated = await this.prismaService.user.update({
+    const res = await this.prismaService.user.updateMany({
       where: { id: userId },
       data: {
         sessionVersion: {
           increment: 1,
         },
       },
+    });
+
+    if (res.count !== 1) {
+      return null;
+    }
+
+    await this.evictAuthUser(userId);
+
+    const updated = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
       select: {
         sessionVersion: true,
       },
     });
 
-    await this.evictAuthUser(userId);
-
-    return updated.sessionVersion;
+    return updated?.sessionVersion ?? null;
   }
 
   // 获取用户列表
