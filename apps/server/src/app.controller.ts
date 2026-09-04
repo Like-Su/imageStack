@@ -43,6 +43,9 @@ export class AppController {
   @Open()
   @Get('pg-status')
   async checkPg() {
-    return await this.prismaService.user.findMany();
+    return await this.prismaService.user.findMany({
+      select: { id: true },
+      take: 10,
+    });
   }
 }

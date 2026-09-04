@@ -1,6 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 
+type AuditInput = {
+  actorId?: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  before?: unknown;
+  after?: unknown;
+  metadata?: unknown;
+};
+
 @Injectable()
 export class AuditService {
   constructor(private readonly prismaService: PrismaService) {}
