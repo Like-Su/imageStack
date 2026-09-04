@@ -148,7 +148,7 @@ export class AuthService {
   }
 
   // 签发token(token 只存放 sub/type/jti 权限从数据库或缓存取)
-  private async issueTokens(userId: string, sessionId = randomUUID()) {
+  private async issueTokens(userId: string, sessionId: string = randomUUID()) {
     const sessionVersion = await this.userService.getSessionVersion(userId);
     if (sessionVersion === null)
       throw new UnauthorizedException('用户不存在或已禁用');
@@ -195,43 +195,64 @@ export class AuthService {
     } catch (e) {
       throw new UnauthorizedException('refresh token 无效或已过期');
     }
-    if (payload.type !== 'refresh')
-      throw new UnauthorizedException('无效 refresh token');
 
-    const key = RedisKey.refresh(payload.sub, payload.jti);
-    // TODO: 非原子操作
-    if (!(await this.redisService.get(key))) {
-      throw new UnauthorizedException('refresh token 已失效，请重新登录');
+    if (payload.type !== 'refresh' || !payload.sub || !payload.jti) {
+      throw new UnauthorizedException('无效 refresh token');
     }
 
-    // 轮换
-    await this.redisService.del(key);
+    // 原子操作
+    const currentVersion = await this.userService.getSessionVersion(
+      payload.sub,
+    );
+    const tokenVersion = payload.sv ?? 0;
+
+    if (currentVersion === null || tokenVersion !== currentVersion) {
+      throw new UnauthorizedException('无效 refresh token');
+    }
+
+    const key = RedisKey.refresh(payload.sub, payload.jti);
+
+    const consumed = await this.redisService.consume(key, refreshToken);
+
+    if (!consumed) {
+      throw new UnauthorizedException('refresh token 已使用或失效');
+    }
 
     const user = await this.userService.getAuthUser(payload.sub);
+
     if (!user) throw new UnauthorizedException('用户不存在或已禁用');
 
-    return this.issueTokens(payload.sub);
+    return this.issueTokens(payload.sub, payload.sid);
   }
 
   // 登出
   async logout(user: RequestUser, refreshToken?: string) {
     // 将当前的 access token 拉黑
-    const remain = user.tokenExp - Math.floor(Date.now() / 1000);
-    if (remain > 0) {
+    const now = Math.floor(Date.now() / 1000);
+    const accessRemain = Math.max(0, user.tokenExp - now);
+
+    if (accessRemain > 0) {
       await this.redisService.set(
         RedisKey.blacklist(user.tokenJti),
         '1',
-        remain,
+        accessRemain,
       );
     }
 
     // 删除 refresh 白名单
-    if (refreshToken) {
-      const payload = this.jwtService.decode<JwtPayload>(refreshToken);
-      if (payload?.type === 'refresh' && payload.sub === user.id) {
-        await this.redisService.del(RedisKey.refresh(user.id, payload.jti));
-      }
+    if (user.sessionId) {
+      await this.redisService.set(
+        RedisKey.sessionRevoked(user.id, user.sessionId),
+        '1',
+        Math.max(this.refreshTtl, accessRemain),
+      );
     }
+
+    return true;
+  }
+
+  async logoutAll(user: RequestUser) {
+    await this.userService.bumpSessionVersion(user.id);
     return true;
   }
 

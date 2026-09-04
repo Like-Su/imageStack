@@ -31,18 +31,46 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload): Promise<RequestUser> {
-    if (payload.type !== 'access')
+    if (payload.type !== 'access' || !payload.sub || !payload.jti)
       throw new UnauthorizedException('无效 access token');
 
+    const blacklisted = await this.redisService.get(
+      RedisKey.blacklist(payload.jti),
+    );
+
     // 登出后 token 放入黑名单
-    if (await this.redisService.get(RedisKey.blacklist(payload.jti))) {
+    if (blacklisted) {
       throw new UnauthorizedException('用户已 登出');
+    }
+
+    if (
+      payload.sid &&
+      (await this.redisService.get(
+        RedisKey.sessionRevoked(payload.sub, payload.sid),
+      ))
+    ) {
+      throw new UnauthorizedException('会话已 登出');
+    }
+
+    const currentVersion = await this.userService.getSessionVersion(
+      payload.sub,
+    );
+    const tokenVersion = payload.sv ?? 0;
+
+    if (currentVersion === null || tokenVersion !== currentVersion) {
+      throw new UnauthorizedException('会话已失效');
     }
 
     const user = await this.userService.getAuthUser(payload.sub);
 
     if (!user) throw new UnauthorizedException('用户不存在或已禁用!');
 
-    return { ...user, tokenJti: payload.jti, tokenExp: payload.exp };
+    return {
+      ...user,
+      tokenJti: payload.jti,
+      tokenExp: payload.exp,
+      sessionId: payload.sid,
+      sessionVersion: tokenVersion,
+    };
   }
 }

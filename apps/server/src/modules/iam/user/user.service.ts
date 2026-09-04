@@ -167,17 +167,22 @@ export class UserService {
     return '账户激活成功, 请登录';
   }
 
-  // 重置密码
+  // 重置密码(密码修改后撤销旧的 session)
   async resetPassword(userId: string, newPassword) {
-    const user = await this.findByIdOrThrow(userId);
-    await this.prismaService.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        password: await hash(newPassword, this.slat),
-      },
+    await this.findByIdOrThrow(userId);
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          password: await hash(newPassword, this.slat),
+          sessionVersion: {
+            increment: 1,
+          },
+        },
+      });
     });
+    // 清空用户缓存
+    await this.evictAuthUser(userId);
     return true;
   }
 
@@ -197,18 +202,44 @@ export class UserService {
     return true;
   }
 
+  // 禁用
+  async disabledUser(userId: string) {
+    await this.findByIdOrThrow(userId);
+    this.prismaService.$transaction(async (tx) => {
+      tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          status: UserStatus.DEACTIVE,
+          sessionVersion: {
+            increment: 1,
+          },
+        },
+      });
+    });
+    await this.evictAuthUser(userId);
+    return true;
+  }
+
   // 删除账户
   async deleteUser(userId: string) {
-    const user = await this.findByIdOrThrow(userId);
-    this.prismaService.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        deleted: true,
-        status: UserStatus.DEACTIVE,
-      },
+    await this.findByIdOrThrow(userId);
+    this.prismaService.$transaction(async (tx) => {
+      tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          deleted: true,
+          status: UserStatus.DEACTIVE,
+          sessionVersion: {
+            increment: 1,
+          },
+        },
+      });
     });
+    await this.evictAuthUser(userId);
     return true;
   }
 
@@ -267,10 +298,12 @@ export class UserService {
         id: true,
         username: true,
         email: true,
+        avatar: true,
         status: true,
         createdAt: true,
         updatedAt: true,
         role: true,
+        roleId: true,
       },
       // 分页
       skip: pageSize * limit,
