@@ -138,10 +138,10 @@ export class UserService {
       },
     });
 
-    return this.registerVo(user);
+    return user;
   }
 
-  registerVo(user: User) {
+  getUserInfo(user: User) {
     const { id, username, email, status, createdAt, updatedAt } = user;
 
     return {

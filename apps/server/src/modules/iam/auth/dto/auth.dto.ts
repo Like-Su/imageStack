@@ -1,4 +1,4 @@
-import { IsString, IsEmail, MinLength, IsOptional } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsOptional, Min } from 'class-validator';
 
 // 登录
 export class LoginDto {
@@ -46,13 +46,11 @@ export class RefreshTokenDto {
 export class ForgetDto {
   @IsString()
   email: string;
-}
-
-export class ResetDto {
   @IsString()
-  token?: string;
+  emailCode: string;
+  @MinLength(6)
   @IsString()
   password: string;
-  @IsString()
-  enterPassword: string;
 }
+
+export class ResetDto extends ForgetDto {}
