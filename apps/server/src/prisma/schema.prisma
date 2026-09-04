@@ -120,29 +120,37 @@ model RolePermission {
 }
 
 model FileNode {
-  id       String    @id @default(cuid())
-  name     String
-  type     FileType
-  parentId String?
-  parent   FileNode? @relation("FileTree", fields: [parentId], references: [id])
+  id   String   @id @default(cuid())
+  name String
+  type FileType
 
+  // 父 目录名
+  parentId String?
+  parent   FileNode?  @relation("FileTree", fields: [parentId], references: [id])
+  // 子文件
   children FileNode[] @relation("FileTree")
 
   // 所属用户
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  // TODO: 存储对象信息
+  // 存储信息
+  storageBucket String?
+  storageKey    String?
 
   size     BigInt?
   mimeType String?
   deleted  Boolean @default(false)
 
   // 创建与更新时间
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
   fileShares      FileShare[]
   filePermissions FilePermission[]
+
+  @@index([ownerId, parentId])
 }
 
 model UploadSession {
@@ -166,6 +174,8 @@ model UploadSession {
   // 创建与更新时间
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
 }
 
 model FileShare {
@@ -173,6 +183,8 @@ model FileShare {
 
   fileId String
   userId String
+
+  createdById String
 
   token String @unique
 
@@ -187,6 +199,9 @@ model FileShare {
   file FileNode @relation(fields: [fileId], references: [id])
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([fileId])
+  @@index([createdById])
 }
 
 enum FileAccess {
@@ -207,5 +222,6 @@ model FilePermission {
 
   user User @relation(fields: [userId], references: [id])
 
-  @@unique([fileId, userId])
+  @@unique([fileId, userId, access])
+  @@index([userId])
 }
