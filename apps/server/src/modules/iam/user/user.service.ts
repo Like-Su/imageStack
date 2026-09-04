@@ -212,6 +212,44 @@ export class UserService {
     return true;
   }
 
+  // 获取会话数量
+  async getSessionVersion(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: {
+        sessionVersion: true,
+        status: true,
+        deleted: true,
+      },
+    });
+
+    // 用户不存在或禁用
+    if (!user) return null;
+    if (user.deleted) return null;
+    if (user.status !== UserStatus.ACTIVE) return null;
+
+    return user.sessionVersion;
+  }
+
+  // 撤销全部会话
+  async bumpSessionVersion(userId: string) {
+    const updated = await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        sessionVersion: {
+          increment: 1,
+        },
+      },
+      select: {
+        sessionVersion: true,
+      },
+    });
+
+    await this.evictAuthUser(userId);
+
+    return updated.sessionVersion;
+  }
+
   // 获取用户列表
   async listAllUser(
     pageSize: number = 0,

@@ -148,16 +148,24 @@ export class AuthService {
   }
 
   // 签发token(token 只存放 sub/type/jti 权限从数据库或缓存取)
-  private async issueTokens(userId: string) {
+  private async issueTokens(userId: string, sessionId = randomUUID()) {
+    const sessionVersion = await this.userService.getSessionVersion(userId);
+    if (sessionVersion === null)
+      throw new UnauthorizedException('用户不存在或已禁用');
+
     const accessPayload: JwtPayload = {
       sub: userId,
       type: 'access',
       jti: randomUUID(),
+      sid: sessionId,
+      sv: sessionVersion,
     };
     const refreshPayload: JwtPayload = {
       sub: userId,
       type: 'refresh',
       jti: randomUUID(),
+      sid: sessionId,
+      sv: sessionVersion,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
