@@ -191,7 +191,7 @@ export class AuthService {
       throw new UnauthorizedException('无效 refresh token');
 
     const key = RedisKey.refresh(payload.sub, payload.jti);
-
+    // TODO: 非原子操作
     if (!(await this.redisService.get(key))) {
       throw new UnauthorizedException('refresh token 已失效，请重新登录');
     }
