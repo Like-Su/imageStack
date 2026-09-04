@@ -68,3 +68,4 @@ config.yaml
 design
 docs
 dump.rdb
+.claude/*
