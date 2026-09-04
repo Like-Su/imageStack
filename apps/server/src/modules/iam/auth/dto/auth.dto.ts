@@ -41,3 +41,18 @@ export class RefreshTokenDto {
   @IsString()
   refreshToken: string;
 }
+
+// 忘记密码
+export class ForgetDto {
+  @IsString()
+  email: string;
+}
+
+export class ResetDto {
+  @IsString()
+  token?: string;
+  @IsString()
+  password: string;
+  @IsString()
+  enterPassword: string;
+}

@@ -1,12 +1,16 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+
+// Custom Module
 import {
+  ForgetDto,
   LoginDto,
   LogoutDto,
   RefreshTokenDto,
   RegisterDto,
+  ResetDto,
 } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { Throttle } from '@nestjs/throttler';
 import { Open } from './decorators/open.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestUser } from './auth.type';
@@ -45,12 +49,14 @@ export class AuthController {
   }
 
   // 忘记密码
+  @Open()
   @Post('forget')
-  async forget() {}
+  async forget(@Body() forgetDto: ForgetDto) {}
 
   // 重置密码
+  @Open()
   @Post('reset')
-  async reset() {}
+  async reset(@Body() resetDto: ResetDto) {}
 
   // 激活账户
   @Get('verify-activate')
