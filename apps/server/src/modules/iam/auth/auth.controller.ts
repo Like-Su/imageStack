@@ -89,4 +89,9 @@ export class AuthController {
   logout(@CurrentUser() user: RequestUser, @Body() dto: LogoutDto) {
     return this.authService.logout(user, dto.refreshToken);
   }
+
+  @Post('logout-all')
+  logoutAll(@CurrentUser() user: RequestUser) {
+    return this.authService.logoutAll(user);
+  }
 }

@@ -59,6 +59,26 @@ model User {
   fileShares      FileShare[]
   filePermissions FilePermission[]
   uploadSessions  UploadSession[]
+
+  // 原有字段
+  auditLogs AuditLog[] @relation("AuditActor")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorId      String?
+  action       String
+  entityType   String
+  entityId     String?
+  beforeJson   Json?
+  afterJson    Json?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId, createdAt])
 }
 
 // 文件 类型

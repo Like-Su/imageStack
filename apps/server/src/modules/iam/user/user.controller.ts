@@ -4,8 +4,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequestUser } from '../auth/auth.type';
 import { UserService } from './user.service';
 import { CreateUserDto, DeleteUserDto } from './dto/user.dto';
-import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
-import { RoleCode } from 'src/common/constants';
+import {
+  RequirePermission,
+  RequireRole,
+} from '../auth/decorators/roles-permissions.decorator';
+import { PermissionCode, RoleCode } from 'src/common/constants';
 import { UserStatus } from 'src/prisma/generated/prisma/enums';
 
 @Controller('user')
@@ -18,6 +21,7 @@ export class UserController {
 
   // 管理员增加用户
   @RequireRole(RoleCode.ADMIN)
+  @RequirePermission(PermissionCode.SYSTEM_USER_CREATE)
   @Post('create')
   createUser(@Body() dto: CreateUserDto) {
     return this.userService.register(
@@ -30,12 +34,14 @@ export class UserController {
 
   // 删除用户
   @RequireRole(RoleCode.ADMIN)
+  @RequirePermission(PermissionCode.SYSTEM_USER_DELETE)
   @Post('delete')
   deleteUser(@Body() dto: DeleteUserDto) {
     return this.userService.deleteUser(dto.id);
   }
 
   @RequireRole(RoleCode.ADMIN)
+  @RequirePermission(PermissionCode.SYSTEM_USER)
   @Get('list-users')
   listUsers(
     @Query('page-size') pageSize,

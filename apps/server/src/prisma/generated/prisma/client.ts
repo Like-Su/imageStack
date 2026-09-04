@@ -50,6 +50,11 @@ export { Prisma };
  */
 export type User = Prisma.UserModel;
 /**
+ * Model AuditLog
+ *
+ */
+export type AuditLog = Prisma.AuditLogModel;
+/**
  * Model Role
  *
  */
