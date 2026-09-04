@@ -112,4 +112,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async ttl(key: string) {
     return this.client.ttl(this.prefix + key);
   }
+
+  // 实现原子操作: 解决竞态条件(同一个验证码可能被两个请求同时消费), LUA 在 Redis 作为原子操作执行
+  async consume(key: string, expectedValue: string) {
+    const fullKey = this.prefix + key;
+    const script = `
+      local current = redis.call("GET", KEYS[1])
+
+      if current == ARGV[1] then
+        redis.call("DEL", KEYS[1])
+        return 1
+      end
+      return 0
+    `;
+
+    const result = await this.client.eval(script, 1, fullKey, expectedValue);
+
+    return Number(result) === 1;
+  }
 }
