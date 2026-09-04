@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import { doubleCsrf } from 'csrf-csrf';
 
 // Custom imports
 import { AppModule } from './app.module';
@@ -21,6 +23,18 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigin,
   });
+
+  // 设置Helmet
+  app.use(helmet());
+
+  // TODO: CSRF
+  // https://docs.nestjs.com/security/csrf
+  const { doubleCsrfProtection } = doubleCsrf({
+    getSecret: (req) => '123456',
+    getSessionIdentifier: (req) => '123456',
+  });
+
+  app.use(doubleCsrfProtection);
 
   // 管道校验
   app.useGlobalPipes(
