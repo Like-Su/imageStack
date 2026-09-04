@@ -70,11 +70,10 @@ import { redisConfig } from './common/redis/redis.config';
   controllers: [AppController],
   providers: [
     AppService,
-    // TODO: 限流模块
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
