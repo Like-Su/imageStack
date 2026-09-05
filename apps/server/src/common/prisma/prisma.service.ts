@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaClient } from '../../prisma/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PrismaService
@@ -14,9 +15,9 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: configService.getOrThrow<string>('DATABASE_URL'),
     });
     super({
       adapter,
@@ -32,6 +33,7 @@ export class PrismaService
         `Prisma service connection failed`,
         e instanceof Error ? e.message : String(e),
       );
+      throw e;
     }
   }
 
