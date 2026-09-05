@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { doubleCsrf } from 'csrf-csrf';
 
@@ -18,7 +18,14 @@ async function bootstrap() {
   const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
 
   // 设置前缀
-  app.setGlobalPrefix(apiPrefix);
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: [
+      {
+        path: 'system/health',
+        method: RequestMethod.GET,
+      },
+    ],
+  });
   // 设置跨域
   app.enableCors({
     origin: corsOrigin,
