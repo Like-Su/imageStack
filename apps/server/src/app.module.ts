@@ -39,7 +39,7 @@ import { redisConfig } from './common/redis/redis.config';
             '❌ Invalid environment variables:',
             result.error.format(),
           );
-          process.exit(1);
+          throw new Error(result.error.message);
         }
         return result.data;
       },
