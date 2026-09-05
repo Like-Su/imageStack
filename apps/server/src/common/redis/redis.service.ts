@@ -76,7 +76,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async ping() {
-    return (await this.client.ping()) === 'PONG' ? 'success' : 'error';
+    const ping = await this.client.ping();
+    if (ping !== 'PONG') {
+      throw new Error('Unexpected Redis ping response');
+    }
+    return 'success';
   }
 
   get prefix() {
