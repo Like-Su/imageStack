@@ -69,3 +69,4 @@ design
 docs
 dump.rdb
 .claude/*
+.tmp
