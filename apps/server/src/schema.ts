@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 import { z } from 'zod';
 
 // 环境变量
@@ -38,4 +39,18 @@ export const envSchema = z.object({
     .positive()
     .default(7 * 24 * 60 * 60),
   APP_DOMAIN: z.string().min(1),
+
+  // Storage
+  STORAGE_DRIVER: z.enum(['LOCAL_FS']).default('LOCAL_FS'),
+  STORAGE_ROOT: z
+    .string()
+    .trim()
+    .min(1, 'STORAGE_ROOT is required')
+    .refine(isAbsolute, 'STORAGE_ROOT 必须是绝对路径'),
+  STORAGE_MAX_FILE_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(Number.MAX_SAFE_INTEGER)
+    .default(1024 * 1024 * 1024),
 });

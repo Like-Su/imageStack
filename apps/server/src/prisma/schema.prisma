@@ -142,6 +142,28 @@ model RolePermission {
   @@id([roleId, permissionId])
 }
 
+// 存储提供器类型
+enum StorageProviderType {
+  LOCAL_FS
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum MediaProcessingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum ContentHashAlgorithm {
+  BLAKE3
+}
+
 model FileNode {
   id   String   @id @default(cuid())
   name String
@@ -150,7 +172,6 @@ model FileNode {
   // 父 目录名
   parentId String?
   parent   FileNode?  @relation("FileTree", fields: [parentId], references: [id])
-  // 子文件
   children FileNode[] @relation("FileTree")
 
   // 所属用户
@@ -158,22 +179,44 @@ model FileNode {
   owner   User   @relation(fields: [ownerId], references: [id])
 
   // 存储信息
-  storageBucket String?
-  storageKey    String?
+  storageProvider StorageProviderType?
+  storageBucket   String?
+  storageKey      String?
 
   size     BigInt?
   mimeType String?
-  deleted  Boolean @default(false)
 
-  // 创建与更新时间
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  hashAlgorithm ContentHashAlgorithm?
+  hash          String?               @db.VarChar(64)
+
+  mediaType        MediaType?
+  processingStatus MediaProcessingStatus?
+  processingError  String?
+
+  width      Int?
+  height     Int?
+  durationMs BigInt?
+  takenAt    DateTime?
+  exif       Json?
+
+  thumbnailKey String?
+  previewKey   String?
+
+  isFavorite Boolean @default(false)
+
+  deleted   Boolean   @default(false)
   deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   fileShares      FileShare[]
   filePermissions FilePermission[]
 
+  @@index([storageProvider, storageKey])
   @@index([ownerId, parentId])
+  @@index([ownerId, deleted, createdAt, id])
+  @@index([processingStatus])
 }
 
 model UploadSession {
