@@ -39,6 +39,38 @@ export const UploadStatus = {
 
 export type UploadStatus = (typeof UploadStatus)[keyof typeof UploadStatus];
 
+export const StorageProviderType = {
+  LOCAL_FS: 'LOCAL_FS',
+} as const;
+
+export type StorageProviderType =
+  (typeof StorageProviderType)[keyof typeof StorageProviderType];
+
+export const MediaType = {
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  AUDIO: 'AUDIO',
+} as const;
+
+export type MediaType = (typeof MediaType)[keyof typeof MediaType];
+
+export const MediaProcessingStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+} as const;
+
+export type MediaProcessingStatus =
+  (typeof MediaProcessingStatus)[keyof typeof MediaProcessingStatus];
+
+export const ContentHashAlgorithm = {
+  BLAKE3: 'BLAKE3',
+} as const;
+
+export type ContentHashAlgorithm =
+  (typeof ContentHashAlgorithm)[keyof typeof ContentHashAlgorithm];
+
 export const FileAccess = {
   READ: 'READ',
   WRITE: 'WRITE',

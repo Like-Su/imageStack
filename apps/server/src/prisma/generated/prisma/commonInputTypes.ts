@@ -298,6 +298,25 @@ export type EnumFileTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumFileTypeFilter<$PrismaModel> | $Enums.FileType;
 };
 
+export type EnumStorageProviderTypeNullableFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.StorageProviderType
+    | Prisma.EnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>
+    | $Enums.StorageProviderType
+    | null;
+};
+
 export type BigIntNullableFilter<$PrismaModel = never> = {
   equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel> | null;
   in?:
@@ -312,6 +331,72 @@ export type BigIntNullableFilter<$PrismaModel = never> = {
     Prisma.NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null;
 };
 
+export type EnumContentHashAlgorithmNullableFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.ContentHashAlgorithm
+    | Prisma.EnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>
+    | $Enums.ContentHashAlgorithm
+    | null;
+};
+
+export type EnumMediaTypeNullableFilter<$PrismaModel = never> = {
+  equals?:
+    $Enums.MediaType | Prisma.EnumMediaTypeFieldRefInput<$PrismaModel> | null;
+  in?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>
+    | $Enums.MediaType
+    | null;
+};
+
+export type EnumMediaProcessingStatusNullableFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus
+    | null;
+};
+
+export type IntNullableFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null;
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedIntNullableFilter<$PrismaModel> | number | null;
+};
+
 export type EnumFileTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.FileType | Prisma.EnumFileTypeFieldRefInput<$PrismaModel>;
   in?: $Enums.FileType[] | Prisma.ListEnumFileTypeFieldRefInput<$PrismaModel>;
@@ -323,6 +408,30 @@ export type EnumFileTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumFileTypeFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumFileTypeFilter<$PrismaModel>;
+};
+
+export type EnumStorageProviderTypeNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.StorageProviderType
+    | Prisma.EnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumStorageProviderTypeNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.StorageProviderType
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>;
 };
 
 export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -345,6 +454,91 @@ export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedBigIntNullableFilter<$PrismaModel>;
   _min?: Prisma.NestedBigIntNullableFilter<$PrismaModel>;
   _max?: Prisma.NestedBigIntNullableFilter<$PrismaModel>;
+};
+
+export type EnumContentHashAlgorithmNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.ContentHashAlgorithm
+    | Prisma.EnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumContentHashAlgorithmNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.ContentHashAlgorithm
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>;
+};
+
+export type EnumMediaTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?:
+    $Enums.MediaType | Prisma.EnumMediaTypeFieldRefInput<$PrismaModel> | null;
+  in?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaTypeNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaType
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>;
+};
+
+export type EnumMediaProcessingStatusNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>;
+};
+
+export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null;
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>;
+  _sum?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
 };
 
 export type EnumUploadStatusFilter<$PrismaModel = never> = {
@@ -657,6 +851,26 @@ export type NestedEnumFileTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumFileTypeFilter<$PrismaModel> | $Enums.FileType;
 };
 
+export type NestedEnumStorageProviderTypeNullableFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.StorageProviderType
+      | Prisma.EnumStorageProviderTypeFieldRefInput<$PrismaModel>
+      | null;
+    in?:
+      | $Enums.StorageProviderType[]
+      | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | $Enums.StorageProviderType[]
+      | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+      | null;
+    not?:
+      | Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>
+      | $Enums.StorageProviderType
+      | null;
+  };
+
 export type NestedBigIntNullableFilter<$PrismaModel = never> = {
   equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel> | null;
   in?:
@@ -671,6 +885,64 @@ export type NestedBigIntNullableFilter<$PrismaModel = never> = {
     Prisma.NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null;
 };
 
+export type NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.ContentHashAlgorithm
+      | Prisma.EnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+      | null;
+    in?:
+      | $Enums.ContentHashAlgorithm[]
+      | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | $Enums.ContentHashAlgorithm[]
+      | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+      | null;
+    not?:
+      | Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>
+      | $Enums.ContentHashAlgorithm
+      | null;
+  };
+
+export type NestedEnumMediaTypeNullableFilter<$PrismaModel = never> = {
+  equals?:
+    $Enums.MediaType | Prisma.EnumMediaTypeFieldRefInput<$PrismaModel> | null;
+  in?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>
+    | $Enums.MediaType
+    | null;
+};
+
+export type NestedEnumMediaProcessingStatusNullableFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus
+    | null;
+};
+
 export type NestedEnumFileTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.FileType | Prisma.EnumFileTypeFieldRefInput<$PrismaModel>;
   in?: $Enums.FileType[] | Prisma.ListEnumFileTypeFieldRefInput<$PrismaModel>;
@@ -682,6 +954,30 @@ export type NestedEnumFileTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumFileTypeFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumFileTypeFilter<$PrismaModel>;
+};
+
+export type NestedEnumStorageProviderTypeNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.StorageProviderType
+    | Prisma.EnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.StorageProviderType[]
+    | Prisma.ListEnumStorageProviderTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumStorageProviderTypeNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.StorageProviderType
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumStorageProviderTypeNullableFilter<$PrismaModel>;
 };
 
 export type NestedBigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -715,6 +1011,93 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null;
+};
+
+export type NestedEnumContentHashAlgorithmNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.ContentHashAlgorithm
+    | Prisma.EnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.ContentHashAlgorithm[]
+    | Prisma.ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumContentHashAlgorithmNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.ContentHashAlgorithm
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumContentHashAlgorithmNullableFilter<$PrismaModel>;
+};
+
+export type NestedEnumMediaTypeNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    $Enums.MediaType | Prisma.EnumMediaTypeFieldRefInput<$PrismaModel> | null;
+  in?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaType[]
+    | Prisma.ListEnumMediaTypeFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaTypeNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaType
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaTypeNullableFilter<$PrismaModel>;
+};
+
+export type NestedEnumMediaProcessingStatusNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaProcessingStatusNullableFilter<$PrismaModel>;
+};
+
+export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null;
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null;
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>;
+  _sum?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
 };
 
 export type NestedEnumUploadStatusFilter<$PrismaModel = never> = {

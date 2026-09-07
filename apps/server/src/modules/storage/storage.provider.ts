@@ -38,6 +38,7 @@ export interface StorageProvider {
   read(key: string): Promise<StorageReadResult>;
   stat(key: string): Promise<StorageStat | null>;
   exists(key: string): Promise<boolean>;
+  delete(key: string): Promise<boolean>;
 }
 
 export type StorageErrorCode =

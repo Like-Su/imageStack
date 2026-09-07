@@ -169,16 +169,13 @@ model FileNode {
   name String
   type FileType
 
-  // 父 目录名
   parentId String?
   parent   FileNode?  @relation("FileTree", fields: [parentId], references: [id])
   children FileNode[] @relation("FileTree")
 
-  // 所属用户
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  // 存储信息
   storageProvider StorageProviderType?
   storageBucket   String?
   storageKey      String?
@@ -212,6 +209,7 @@ model FileNode {
 
   fileShares      FileShare[]
   filePermissions FilePermission[]
+  uploadSession   UploadSession?
 
   @@index([storageProvider, storageKey])
   @@index([ownerId, parentId])
@@ -237,9 +235,11 @@ model UploadSession {
 
   status UploadStatus @default(PENDING)
 
-  // 创建与更新时间
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  fileId String?   @unique
+  file   FileNode? @relation(fields: [fileId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
 }

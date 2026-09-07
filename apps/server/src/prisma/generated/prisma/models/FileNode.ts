@@ -28,10 +28,16 @@ export type AggregateFileNode = {
 
 export type FileNodeAvgAggregateOutputType = {
   size: number | null;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
 };
 
 export type FileNodeSumAggregateOutputType = {
   size: bigint | null;
+  width: number | null;
+  height: number | null;
+  durationMs: bigint | null;
 };
 
 export type FileNodeMinAggregateOutputType = {
@@ -40,14 +46,27 @@ export type FileNodeMinAggregateOutputType = {
   type: $Enums.FileType | null;
   parentId: string | null;
   ownerId: string | null;
+  storageProvider: $Enums.StorageProviderType | null;
   storageBucket: string | null;
   storageKey: string | null;
   size: bigint | null;
   mimeType: string | null;
+  hashAlgorithm: $Enums.ContentHashAlgorithm | null;
+  hash: string | null;
+  mediaType: $Enums.MediaType | null;
+  processingStatus: $Enums.MediaProcessingStatus | null;
+  processingError: string | null;
+  width: number | null;
+  height: number | null;
+  durationMs: bigint | null;
+  takenAt: Date | null;
+  thumbnailKey: string | null;
+  previewKey: string | null;
+  isFavorite: boolean | null;
   deleted: boolean | null;
+  deletedAt: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
-  deletedAt: Date | null;
 };
 
 export type FileNodeMaxAggregateOutputType = {
@@ -56,14 +75,27 @@ export type FileNodeMaxAggregateOutputType = {
   type: $Enums.FileType | null;
   parentId: string | null;
   ownerId: string | null;
+  storageProvider: $Enums.StorageProviderType | null;
   storageBucket: string | null;
   storageKey: string | null;
   size: bigint | null;
   mimeType: string | null;
+  hashAlgorithm: $Enums.ContentHashAlgorithm | null;
+  hash: string | null;
+  mediaType: $Enums.MediaType | null;
+  processingStatus: $Enums.MediaProcessingStatus | null;
+  processingError: string | null;
+  width: number | null;
+  height: number | null;
+  durationMs: bigint | null;
+  takenAt: Date | null;
+  thumbnailKey: string | null;
+  previewKey: string | null;
+  isFavorite: boolean | null;
   deleted: boolean | null;
+  deletedAt: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
-  deletedAt: Date | null;
 };
 
 export type FileNodeCountAggregateOutputType = {
@@ -72,23 +104,43 @@ export type FileNodeCountAggregateOutputType = {
   type: number;
   parentId: number;
   ownerId: number;
+  storageProvider: number;
   storageBucket: number;
   storageKey: number;
   size: number;
   mimeType: number;
+  hashAlgorithm: number;
+  hash: number;
+  mediaType: number;
+  processingStatus: number;
+  processingError: number;
+  width: number;
+  height: number;
+  durationMs: number;
+  takenAt: number;
+  exif: number;
+  thumbnailKey: number;
+  previewKey: number;
+  isFavorite: number;
   deleted: number;
+  deletedAt: number;
   createdAt: number;
   updatedAt: number;
-  deletedAt: number;
   _all: number;
 };
 
 export type FileNodeAvgAggregateInputType = {
   size?: true;
+  width?: true;
+  height?: true;
+  durationMs?: true;
 };
 
 export type FileNodeSumAggregateInputType = {
   size?: true;
+  width?: true;
+  height?: true;
+  durationMs?: true;
 };
 
 export type FileNodeMinAggregateInputType = {
@@ -97,14 +149,27 @@ export type FileNodeMinAggregateInputType = {
   type?: true;
   parentId?: true;
   ownerId?: true;
+  storageProvider?: true;
   storageBucket?: true;
   storageKey?: true;
   size?: true;
   mimeType?: true;
+  hashAlgorithm?: true;
+  hash?: true;
+  mediaType?: true;
+  processingStatus?: true;
+  processingError?: true;
+  width?: true;
+  height?: true;
+  durationMs?: true;
+  takenAt?: true;
+  thumbnailKey?: true;
+  previewKey?: true;
+  isFavorite?: true;
   deleted?: true;
+  deletedAt?: true;
   createdAt?: true;
   updatedAt?: true;
-  deletedAt?: true;
 };
 
 export type FileNodeMaxAggregateInputType = {
@@ -113,14 +178,27 @@ export type FileNodeMaxAggregateInputType = {
   type?: true;
   parentId?: true;
   ownerId?: true;
+  storageProvider?: true;
   storageBucket?: true;
   storageKey?: true;
   size?: true;
   mimeType?: true;
+  hashAlgorithm?: true;
+  hash?: true;
+  mediaType?: true;
+  processingStatus?: true;
+  processingError?: true;
+  width?: true;
+  height?: true;
+  durationMs?: true;
+  takenAt?: true;
+  thumbnailKey?: true;
+  previewKey?: true;
+  isFavorite?: true;
   deleted?: true;
+  deletedAt?: true;
   createdAt?: true;
   updatedAt?: true;
-  deletedAt?: true;
 };
 
 export type FileNodeCountAggregateInputType = {
@@ -129,14 +207,28 @@ export type FileNodeCountAggregateInputType = {
   type?: true;
   parentId?: true;
   ownerId?: true;
+  storageProvider?: true;
   storageBucket?: true;
   storageKey?: true;
   size?: true;
   mimeType?: true;
+  hashAlgorithm?: true;
+  hash?: true;
+  mediaType?: true;
+  processingStatus?: true;
+  processingError?: true;
+  width?: true;
+  height?: true;
+  durationMs?: true;
+  takenAt?: true;
+  exif?: true;
+  thumbnailKey?: true;
+  previewKey?: true;
+  isFavorite?: true;
   deleted?: true;
+  deletedAt?: true;
   createdAt?: true;
   updatedAt?: true;
-  deletedAt?: true;
   _all?: true;
 };
 
@@ -239,14 +331,28 @@ export type FileNodeGroupByOutputType = {
   type: $Enums.FileType;
   parentId: string | null;
   ownerId: string;
+  storageProvider: $Enums.StorageProviderType | null;
   storageBucket: string | null;
   storageKey: string | null;
   size: bigint | null;
   mimeType: string | null;
+  hashAlgorithm: $Enums.ContentHashAlgorithm | null;
+  hash: string | null;
+  mediaType: $Enums.MediaType | null;
+  processingStatus: $Enums.MediaProcessingStatus | null;
+  processingError: string | null;
+  width: number | null;
+  height: number | null;
+  durationMs: bigint | null;
+  takenAt: Date | null;
+  exif: runtime.JsonValue | null;
+  thumbnailKey: string | null;
+  previewKey: string | null;
+  isFavorite: boolean;
   deleted: boolean;
+  deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  deletedAt: Date | null;
   _count: FileNodeCountAggregateOutputType | null;
   _avg: FileNodeAvgAggregateOutputType | null;
   _sum: FileNodeSumAggregateOutputType | null;
@@ -276,14 +382,38 @@ export type FileNodeWhereInput = {
   type?: Prisma.EnumFileTypeFilter<'FileNode'> | $Enums.FileType;
   parentId?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   ownerId?: Prisma.StringFilter<'FileNode'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeNullableFilter<'FileNode'>
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   storageKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   size?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
   mimeType?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  hashAlgorithm?:
+    | Prisma.EnumContentHashAlgorithmNullableFilter<'FileNode'>
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  mediaType?:
+    Prisma.EnumMediaTypeNullableFilter<'FileNode'> | $Enums.MediaType | null;
+  processingStatus?:
+    | Prisma.EnumMediaProcessingStatusNullableFilter<'FileNode'>
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+  height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+  durationMs?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
+  takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+  exif?: Prisma.JsonNullableFilter<'FileNode'>;
+  thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  isFavorite?: Prisma.BoolFilter<'FileNode'> | boolean;
   deleted?: Prisma.BoolFilter<'FileNode'> | boolean;
+  deletedAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   createdAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
-  deletedAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   parent?: Prisma.XOR<
     Prisma.FileNodeNullableScalarRelationFilter,
     Prisma.FileNodeWhereInput
@@ -292,6 +422,10 @@ export type FileNodeWhereInput = {
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
   fileShares?: Prisma.FileShareListRelationFilter;
   filePermissions?: Prisma.FilePermissionListRelationFilter;
+  uploadSession?: Prisma.XOR<
+    Prisma.UploadSessionNullableScalarRelationFilter,
+    Prisma.UploadSessionWhereInput
+  > | null;
 };
 
 export type FileNodeOrderByWithRelationInput = {
@@ -300,19 +434,34 @@ export type FileNodeOrderByWithRelationInput = {
   type?: Prisma.SortOrder;
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageBucket?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   size?: Prisma.SortOrderInput | Prisma.SortOrder;
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
+  hashAlgorithm?: Prisma.SortOrderInput | Prisma.SortOrder;
+  hash?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mediaType?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingStatus?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingError?: Prisma.SortOrderInput | Prisma.SortOrder;
+  width?: Prisma.SortOrderInput | Prisma.SortOrder;
+  height?: Prisma.SortOrderInput | Prisma.SortOrder;
+  durationMs?: Prisma.SortOrderInput | Prisma.SortOrder;
+  takenAt?: Prisma.SortOrderInput | Prisma.SortOrder;
+  exif?: Prisma.SortOrderInput | Prisma.SortOrder;
+  thumbnailKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  previewKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  isFavorite?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
-  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   parent?: Prisma.FileNodeOrderByWithRelationInput;
   children?: Prisma.FileNodeOrderByRelationAggregateInput;
   owner?: Prisma.UserOrderByWithRelationInput;
   fileShares?: Prisma.FileShareOrderByRelationAggregateInput;
   filePermissions?: Prisma.FilePermissionOrderByRelationAggregateInput;
+  uploadSession?: Prisma.UploadSessionOrderByWithRelationInput;
 };
 
 export type FileNodeWhereUniqueInput = Prisma.AtLeast<
@@ -325,15 +474,40 @@ export type FileNodeWhereUniqueInput = Prisma.AtLeast<
     type?: Prisma.EnumFileTypeFilter<'FileNode'> | $Enums.FileType;
     parentId?: Prisma.StringNullableFilter<'FileNode'> | string | null;
     ownerId?: Prisma.StringFilter<'FileNode'> | string;
+    storageProvider?:
+      | Prisma.EnumStorageProviderTypeNullableFilter<'FileNode'>
+      | $Enums.StorageProviderType
+      | null;
     storageBucket?: Prisma.StringNullableFilter<'FileNode'> | string | null;
     storageKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
     size?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
     mimeType?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    hashAlgorithm?:
+      | Prisma.EnumContentHashAlgorithmNullableFilter<'FileNode'>
+      | $Enums.ContentHashAlgorithm
+      | null;
+    hash?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    mediaType?:
+      Prisma.EnumMediaTypeNullableFilter<'FileNode'> | $Enums.MediaType | null;
+    processingStatus?:
+      | Prisma.EnumMediaProcessingStatusNullableFilter<'FileNode'>
+      | $Enums.MediaProcessingStatus
+      | null;
+    processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+    height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+    durationMs?:
+      Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
+    takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+    exif?: Prisma.JsonNullableFilter<'FileNode'>;
+    thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    isFavorite?: Prisma.BoolFilter<'FileNode'> | boolean;
     deleted?: Prisma.BoolFilter<'FileNode'> | boolean;
-    createdAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
-    updatedAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
     deletedAt?:
       Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+    createdAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
+    updatedAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
     parent?: Prisma.XOR<
       Prisma.FileNodeNullableScalarRelationFilter,
       Prisma.FileNodeWhereInput
@@ -342,6 +516,10 @@ export type FileNodeWhereUniqueInput = Prisma.AtLeast<
     owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     fileShares?: Prisma.FileShareListRelationFilter;
     filePermissions?: Prisma.FilePermissionListRelationFilter;
+    uploadSession?: Prisma.XOR<
+      Prisma.UploadSessionNullableScalarRelationFilter,
+      Prisma.UploadSessionWhereInput
+    > | null;
   },
   'id'
 >;
@@ -352,14 +530,28 @@ export type FileNodeOrderByWithAggregationInput = {
   type?: Prisma.SortOrder;
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageBucket?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   size?: Prisma.SortOrderInput | Prisma.SortOrder;
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
+  hashAlgorithm?: Prisma.SortOrderInput | Prisma.SortOrder;
+  hash?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mediaType?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingStatus?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingError?: Prisma.SortOrderInput | Prisma.SortOrder;
+  width?: Prisma.SortOrderInput | Prisma.SortOrder;
+  height?: Prisma.SortOrderInput | Prisma.SortOrder;
+  durationMs?: Prisma.SortOrderInput | Prisma.SortOrder;
+  takenAt?: Prisma.SortOrderInput | Prisma.SortOrder;
+  exif?: Prisma.SortOrderInput | Prisma.SortOrder;
+  thumbnailKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  previewKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  isFavorite?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
-  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   _count?: Prisma.FileNodeCountOrderByAggregateInput;
   _avg?: Prisma.FileNodeAvgOrderByAggregateInput;
   _max?: Prisma.FileNodeMaxOrderByAggregateInput;
@@ -381,6 +573,10 @@ export type FileNodeScalarWhereWithAggregatesInput = {
   parentId?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
   ownerId?: Prisma.StringWithAggregatesFilter<'FileNode'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeNullableWithAggregatesFilter<'FileNode'>
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
   storageKey?:
@@ -392,33 +588,81 @@ export type FileNodeScalarWhereWithAggregatesInput = {
     | null;
   mimeType?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  hashAlgorithm?:
+    | Prisma.EnumContentHashAlgorithmNullableWithAggregatesFilter<'FileNode'>
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  mediaType?:
+    | Prisma.EnumMediaTypeNullableWithAggregatesFilter<'FileNode'>
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.EnumMediaProcessingStatusNullableWithAggregatesFilter<'FileNode'>
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  width?: Prisma.IntNullableWithAggregatesFilter<'FileNode'> | number | null;
+  height?: Prisma.IntNullableWithAggregatesFilter<'FileNode'> | number | null;
+  durationMs?:
+    | Prisma.BigIntNullableWithAggregatesFilter<'FileNode'>
+    | bigint
+    | number
+    | null;
+  takenAt?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'FileNode'>
+    | Date
+    | string
+    | null;
+  exif?: Prisma.JsonNullableWithAggregatesFilter<'FileNode'>;
+  thumbnailKey?:
+    Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  previewKey?:
+    Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  isFavorite?: Prisma.BoolWithAggregatesFilter<'FileNode'> | boolean;
   deleted?: Prisma.BoolWithAggregatesFilter<'FileNode'> | boolean;
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<'FileNode'> | Date | string;
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<'FileNode'> | Date | string;
   deletedAt?:
     | Prisma.DateTimeNullableWithAggregatesFilter<'FileNode'>
     | Date
     | string
     | null;
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<'FileNode'> | Date | string;
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<'FileNode'> | Date | string;
 };
 
 export type FileNodeCreateInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
   children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
   owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateInput = {
@@ -427,39 +671,85 @@ export type FileNodeUncheckedCreateInput = {
   type: $Enums.FileType;
   parentId?: string | null;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
   children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
   owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateInput = {
@@ -468,20 +758,51 @@ export type FileNodeUncheckedUpdateInput = {
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeCreateManyInput = {
@@ -490,31 +811,75 @@ export type FileNodeCreateManyInput = {
   type: $Enums.FileType;
   parentId?: string | null;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
 };
 
 export type FileNodeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
 export type FileNodeUncheckedUpdateManyInput = {
@@ -523,17 +888,47 @@ export type FileNodeUncheckedUpdateManyInput = {
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
 export type FileNodeListRelationFilter = {
@@ -557,18 +952,35 @@ export type FileNodeCountOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   parentId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
   storageBucket?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
+  hashAlgorithm?: Prisma.SortOrder;
+  hash?: Prisma.SortOrder;
+  mediaType?: Prisma.SortOrder;
+  processingStatus?: Prisma.SortOrder;
+  processingError?: Prisma.SortOrder;
+  width?: Prisma.SortOrder;
+  height?: Prisma.SortOrder;
+  durationMs?: Prisma.SortOrder;
+  takenAt?: Prisma.SortOrder;
+  exif?: Prisma.SortOrder;
+  thumbnailKey?: Prisma.SortOrder;
+  previewKey?: Prisma.SortOrder;
+  isFavorite?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
+  deletedAt?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
-  deletedAt?: Prisma.SortOrder;
 };
 
 export type FileNodeAvgOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  width?: Prisma.SortOrder;
+  height?: Prisma.SortOrder;
+  durationMs?: Prisma.SortOrder;
 };
 
 export type FileNodeMaxOrderByAggregateInput = {
@@ -577,14 +989,27 @@ export type FileNodeMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   parentId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
   storageBucket?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
+  hashAlgorithm?: Prisma.SortOrder;
+  hash?: Prisma.SortOrder;
+  mediaType?: Prisma.SortOrder;
+  processingStatus?: Prisma.SortOrder;
+  processingError?: Prisma.SortOrder;
+  width?: Prisma.SortOrder;
+  height?: Prisma.SortOrder;
+  durationMs?: Prisma.SortOrder;
+  takenAt?: Prisma.SortOrder;
+  thumbnailKey?: Prisma.SortOrder;
+  previewKey?: Prisma.SortOrder;
+  isFavorite?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
+  deletedAt?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
-  deletedAt?: Prisma.SortOrder;
 };
 
 export type FileNodeMinOrderByAggregateInput = {
@@ -593,18 +1018,34 @@ export type FileNodeMinOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   parentId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
   storageBucket?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
+  hashAlgorithm?: Prisma.SortOrder;
+  hash?: Prisma.SortOrder;
+  mediaType?: Prisma.SortOrder;
+  processingStatus?: Prisma.SortOrder;
+  processingError?: Prisma.SortOrder;
+  width?: Prisma.SortOrder;
+  height?: Prisma.SortOrder;
+  durationMs?: Prisma.SortOrder;
+  takenAt?: Prisma.SortOrder;
+  thumbnailKey?: Prisma.SortOrder;
+  previewKey?: Prisma.SortOrder;
+  isFavorite?: Prisma.SortOrder;
   deleted?: Prisma.SortOrder;
+  deletedAt?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
-  deletedAt?: Prisma.SortOrder;
 };
 
 export type FileNodeSumOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  width?: Prisma.SortOrder;
+  height?: Prisma.SortOrder;
+  durationMs?: Prisma.SortOrder;
 };
 
 export type FileNodeScalarRelationFilter = {
@@ -745,12 +1186,36 @@ export type EnumFileTypeFieldUpdateOperationsInput = {
   set?: $Enums.FileType;
 };
 
+export type NullableEnumStorageProviderTypeFieldUpdateOperationsInput = {
+  set?: $Enums.StorageProviderType | null;
+};
+
 export type NullableBigIntFieldUpdateOperationsInput = {
   set?: bigint | number | null;
   increment?: bigint | number;
   decrement?: bigint | number;
   multiply?: bigint | number;
   divide?: bigint | number;
+};
+
+export type NullableEnumContentHashAlgorithmFieldUpdateOperationsInput = {
+  set?: $Enums.ContentHashAlgorithm | null;
+};
+
+export type NullableEnumMediaTypeFieldUpdateOperationsInput = {
+  set?: $Enums.MediaType | null;
+};
+
+export type NullableEnumMediaProcessingStatusFieldUpdateOperationsInput = {
+  set?: $Enums.MediaProcessingStatus | null;
+};
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null;
+  increment?: number;
+  decrement?: number;
+  multiply?: number;
+  divide?: number;
 };
 
 export type FileNodeUpdateOneWithoutChildrenNestedInput = {
@@ -832,6 +1297,34 @@ export type FileNodeUncheckedUpdateManyWithoutParentNestedInput = {
     Prisma.FileNodeScalarWhereInput | Prisma.FileNodeScalarWhereInput[];
 };
 
+export type FileNodeCreateNestedOneWithoutUploadSessionInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedCreateWithoutUploadSessionInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutUploadSessionInput;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+};
+
+export type FileNodeUpdateOneWithoutUploadSessionNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedCreateWithoutUploadSessionInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutUploadSessionInput;
+  upsert?: Prisma.FileNodeUpsertWithoutUploadSessionInput;
+  disconnect?: Prisma.FileNodeWhereInput | boolean;
+  delete?: Prisma.FileNodeWhereInput | boolean;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.FileNodeUpdateToOneWithWhereWithoutUploadSessionInput,
+      Prisma.FileNodeUpdateWithoutUploadSessionInput
+    >,
+    Prisma.FileNodeUncheckedUpdateWithoutUploadSessionInput
+  >;
+};
+
 export type FileNodeCreateNestedOneWithoutFileSharesInput = {
   create?: Prisma.XOR<
     Prisma.FileNodeCreateWithoutFileSharesInput,
@@ -888,18 +1381,33 @@ export type FileNodeCreateWithoutOwnerInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
   children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateWithoutOwnerInput = {
@@ -907,17 +1415,32 @@ export type FileNodeUncheckedCreateWithoutOwnerInput = {
   name: string;
   type: $Enums.FileType;
   parentId?: string | null;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeCreateOrConnectWithoutOwnerInput = {
@@ -971,32 +1494,71 @@ export type FileNodeScalarWhereInput = {
   type?: Prisma.EnumFileTypeFilter<'FileNode'> | $Enums.FileType;
   parentId?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   ownerId?: Prisma.StringFilter<'FileNode'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeNullableFilter<'FileNode'>
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   storageKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   size?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
   mimeType?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  hashAlgorithm?:
+    | Prisma.EnumContentHashAlgorithmNullableFilter<'FileNode'>
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  mediaType?:
+    Prisma.EnumMediaTypeNullableFilter<'FileNode'> | $Enums.MediaType | null;
+  processingStatus?:
+    | Prisma.EnumMediaProcessingStatusNullableFilter<'FileNode'>
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+  height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
+  durationMs?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
+  takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+  exif?: Prisma.JsonNullableFilter<'FileNode'>;
+  thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  isFavorite?: Prisma.BoolFilter<'FileNode'> | boolean;
   deleted?: Prisma.BoolFilter<'FileNode'> | boolean;
+  deletedAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   createdAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'FileNode'> | Date | string;
-  deletedAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
 };
 
 export type FileNodeCreateWithoutChildrenInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
   owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateWithoutChildrenInput = {
@@ -1005,16 +1567,31 @@ export type FileNodeUncheckedCreateWithoutChildrenInput = {
   type: $Enums.FileType;
   parentId?: string | null;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeCreateOrConnectWithoutChildrenInput = {
@@ -1029,18 +1606,33 @@ export type FileNodeCreateWithoutParentInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
   owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateWithoutParentInput = {
@@ -1048,17 +1640,32 @@ export type FileNodeUncheckedCreateWithoutParentInput = {
   name: string;
   type: $Enums.FileType;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeCreateOrConnectWithoutParentInput = {
@@ -1100,21 +1707,52 @@ export type FileNodeUpdateWithoutChildrenInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
   owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutChildrenInput = {
@@ -1123,19 +1761,50 @@ export type FileNodeUncheckedUpdateWithoutChildrenInput = {
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUpsertWithWhereUniqueWithoutParentInput = {
@@ -1166,22 +1835,235 @@ export type FileNodeUpdateManyWithWhereWithoutParentInput = {
   >;
 };
 
-export type FileNodeCreateWithoutFileSharesInput = {
+export type FileNodeCreateWithoutUploadSessionInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
+  children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
+  owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
+  fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+};
+
+export type FileNodeUncheckedCreateWithoutUploadSessionInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  parentId?: string | null;
+  ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
+  deleted?: boolean;
   deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
+  fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+};
+
+export type FileNodeCreateOrConnectWithoutUploadSessionInput = {
+  where: Prisma.FileNodeWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedCreateWithoutUploadSessionInput
+  >;
+};
+
+export type FileNodeUpsertWithoutUploadSessionInput = {
+  update: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedUpdateWithoutUploadSessionInput
+  >;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedCreateWithoutUploadSessionInput
+  >;
+  where?: Prisma.FileNodeWhereInput;
+};
+
+export type FileNodeUpdateToOneWithWhereWithoutUploadSessionInput = {
+  where?: Prisma.FileNodeWhereInput;
+  data: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutUploadSessionInput,
+    Prisma.FileNodeUncheckedUpdateWithoutUploadSessionInput
+  >;
+};
+
+export type FileNodeUpdateWithoutUploadSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
+  children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
+  owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
+  fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+};
+
+export type FileNodeUncheckedUpdateWithoutUploadSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
+  fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+};
+
+export type FileNodeCreateWithoutFileSharesInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
   children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
   owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateWithoutFileSharesInput = {
@@ -1190,16 +2072,31 @@ export type FileNodeUncheckedCreateWithoutFileSharesInput = {
   type: $Enums.FileType;
   parentId?: string | null;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeCreateOrConnectWithoutFileSharesInput = {
@@ -1234,21 +2131,52 @@ export type FileNodeUpdateWithoutFileSharesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
   children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
   owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
@@ -1257,37 +2185,83 @@ export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeCreateWithoutFilePermissionsInput = {
   id?: string;
   name: string;
   type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
   children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
   owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
@@ -1296,16 +2270,31 @@ export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
   type: $Enums.FileType;
   parentId?: string | null;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
   children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
 };
 
 export type FileNodeCreateOrConnectWithoutFilePermissionsInput = {
@@ -1340,21 +2329,52 @@ export type FileNodeUpdateWithoutFilePermissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
   children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
   owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
@@ -1363,19 +2383,50 @@ export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeCreateManyOwnerInput = {
@@ -1383,35 +2434,80 @@ export type FileNodeCreateManyOwnerInput = {
   name: string;
   type: $Enums.FileType;
   parentId?: string | null;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
 };
 
 export type FileNodeUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
   children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutOwnerInput = {
@@ -1419,20 +2515,51 @@ export type FileNodeUncheckedUpdateWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateManyWithoutOwnerInput = {
@@ -1440,17 +2567,47 @@ export type FileNodeUncheckedUpdateManyWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
 export type FileNodeCreateManyParentInput = {
@@ -1458,35 +2615,80 @@ export type FileNodeCreateManyParentInput = {
   name: string;
   type: $Enums.FileType;
   ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
   storageBucket?: string | null;
   storageKey?: string | null;
   size?: bigint | number | null;
   mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  previewKey?: string | null;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  deletedAt?: Date | string | null;
 };
 
 export type FileNodeUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
   owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutParentInput = {
@@ -1494,20 +2696,51 @@ export type FileNodeUncheckedUpdateWithoutParentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
 };
 
 export type FileNodeUncheckedUpdateManyWithoutParentInput = {
@@ -1515,17 +2748,47 @@ export type FileNodeUncheckedUpdateManyWithoutParentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
   storageBucket?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
 /**
@@ -1600,19 +2863,34 @@ export type FileNodeSelect<
     type?: boolean;
     parentId?: boolean;
     ownerId?: boolean;
+    storageProvider?: boolean;
     storageBucket?: boolean;
     storageKey?: boolean;
     size?: boolean;
     mimeType?: boolean;
+    hashAlgorithm?: boolean;
+    hash?: boolean;
+    mediaType?: boolean;
+    processingStatus?: boolean;
+    processingError?: boolean;
+    width?: boolean;
+    height?: boolean;
+    durationMs?: boolean;
+    takenAt?: boolean;
+    exif?: boolean;
+    thumbnailKey?: boolean;
+    previewKey?: boolean;
+    isFavorite?: boolean;
     deleted?: boolean;
+    deletedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
-    deletedAt?: boolean;
     parent?: boolean | Prisma.FileNode$parentArgs<ExtArgs>;
     children?: boolean | Prisma.FileNode$childrenArgs<ExtArgs>;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     fileShares?: boolean | Prisma.FileNode$fileSharesArgs<ExtArgs>;
     filePermissions?: boolean | Prisma.FileNode$filePermissionsArgs<ExtArgs>;
+    uploadSession?: boolean | Prisma.FileNode$uploadSessionArgs<ExtArgs>;
     _count?: boolean | Prisma.FileNodeCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['fileNode']
@@ -1628,14 +2906,28 @@ export type FileNodeSelectCreateManyAndReturn<
     type?: boolean;
     parentId?: boolean;
     ownerId?: boolean;
+    storageProvider?: boolean;
     storageBucket?: boolean;
     storageKey?: boolean;
     size?: boolean;
     mimeType?: boolean;
+    hashAlgorithm?: boolean;
+    hash?: boolean;
+    mediaType?: boolean;
+    processingStatus?: boolean;
+    processingError?: boolean;
+    width?: boolean;
+    height?: boolean;
+    durationMs?: boolean;
+    takenAt?: boolean;
+    exif?: boolean;
+    thumbnailKey?: boolean;
+    previewKey?: boolean;
+    isFavorite?: boolean;
     deleted?: boolean;
+    deletedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
-    deletedAt?: boolean;
     parent?: boolean | Prisma.FileNode$parentArgs<ExtArgs>;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   },
@@ -1652,14 +2944,28 @@ export type FileNodeSelectUpdateManyAndReturn<
     type?: boolean;
     parentId?: boolean;
     ownerId?: boolean;
+    storageProvider?: boolean;
     storageBucket?: boolean;
     storageKey?: boolean;
     size?: boolean;
     mimeType?: boolean;
+    hashAlgorithm?: boolean;
+    hash?: boolean;
+    mediaType?: boolean;
+    processingStatus?: boolean;
+    processingError?: boolean;
+    width?: boolean;
+    height?: boolean;
+    durationMs?: boolean;
+    takenAt?: boolean;
+    exif?: boolean;
+    thumbnailKey?: boolean;
+    previewKey?: boolean;
+    isFavorite?: boolean;
     deleted?: boolean;
+    deletedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
-    deletedAt?: boolean;
     parent?: boolean | Prisma.FileNode$parentArgs<ExtArgs>;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   },
@@ -1672,14 +2978,28 @@ export type FileNodeSelectScalar = {
   type?: boolean;
   parentId?: boolean;
   ownerId?: boolean;
+  storageProvider?: boolean;
   storageBucket?: boolean;
   storageKey?: boolean;
   size?: boolean;
   mimeType?: boolean;
+  hashAlgorithm?: boolean;
+  hash?: boolean;
+  mediaType?: boolean;
+  processingStatus?: boolean;
+  processingError?: boolean;
+  width?: boolean;
+  height?: boolean;
+  durationMs?: boolean;
+  takenAt?: boolean;
+  exif?: boolean;
+  thumbnailKey?: boolean;
+  previewKey?: boolean;
+  isFavorite?: boolean;
   deleted?: boolean;
+  deletedAt?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
-  deletedAt?: boolean;
 };
 
 export type FileNodeOmit<
@@ -1691,14 +3011,28 @@ export type FileNodeOmit<
   | 'type'
   | 'parentId'
   | 'ownerId'
+  | 'storageProvider'
   | 'storageBucket'
   | 'storageKey'
   | 'size'
   | 'mimeType'
+  | 'hashAlgorithm'
+  | 'hash'
+  | 'mediaType'
+  | 'processingStatus'
+  | 'processingError'
+  | 'width'
+  | 'height'
+  | 'durationMs'
+  | 'takenAt'
+  | 'exif'
+  | 'thumbnailKey'
+  | 'previewKey'
+  | 'isFavorite'
   | 'deleted'
+  | 'deletedAt'
   | 'createdAt'
-  | 'updatedAt'
-  | 'deletedAt',
+  | 'updatedAt',
   ExtArgs['result']['fileNode']
 >;
 export type FileNodeInclude<
@@ -1710,6 +3044,7 @@ export type FileNodeInclude<
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   fileShares?: boolean | Prisma.FileNode$fileSharesArgs<ExtArgs>;
   filePermissions?: boolean | Prisma.FileNode$filePermissionsArgs<ExtArgs>;
+  uploadSession?: boolean | Prisma.FileNode$uploadSessionArgs<ExtArgs>;
   _count?: boolean | Prisma.FileNodeCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type FileNodeIncludeCreateManyAndReturn<
@@ -1738,6 +3073,7 @@ export type $FileNodePayload<
     owner: Prisma.$UserPayload<ExtArgs>;
     fileShares: Prisma.$FileSharePayload<ExtArgs>[];
     filePermissions: Prisma.$FilePermissionPayload<ExtArgs>[];
+    uploadSession: Prisma.$UploadSessionPayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1746,14 +3082,28 @@ export type $FileNodePayload<
       type: $Enums.FileType;
       parentId: string | null;
       ownerId: string;
+      storageProvider: $Enums.StorageProviderType | null;
       storageBucket: string | null;
       storageKey: string | null;
       size: bigint | null;
       mimeType: string | null;
+      hashAlgorithm: $Enums.ContentHashAlgorithm | null;
+      hash: string | null;
+      mediaType: $Enums.MediaType | null;
+      processingStatus: $Enums.MediaProcessingStatus | null;
+      processingError: string | null;
+      width: number | null;
+      height: number | null;
+      durationMs: bigint | null;
+      takenAt: Date | null;
+      exif: runtime.JsonValue | null;
+      thumbnailKey: string | null;
+      previewKey: string | null;
+      isFavorite: boolean;
       deleted: boolean;
+      deletedAt: Date | null;
       createdAt: Date;
       updatedAt: Date;
-      deletedAt: Date | null;
     },
     ExtArgs['result']['fileNode']
   >;
@@ -2364,6 +3714,19 @@ export interface Prisma__FileNodeClient<
       >
     | Null
   >;
+  uploadSession<T extends Prisma.FileNode$uploadSessionArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.FileNode$uploadSessionArgs<ExtArgs>>,
+  ): Prisma.Prisma__UploadSessionClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$UploadSessionPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2405,14 +3768,31 @@ export interface FileNodeFieldRefs {
   readonly type: Prisma.FieldRef<'FileNode', 'FileType'>;
   readonly parentId: Prisma.FieldRef<'FileNode', 'String'>;
   readonly ownerId: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly storageProvider: Prisma.FieldRef<'FileNode', 'StorageProviderType'>;
   readonly storageBucket: Prisma.FieldRef<'FileNode', 'String'>;
   readonly storageKey: Prisma.FieldRef<'FileNode', 'String'>;
   readonly size: Prisma.FieldRef<'FileNode', 'BigInt'>;
   readonly mimeType: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly hashAlgorithm: Prisma.FieldRef<'FileNode', 'ContentHashAlgorithm'>;
+  readonly hash: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly mediaType: Prisma.FieldRef<'FileNode', 'MediaType'>;
+  readonly processingStatus: Prisma.FieldRef<
+    'FileNode',
+    'MediaProcessingStatus'
+  >;
+  readonly processingError: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly width: Prisma.FieldRef<'FileNode', 'Int'>;
+  readonly height: Prisma.FieldRef<'FileNode', 'Int'>;
+  readonly durationMs: Prisma.FieldRef<'FileNode', 'BigInt'>;
+  readonly takenAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
+  readonly exif: Prisma.FieldRef<'FileNode', 'Json'>;
+  readonly thumbnailKey: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly previewKey: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly isFavorite: Prisma.FieldRef<'FileNode', 'Boolean'>;
   readonly deleted: Prisma.FieldRef<'FileNode', 'Boolean'>;
+  readonly deletedAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
   readonly createdAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
   readonly updatedAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
-  readonly deletedAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
 }
 
 // Custom InputTypes
@@ -2988,6 +4368,28 @@ export type FileNode$filePermissionsArgs<
   distinct?:
     | Prisma.FilePermissionScalarFieldEnum
     | Prisma.FilePermissionScalarFieldEnum[];
+};
+
+/**
+ * FileNode.uploadSession
+ */
+export type FileNode$uploadSessionArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the UploadSession
+   */
+  select?: Prisma.UploadSessionSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the UploadSession
+   */
+  omit?: Prisma.UploadSessionOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UploadSessionInclude<ExtArgs> | null;
+  where?: Prisma.UploadSessionWhereInput;
 };
 
 /**

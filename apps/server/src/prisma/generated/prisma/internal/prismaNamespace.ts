@@ -1265,14 +1265,28 @@ export const FileNodeScalarFieldEnum = {
   type: 'type',
   parentId: 'parentId',
   ownerId: 'ownerId',
+  storageProvider: 'storageProvider',
   storageBucket: 'storageBucket',
   storageKey: 'storageKey',
   size: 'size',
   mimeType: 'mimeType',
+  hashAlgorithm: 'hashAlgorithm',
+  hash: 'hash',
+  mediaType: 'mediaType',
+  processingStatus: 'processingStatus',
+  processingError: 'processingError',
+  width: 'width',
+  height: 'height',
+  durationMs: 'durationMs',
+  takenAt: 'takenAt',
+  exif: 'exif',
+  thumbnailKey: 'thumbnailKey',
+  previewKey: 'previewKey',
+  isFavorite: 'isFavorite',
   deleted: 'deleted',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt',
 } as const;
 
 export type FileNodeScalarFieldEnum =
@@ -1289,6 +1303,7 @@ export const UploadSessionScalarFieldEnum = {
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  fileId: 'fileId',
 } as const;
 
 export type UploadSessionScalarFieldEnum =
@@ -1466,6 +1481,18 @@ export type ListEnumFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
 >;
 
 /**
+ * Reference to a field of type 'StorageProviderType'
+ */
+export type EnumStorageProviderTypeFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'StorageProviderType'>;
+
+/**
+ * Reference to a field of type 'StorageProviderType[]'
+ */
+export type ListEnumStorageProviderTypeFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'StorageProviderType[]'>;
+
+/**
  * Reference to a field of type 'BigInt'
  */
 export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<
@@ -1480,6 +1507,46 @@ export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   'BigInt[]'
 >;
+
+/**
+ * Reference to a field of type 'ContentHashAlgorithm'
+ */
+export type EnumContentHashAlgorithmFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'ContentHashAlgorithm'>;
+
+/**
+ * Reference to a field of type 'ContentHashAlgorithm[]'
+ */
+export type ListEnumContentHashAlgorithmFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'ContentHashAlgorithm[]'>;
+
+/**
+ * Reference to a field of type 'MediaType'
+ */
+export type EnumMediaTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'MediaType'
+>;
+
+/**
+ * Reference to a field of type 'MediaType[]'
+ */
+export type ListEnumMediaTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'MediaType[]'
+>;
+
+/**
+ * Reference to a field of type 'MediaProcessingStatus'
+ */
+export type EnumMediaProcessingStatusFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'MediaProcessingStatus'>;
+
+/**
+ * Reference to a field of type 'MediaProcessingStatus[]'
+ */
+export type ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'MediaProcessingStatus[]'>;
 
 /**
  * Reference to a field of type 'UploadStatus'
