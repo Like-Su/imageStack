@@ -1,9 +1,14 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   Header,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
+  Post,
   Query,
   Req,
   Res,
@@ -17,6 +22,7 @@ import { RequirePermission } from '../iam/auth/decorators/roles-permissions.deco
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 import { ListAssetsDto, ThumbnailQueryDto } from './dto/assets-query.dto';
+import { AssetIdsDto } from './dto/asset-ids.dto';
 import { AssetsService } from './assets.service';
 import { streamStoredMedia } from './asset-file-response';
 
@@ -35,10 +41,61 @@ export class AssetsController {
     return this.assets.list(user.id, query);
   }
 
+  @Get('trash')
+  @Header('Cache-Control', 'no-store')
+  trash(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
+    return this.assets.list(user.id, query, true);
+  }
+
+  @Delete()
+  @RequirePermission(PermissionCode.ASSET_DELETE)
+  moveToTrash(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+    return this.assets.moveToTrash(user.id, body.ids);
+  }
+
+  @Post('restore')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(PermissionCode.ASSET_DELETE)
+  restore(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+    return this.assets.restore(user.id, body.ids);
+  }
+
+  @Get('trash/:id/thumbnail')
+  @SkipResponseWrap()
+  async trashThumbnail(
+    @Param('id') assetId: string,
+    @CurrentUser() user: RequestUser,
+    @Query() query: ThumbnailQueryDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const resource = await this.assets.thumbnail(
+      assetId,
+      user.id,
+      query.size,
+      true,
+    );
+
+    return streamStoredMedia(this.storage, resource, request, response);
+  }
+
   @Get(':id')
   @Header('Cache-Control', 'no-store')
   detail(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
     return this.assets.detail(assetId, user.id);
+  }
+
+  @Post(':id/favorite')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(PermissionCode.ASSET_EDIT)
+  favorite(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
+    return this.assets.setFavorite(assetId, user.id, true);
+  }
+
+  @Delete(':id/favorite')
+  @RequirePermission(PermissionCode.ASSET_EDIT)
+  unfavorite(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
+    return this.assets.setFavorite(assetId, user.id, false);
   }
 
   @Get(':id/file')

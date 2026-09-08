@@ -433,6 +433,10 @@ export const ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   FileNode: 'FileNode',
+  Album: 'Album',
+  AlbumAsset: 'AlbumAsset',
+  Tag: 'Tag',
+  AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
@@ -464,6 +468,10 @@ export type TypeMap<
       | 'permission'
       | 'rolePermission'
       | 'fileNode'
+      | 'album'
+      | 'albumAsset'
+      | 'tag'
+      | 'assetTag'
       | 'uploadSession'
       | 'fileShare'
       | 'filePermission';
@@ -926,6 +934,310 @@ export type TypeMap<
         };
       };
     };
+    Album: {
+      payload: Prisma.$AlbumPayload<ExtArgs>;
+      fields: Prisma.AlbumFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AlbumFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AlbumFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        findFirst: {
+          args: Prisma.AlbumFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AlbumFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        findMany: {
+          args: Prisma.AlbumFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>[];
+        };
+        create: {
+          args: Prisma.AlbumCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        createMany: {
+          args: Prisma.AlbumCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AlbumCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>[];
+        };
+        delete: {
+          args: Prisma.AlbumDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        update: {
+          args: Prisma.AlbumUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AlbumDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AlbumUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AlbumUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>[];
+        };
+        upsert: {
+          args: Prisma.AlbumUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumPayload>;
+        };
+        aggregate: {
+          args: Prisma.AlbumAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlbum>;
+        };
+        groupBy: {
+          args: Prisma.AlbumGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AlbumGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AlbumCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AlbumCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    AlbumAsset: {
+      payload: Prisma.$AlbumAssetPayload<ExtArgs>;
+      fields: Prisma.AlbumAssetFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AlbumAssetFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AlbumAssetFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        findFirst: {
+          args: Prisma.AlbumAssetFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AlbumAssetFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        findMany: {
+          args: Prisma.AlbumAssetFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>[];
+        };
+        create: {
+          args: Prisma.AlbumAssetCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        createMany: {
+          args: Prisma.AlbumAssetCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AlbumAssetCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>[];
+        };
+        delete: {
+          args: Prisma.AlbumAssetDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        update: {
+          args: Prisma.AlbumAssetUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AlbumAssetDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AlbumAssetUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AlbumAssetUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>[];
+        };
+        upsert: {
+          args: Prisma.AlbumAssetUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumAssetPayload>;
+        };
+        aggregate: {
+          args: Prisma.AlbumAssetAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlbumAsset>;
+        };
+        groupBy: {
+          args: Prisma.AlbumAssetGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AlbumAssetGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AlbumAssetCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AlbumAssetCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    Tag: {
+      payload: Prisma.$TagPayload<ExtArgs>;
+      fields: Prisma.TagFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.TagFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.TagFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        findFirst: {
+          args: Prisma.TagFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.TagFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        findMany: {
+          args: Prisma.TagFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        create: {
+          args: Prisma.TagCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        createMany: {
+          args: Prisma.TagCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.TagCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        delete: {
+          args: Prisma.TagDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        update: {
+          args: Prisma.TagUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        deleteMany: {
+          args: Prisma.TagDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.TagUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.TagUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        upsert: {
+          args: Prisma.TagUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        aggregate: {
+          args: Prisma.TagAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTag>;
+        };
+        groupBy: {
+          args: Prisma.TagGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.TagGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.TagCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.TagCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    AssetTag: {
+      payload: Prisma.$AssetTagPayload<ExtArgs>;
+      fields: Prisma.AssetTagFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AssetTagFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AssetTagFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        findFirst: {
+          args: Prisma.AssetTagFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AssetTagFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        findMany: {
+          args: Prisma.AssetTagFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>[];
+        };
+        create: {
+          args: Prisma.AssetTagCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        createMany: {
+          args: Prisma.AssetTagCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AssetTagCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>[];
+        };
+        delete: {
+          args: Prisma.AssetTagDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        update: {
+          args: Prisma.AssetTagUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AssetTagDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AssetTagUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AssetTagUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>[];
+        };
+        upsert: {
+          args: Prisma.AssetTagUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetTagPayload>;
+        };
+        aggregate: {
+          args: Prisma.AssetTagAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAssetTag>;
+        };
+        groupBy: {
+          args: Prisma.AssetTagGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AssetTagGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AssetTagCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AssetTagCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     UploadSession: {
       payload: Prisma.$UploadSessionPayload<ExtArgs>;
       fields: Prisma.UploadSessionFieldRefs;
@@ -1291,6 +1603,48 @@ export const FileNodeScalarFieldEnum = {
 
 export type FileNodeScalarFieldEnum =
   (typeof FileNodeScalarFieldEnum)[keyof typeof FileNodeScalarFieldEnum];
+
+export const AlbumScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  ownerId: 'ownerId',
+  coverAssetId: 'coverAssetId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AlbumScalarFieldEnum =
+  (typeof AlbumScalarFieldEnum)[keyof typeof AlbumScalarFieldEnum];
+
+export const AlbumAssetScalarFieldEnum = {
+  albumId: 'albumId',
+  assetId: 'assetId',
+  addedAt: 'addedAt',
+} as const;
+
+export type AlbumAssetScalarFieldEnum =
+  (typeof AlbumAssetScalarFieldEnum)[keyof typeof AlbumAssetScalarFieldEnum];
+
+export const TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  ownerId: 'ownerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type TagScalarFieldEnum =
+  (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum];
+
+export const AssetTagScalarFieldEnum = {
+  assetId: 'assetId',
+  tagId: 'tagId',
+  addedAt: 'addedAt',
+} as const;
+
+export type AssetTagScalarFieldEnum =
+  (typeof AssetTagScalarFieldEnum)[keyof typeof AssetTagScalarFieldEnum];
 
 export const UploadSessionScalarFieldEnum = {
   id: 'id',
@@ -1759,6 +2113,10 @@ export type GlobalOmitConfig = {
   permission?: Prisma.PermissionOmit;
   rolePermission?: Prisma.RolePermissionOmit;
   fileNode?: Prisma.FileNodeOmit;
+  album?: Prisma.AlbumOmit;
+  albumAsset?: Prisma.AlbumAssetOmit;
+  tag?: Prisma.TagOmit;
+  assetTag?: Prisma.AssetTagOmit;
   uploadSession?: Prisma.UploadSessionOmit;
   fileShare?: Prisma.FileShareOmit;
   filePermission?: Prisma.FilePermissionOmit;

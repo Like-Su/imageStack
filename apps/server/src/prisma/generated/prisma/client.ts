@@ -75,6 +75,26 @@ export type RolePermission = Prisma.RolePermissionModel;
  */
 export type FileNode = Prisma.FileNodeModel;
 /**
+ * Model Album
+ *
+ */
+export type Album = Prisma.AlbumModel;
+/**
+ * Model AlbumAsset
+ *
+ */
+export type AlbumAsset = Prisma.AlbumAssetModel;
+/**
+ * Model Tag
+ *
+ */
+export type Tag = Prisma.TagModel;
+/**
+ * Model AssetTag
+ *
+ */
+export type AssetTag = Prisma.AssetTagModel;
+/**
  * Model UploadSession
  *
  */

@@ -10,5 +10,6 @@ import { ThumbnailsService } from './thumbnails.service';
   imports: [ConfigModule, PrismaModule, StorageModule],
   controllers: [AssetsController],
   providers: [AssetsService, ThumbnailsService],
+  exports: [AssetsService],
 })
 export class AssetsModule {}

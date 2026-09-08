@@ -60,6 +60,10 @@ export const ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   FileNode: 'FileNode',
+  Album: 'Album',
+  AlbumAsset: 'AlbumAsset',
+  Tag: 'Tag',
+  AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
@@ -179,6 +183,48 @@ export const FileNodeScalarFieldEnum = {
 
 export type FileNodeScalarFieldEnum =
   (typeof FileNodeScalarFieldEnum)[keyof typeof FileNodeScalarFieldEnum];
+
+export const AlbumScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  ownerId: 'ownerId',
+  coverAssetId: 'coverAssetId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AlbumScalarFieldEnum =
+  (typeof AlbumScalarFieldEnum)[keyof typeof AlbumScalarFieldEnum];
+
+export const AlbumAssetScalarFieldEnum = {
+  albumId: 'albumId',
+  assetId: 'assetId',
+  addedAt: 'addedAt',
+} as const;
+
+export type AlbumAssetScalarFieldEnum =
+  (typeof AlbumAssetScalarFieldEnum)[keyof typeof AlbumAssetScalarFieldEnum];
+
+export const TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  ownerId: 'ownerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type TagScalarFieldEnum =
+  (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum];
+
+export const AssetTagScalarFieldEnum = {
+  assetId: 'assetId',
+  tagId: 'tagId',
+  addedAt: 'addedAt',
+} as const;
+
+export type AssetTagScalarFieldEnum =
+  (typeof AssetTagScalarFieldEnum)[keyof typeof AssetTagScalarFieldEnum];
 
 export const UploadSessionScalarFieldEnum = {
   id: 'id',

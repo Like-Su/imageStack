@@ -1,27 +1,45 @@
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
-  IsInt,
   IsOptional,
   IsString,
-  Max,
   MaxLength,
-  Min,
   MinLength,
+  NotContains,
 } from 'class-validator';
+import { CursorPaginationDto } from '../../../common/dto/cursor-pagination.dto';
 
-export class ListAssetsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit: number = 24;
+export class ListAssetsDto extends CursorPaginationDto {
+  @Transform(({ obj, key }) => {
+    const value: unknown = obj[key];
+    return value === 'true' ? true : value === 'false' ? false : value;
+  })
+  @IsOptional()
+  @IsBoolean()
+  favorite?: boolean;
 
   @IsOptional()
   @IsString()
   @MinLength(1)
-  @MaxLength(512)
-  cursor?: string;
+  @MaxLength(128)
+  @NotContains('\u0000')
+  albumId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  @NotContains('\u0000')
+  tagId?: string;
+
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  @NotContains('\u0000')
+  tag?: string;
 }
 
 export class ThumbnailQueryDto {

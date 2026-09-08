@@ -165,7 +165,7 @@ export class ThumbnailsService {
         where: {
           id: asset.id,
           ownerId: asset.ownerId,
-          deleted: false,
+          deleted: asset.deleted,
           type: 'FILE',
           mediaType: 'IMAGE',
           storageKey: asset.storageKey,
@@ -194,7 +194,7 @@ export class ThumbnailsService {
       where: {
         id: asset.id,
         ownerId: asset.ownerId,
-        deleted: false,
+        deleted: asset.deleted,
         type: 'FILE',
         mediaType: 'IMAGE',
         storageKey: asset.storageKey,
