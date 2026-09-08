@@ -18,6 +18,71 @@ export const envSchema = z.object({
   REDIS_CONNECT_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   REDIS_MAX_RETRIES_PER_REQUEST: z.coerce.number().int().min(0).default(3),
 
+  RABBITMQ_URL: z
+    .string()
+    .url()
+    .regex(/^amqps?:\/\//)
+    .default('amqp://guest:guest@127.0.0.1:5672'),
+  RABBITMQ_QUEUE_PREFIX: z
+    .string()
+    .regex(/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/)
+    .refine((prefix) => !prefix.startsWith('amq.'), '队列前缀不能以 amq. 开头')
+    .default('image-stack'),
+  RABBITMQ_CONNECT_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(60000)
+    .default(10000),
+  RABBITMQ_PUBLISH_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(100)
+    .max(30000)
+    .default(5000),
+
+  MEDIA_PROCESSING_CONCURRENCY: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(8)
+    .default(2),
+  MEDIA_PROCESSING_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
+  MEDIA_PROCESSING_LEASE_MS: z.coerce
+    .number()
+    .int()
+    .min(30000)
+    .max(600000)
+    .default(120000),
+  MEDIA_PROCESSING_BACKOFF_MS: z.coerce
+    .number()
+    .int()
+    .min(100)
+    .max(60000)
+    .default(1000),
+  MEDIA_PROCESSING_RECONCILE_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(5000)
+    .max(300000)
+    .default(30000),
+  MEDIA_PROCESSING_RECONCILE_BATCH_SIZE: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(500)
+    .default(100),
+  MEDIA_PROCESSING_READ_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(120000)
+    .default(30000),
+  MEDIA_EXIF_DEFAULT_OFFSET: z
+    .string()
+    .regex(/^[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00)$/)
+    .default('+00:00'),
+
   // 邮箱配置
   MAIL_HOST: z.string().min(1),
   MAIL_PORT: z.string(),

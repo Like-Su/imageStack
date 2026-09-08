@@ -28,6 +28,7 @@ export type AggregateFileNode = {
 
 export type FileNodeAvgAggregateOutputType = {
   size: number | null;
+  processingAttempts: number | null;
   width: number | null;
   height: number | null;
   durationMs: number | null;
@@ -35,6 +36,7 @@ export type FileNodeAvgAggregateOutputType = {
 
 export type FileNodeSumAggregateOutputType = {
   size: bigint | null;
+  processingAttempts: number | null;
   width: number | null;
   height: number | null;
   durationMs: bigint | null;
@@ -56,6 +58,10 @@ export type FileNodeMinAggregateOutputType = {
   mediaType: $Enums.MediaType | null;
   processingStatus: $Enums.MediaProcessingStatus | null;
   processingError: string | null;
+  processingAttempts: number | null;
+  processingToken: string | null;
+  processingLeaseUntil: Date | null;
+  processingNextAttemptAt: Date | null;
   width: number | null;
   height: number | null;
   durationMs: bigint | null;
@@ -85,6 +91,10 @@ export type FileNodeMaxAggregateOutputType = {
   mediaType: $Enums.MediaType | null;
   processingStatus: $Enums.MediaProcessingStatus | null;
   processingError: string | null;
+  processingAttempts: number | null;
+  processingToken: string | null;
+  processingLeaseUntil: Date | null;
+  processingNextAttemptAt: Date | null;
   width: number | null;
   height: number | null;
   durationMs: bigint | null;
@@ -114,6 +124,10 @@ export type FileNodeCountAggregateOutputType = {
   mediaType: number;
   processingStatus: number;
   processingError: number;
+  processingAttempts: number;
+  processingToken: number;
+  processingLeaseUntil: number;
+  processingNextAttemptAt: number;
   width: number;
   height: number;
   durationMs: number;
@@ -131,6 +145,7 @@ export type FileNodeCountAggregateOutputType = {
 
 export type FileNodeAvgAggregateInputType = {
   size?: true;
+  processingAttempts?: true;
   width?: true;
   height?: true;
   durationMs?: true;
@@ -138,6 +153,7 @@ export type FileNodeAvgAggregateInputType = {
 
 export type FileNodeSumAggregateInputType = {
   size?: true;
+  processingAttempts?: true;
   width?: true;
   height?: true;
   durationMs?: true;
@@ -159,6 +175,10 @@ export type FileNodeMinAggregateInputType = {
   mediaType?: true;
   processingStatus?: true;
   processingError?: true;
+  processingAttempts?: true;
+  processingToken?: true;
+  processingLeaseUntil?: true;
+  processingNextAttemptAt?: true;
   width?: true;
   height?: true;
   durationMs?: true;
@@ -188,6 +208,10 @@ export type FileNodeMaxAggregateInputType = {
   mediaType?: true;
   processingStatus?: true;
   processingError?: true;
+  processingAttempts?: true;
+  processingToken?: true;
+  processingLeaseUntil?: true;
+  processingNextAttemptAt?: true;
   width?: true;
   height?: true;
   durationMs?: true;
@@ -217,6 +241,10 @@ export type FileNodeCountAggregateInputType = {
   mediaType?: true;
   processingStatus?: true;
   processingError?: true;
+  processingAttempts?: true;
+  processingToken?: true;
+  processingLeaseUntil?: true;
+  processingNextAttemptAt?: true;
   width?: true;
   height?: true;
   durationMs?: true;
@@ -341,6 +369,10 @@ export type FileNodeGroupByOutputType = {
   mediaType: $Enums.MediaType | null;
   processingStatus: $Enums.MediaProcessingStatus | null;
   processingError: string | null;
+  processingAttempts: number;
+  processingToken: string | null;
+  processingLeaseUntil: Date | null;
+  processingNextAttemptAt: Date | null;
   width: number | null;
   height: number | null;
   durationMs: bigint | null;
@@ -402,6 +434,12 @@ export type FileNodeWhereInput = {
     | $Enums.MediaProcessingStatus
     | null;
   processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  processingAttempts?: Prisma.IntFilter<'FileNode'> | number;
+  processingToken?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  processingLeaseUntil?:
+    Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
   height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
   durationMs?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
@@ -447,6 +485,10 @@ export type FileNodeOrderByWithRelationInput = {
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder;
   processingStatus?: Prisma.SortOrderInput | Prisma.SortOrder;
   processingError?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
+  processingToken?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingNextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   width?: Prisma.SortOrderInput | Prisma.SortOrder;
   height?: Prisma.SortOrderInput | Prisma.SortOrder;
   durationMs?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -500,6 +542,12 @@ export type FileNodeWhereUniqueInput = Prisma.AtLeast<
       | $Enums.MediaProcessingStatus
       | null;
     processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    processingAttempts?: Prisma.IntFilter<'FileNode'> | number;
+    processingToken?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    processingLeaseUntil?:
+      Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+    processingNextAttemptAt?:
+      Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
     width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
     height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
     durationMs?:
@@ -549,6 +597,10 @@ export type FileNodeOrderByWithAggregationInput = {
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder;
   processingStatus?: Prisma.SortOrderInput | Prisma.SortOrder;
   processingError?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
+  processingToken?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
+  processingNextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   width?: Prisma.SortOrderInput | Prisma.SortOrder;
   height?: Prisma.SortOrderInput | Prisma.SortOrder;
   durationMs?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -612,6 +664,19 @@ export type FileNodeScalarWhereWithAggregatesInput = {
     | null;
   processingError?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  processingAttempts?: Prisma.IntWithAggregatesFilter<'FileNode'> | number;
+  processingToken?:
+    Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  processingLeaseUntil?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'FileNode'>
+    | Date
+    | string
+    | null;
+  processingNextAttemptAt?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'FileNode'>
+    | Date
+    | string
+    | null;
   width?: Prisma.IntNullableWithAggregatesFilter<'FileNode'> | number | null;
   height?: Prisma.IntNullableWithAggregatesFilter<'FileNode'> | number | null;
   durationMs?:
@@ -654,6 +719,10 @@ export type FileNodeCreateInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -693,6 +762,10 @@ export type FileNodeUncheckedCreateInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -743,6 +816,13 @@ export type FileNodeUpdateInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -801,6 +881,13 @@ export type FileNodeUncheckedUpdateInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -842,6 +929,10 @@ export type FileNodeCreateManyInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -885,6 +976,13 @@ export type FileNodeUpdateManyMutationInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -934,6 +1032,13 @@ export type FileNodeUncheckedUpdateManyInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -983,6 +1088,10 @@ export type FileNodeCountOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder;
   processingStatus?: Prisma.SortOrder;
   processingError?: Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
+  processingToken?: Prisma.SortOrder;
+  processingLeaseUntil?: Prisma.SortOrder;
+  processingNextAttemptAt?: Prisma.SortOrder;
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
@@ -999,6 +1108,7 @@ export type FileNodeCountOrderByAggregateInput = {
 
 export type FileNodeAvgOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
@@ -1020,6 +1130,10 @@ export type FileNodeMaxOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder;
   processingStatus?: Prisma.SortOrder;
   processingError?: Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
+  processingToken?: Prisma.SortOrder;
+  processingLeaseUntil?: Prisma.SortOrder;
+  processingNextAttemptAt?: Prisma.SortOrder;
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
@@ -1049,6 +1163,10 @@ export type FileNodeMinOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder;
   processingStatus?: Prisma.SortOrder;
   processingError?: Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
+  processingToken?: Prisma.SortOrder;
+  processingLeaseUntil?: Prisma.SortOrder;
+  processingNextAttemptAt?: Prisma.SortOrder;
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
@@ -1064,6 +1182,7 @@ export type FileNodeMinOrderByAggregateInput = {
 
 export type FileNodeSumOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  processingAttempts?: Prisma.SortOrder;
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
@@ -1492,6 +1611,10 @@ export type FileNodeCreateWithoutOwnerInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1529,6 +1652,10 @@ export type FileNodeUncheckedCreateWithoutOwnerInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1621,6 +1748,12 @@ export type FileNodeScalarWhereInput = {
     | $Enums.MediaProcessingStatus
     | null;
   processingError?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  processingAttempts?: Prisma.IntFilter<'FileNode'> | number;
+  processingToken?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  processingLeaseUntil?:
+    Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   width?: Prisma.IntNullableFilter<'FileNode'> | number | null;
   height?: Prisma.IntNullableFilter<'FileNode'> | number | null;
   durationMs?: Prisma.BigIntNullableFilter<'FileNode'> | bigint | number | null;
@@ -1649,6 +1782,10 @@ export type FileNodeCreateWithoutChildrenInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1687,6 +1824,10 @@ export type FileNodeUncheckedCreateWithoutChildrenInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1729,6 +1870,10 @@ export type FileNodeCreateWithoutParentInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1766,6 +1911,10 @@ export type FileNodeUncheckedCreateWithoutParentInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -1851,6 +2000,13 @@ export type FileNodeUpdateWithoutChildrenInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -1908,6 +2064,13 @@ export type FileNodeUncheckedUpdateWithoutChildrenInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -1974,6 +2137,10 @@ export type FileNodeCreateWithoutAlbumCoversInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2012,6 +2179,10 @@ export type FileNodeUncheckedCreateWithoutAlbumCoversInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2089,6 +2260,13 @@ export type FileNodeUpdateWithoutAlbumCoversInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2146,6 +2324,13 @@ export type FileNodeUncheckedUpdateWithoutAlbumCoversInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2184,6 +2369,10 @@ export type FileNodeCreateWithoutAlbumsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2222,6 +2411,10 @@ export type FileNodeUncheckedCreateWithoutAlbumsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2299,6 +2492,13 @@ export type FileNodeUpdateWithoutAlbumsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2356,6 +2556,13 @@ export type FileNodeUncheckedUpdateWithoutAlbumsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2394,6 +2601,10 @@ export type FileNodeCreateWithoutTagsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2432,6 +2643,10 @@ export type FileNodeUncheckedCreateWithoutTagsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2509,6 +2724,13 @@ export type FileNodeUpdateWithoutTagsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2566,6 +2788,13 @@ export type FileNodeUncheckedUpdateWithoutTagsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2604,6 +2833,10 @@ export type FileNodeCreateWithoutUploadSessionInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2642,6 +2875,10 @@ export type FileNodeUncheckedCreateWithoutUploadSessionInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2719,6 +2956,13 @@ export type FileNodeUpdateWithoutUploadSessionInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2776,6 +3020,13 @@ export type FileNodeUncheckedUpdateWithoutUploadSessionInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2814,6 +3065,10 @@ export type FileNodeCreateWithoutFileSharesInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2852,6 +3107,10 @@ export type FileNodeUncheckedCreateWithoutFileSharesInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -2929,6 +3188,13 @@ export type FileNodeUpdateWithoutFileSharesInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -2986,6 +3252,13 @@ export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3024,6 +3297,10 @@ export type FileNodeCreateWithoutFilePermissionsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -3062,6 +3339,10 @@ export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -3139,6 +3420,13 @@ export type FileNodeUpdateWithoutFilePermissionsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3196,6 +3484,13 @@ export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3235,6 +3530,10 @@ export type FileNodeCreateManyOwnerInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -3278,6 +3577,13 @@ export type FileNodeUpdateWithoutOwnerInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3334,6 +3640,13 @@ export type FileNodeUncheckedUpdateWithoutOwnerInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3389,6 +3702,13 @@ export type FileNodeUncheckedUpdateManyWithoutOwnerInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3422,6 +3742,10 @@ export type FileNodeCreateManyParentInput = {
   mediaType?: $Enums.MediaType | null;
   processingStatus?: $Enums.MediaProcessingStatus | null;
   processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
   width?: number | null;
   height?: number | null;
   durationMs?: bigint | number | null;
@@ -3465,6 +3789,13 @@ export type FileNodeUpdateWithoutParentInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3521,6 +3852,13 @@ export type FileNodeUncheckedUpdateWithoutParentInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3576,6 +3914,13 @@ export type FileNodeUncheckedUpdateManyWithoutParentInput = {
     | null;
   processingError?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
   durationMs?:
@@ -3712,6 +4057,10 @@ export type FileNodeSelect<
     mediaType?: boolean;
     processingStatus?: boolean;
     processingError?: boolean;
+    processingAttempts?: boolean;
+    processingToken?: boolean;
+    processingLeaseUntil?: boolean;
+    processingNextAttemptAt?: boolean;
     width?: boolean;
     height?: boolean;
     durationMs?: boolean;
@@ -3758,6 +4107,10 @@ export type FileNodeSelectCreateManyAndReturn<
     mediaType?: boolean;
     processingStatus?: boolean;
     processingError?: boolean;
+    processingAttempts?: boolean;
+    processingToken?: boolean;
+    processingLeaseUntil?: boolean;
+    processingNextAttemptAt?: boolean;
     width?: boolean;
     height?: boolean;
     durationMs?: boolean;
@@ -3796,6 +4149,10 @@ export type FileNodeSelectUpdateManyAndReturn<
     mediaType?: boolean;
     processingStatus?: boolean;
     processingError?: boolean;
+    processingAttempts?: boolean;
+    processingToken?: boolean;
+    processingLeaseUntil?: boolean;
+    processingNextAttemptAt?: boolean;
     width?: boolean;
     height?: boolean;
     durationMs?: boolean;
@@ -3830,6 +4187,10 @@ export type FileNodeSelectScalar = {
   mediaType?: boolean;
   processingStatus?: boolean;
   processingError?: boolean;
+  processingAttempts?: boolean;
+  processingToken?: boolean;
+  processingLeaseUntil?: boolean;
+  processingNextAttemptAt?: boolean;
   width?: boolean;
   height?: boolean;
   durationMs?: boolean;
@@ -3863,6 +4224,10 @@ export type FileNodeOmit<
   | 'mediaType'
   | 'processingStatus'
   | 'processingError'
+  | 'processingAttempts'
+  | 'processingToken'
+  | 'processingLeaseUntil'
+  | 'processingNextAttemptAt'
   | 'width'
   | 'height'
   | 'durationMs'
@@ -3940,6 +4305,10 @@ export type $FileNodePayload<
       mediaType: $Enums.MediaType | null;
       processingStatus: $Enums.MediaProcessingStatus | null;
       processingError: string | null;
+      processingAttempts: number;
+      processingToken: string | null;
+      processingLeaseUntil: Date | null;
+      processingNextAttemptAt: Date | null;
       width: number | null;
       height: number | null;
       durationMs: bigint | null;
@@ -4662,6 +5031,10 @@ export interface FileNodeFieldRefs {
     'MediaProcessingStatus'
   >;
   readonly processingError: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly processingAttempts: Prisma.FieldRef<'FileNode', 'Int'>;
+  readonly processingToken: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly processingLeaseUntil: Prisma.FieldRef<'FileNode', 'DateTime'>;
+  readonly processingNextAttemptAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
   readonly width: Prisma.FieldRef<'FileNode', 'Int'>;
   readonly height: Prisma.FieldRef<'FileNode', 'Int'>;
   readonly durationMs: Prisma.FieldRef<'FileNode', 'BigInt'>;

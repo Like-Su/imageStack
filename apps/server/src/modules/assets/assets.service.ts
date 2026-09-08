@@ -18,6 +18,7 @@ const listSelect = {
   name: true,
   mediaType: true,
   processingStatus: true,
+  processingError: true,
   size: true,
   mimeType: true,
   width: true,
@@ -99,6 +100,14 @@ export class AssetsService {
           }
         : {}),
     };
+
+    if (query.status === 'PENDING') {
+      where.AND = [
+        { OR: [{ processingStatus: 'PENDING' }, { processingStatus: null }] },
+      ];
+    } else if (query.status) {
+      where.processingStatus = query.status;
+    }
 
     const rows = await this.prisma.fileNode.findMany({
       where,
@@ -196,12 +205,7 @@ export class AssetsService {
     }
 
     const asset = await this.findOwned(assetId, userId, deleted);
-    const key = await this.thumbnails.getOrCreate(asset);
-
-    return {
-      key,
-      mimeType: 'image/webp',
-    };
+    return this.thumbnails.get(asset);
   }
 
   thumbnailUrl(assetId: string, deleted = false) {
@@ -241,6 +245,7 @@ export class AssetsService {
       name: asset.name,
       type: asset.mediaType,
       status: asset.processingStatus ?? 'PENDING',
+      processingError: asset.processingError,
       size: asset.size?.toString() ?? null,
       mimeType: asset.mimeType,
       width: asset.width,

@@ -13,7 +13,7 @@ import {
   UPLOAD_READ_TIMEOUT_MS,
 } from './upload.constants';
 import { blake3 } from 'hash-wasm';
-import sharp from 'sharp';
+import { sharp } from '../../common/sharp';
 
 // 图片上传类型
 type ImageFormat = 'jpeg' | 'png' | 'webp';

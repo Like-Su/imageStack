@@ -25,6 +25,7 @@ import { ListAssetsDto, ThumbnailQueryDto } from './dto/assets-query.dto';
 import { AssetIdsDto } from './dto/asset-ids.dto';
 import { AssetsService } from './assets.service';
 import { streamStoredMedia } from './asset-file-response';
+import type { ThumbnailResponse } from './thumbnails.service';
 
 @Controller('assets')
 @RequirePermission(PermissionCode.ASSET_LIST)
@@ -76,7 +77,7 @@ export class AssetsController {
       true,
     );
 
-    return streamStoredMedia(this.storage, resource, request, response);
+    return this.thumbnailResponse(resource, request, response);
   }
 
   @Get(':id')
@@ -123,6 +124,26 @@ export class AssetsController {
   ) {
     const resource = await this.assets.thumbnail(assetId, user.id, query.size);
 
-    return streamStoredMedia(this.storage, resource, request, response);
+    return this.thumbnailResponse(resource, request, response);
+  }
+
+  private thumbnailResponse(
+    resource: ThumbnailResponse,
+    request: Request,
+    response: Response,
+  ) {
+    if ('key' in resource) {
+      return streamStoredMedia(this.storage, resource, request, response);
+    }
+
+    response.status(HttpStatus.ACCEPTED);
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Retry-After', '3');
+
+    return {
+      success: true,
+      data: resource,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

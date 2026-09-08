@@ -9,8 +9,13 @@ import {
   NotContains,
 } from 'class-validator';
 import { CursorPaginationDto } from '../../../common/dto/cursor-pagination.dto';
+import type { MediaProcessingStatus } from '../../../prisma/generated/prisma/client';
 
 export class ListAssetsDto extends CursorPaginationDto {
+  @IsOptional()
+  @IsIn(['PENDING', 'PROCESSING', 'READY', 'FAILED'])
+  status?: MediaProcessingStatus;
+
   @Transform(({ obj, key }) => {
     const value: unknown = obj[key];
     return value === 'true' ? true : value === 'false' ? false : value;

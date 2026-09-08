@@ -1,5 +1,96 @@
 # 项目架构说明
 
+## M5：缩略图与 EXIF 异步处理（RabbitMQ）
+
+上传完成后通过 RabbitMQ 投递 `asset.ingest`，由 `JobsModule` 中的消费者
+在后台生成缩略图、提取 EXIF 并更新 `FileNode`。M5 队列不使用 Redis 或 BullMQ；
+原有登录、验证码等认证缓存的 Redis 逻辑不在本次替换范围内。
+任务中心、手动重试/取消、进度 SSE 和前端页面留到后续阶段。
+
+### 依赖与配置
+
+使用已有的 `amqp-connection-manager`、`amqplib`、sharp 和新增的 `exifr`，移除直接依赖 `bullmq`。
+接入前在仓库根目录同步依赖和锁文件，然后应用迁移并生成 Prisma Client：
+
+```bash
+pnpm install --no-frozen-lockfile
+cd apps/server
+pnpm exec prisma migrate deploy --config prisma7.config.ts
+pnpm exec prisma generate --config prisma7.config.ts
+```
+
+迁移 `20260908120000_m5_rabbitmq_processing` 为 `FileNode` 增加重试次数、处理令牌、
+租约到期时间和下次执行时间及相应索引。现有文件默认重试次数为 0；旧的未完成记录会自动补投。
+切换时先停止旧的 BullMQ 工作进程，避免两种实现同时写入；不需要搬运 Redis 中的媒体消息。
+依赖安装、锁文件解析、数据库迁移、客户端生成、服务启动和验证不在本次代码交付中执行。
+sharp 需要与实际运行平台匹配的原生依赖，不应直接复用其他操作系统安装的 `node_modules`。
+上传校验与后台处理统一通过 `src/common/sharp.ts` 加载 sharp，兼容当前 CommonJS 编译配置与 sharp 0.35 的导出类型。
+
+| 配置                                     | 默认值                              | 说明                                                               |
+| ---------------------------------------- | ----------------------------------- | ------------------------------------------------------------------ |
+| `RABBITMQ_URL`                           | `amqp://guest:guest@127.0.0.1:5672` | 支持 `amqp://`、`amqps://` 和 URL 中的 vhost；远程部署使用独立账户 |
+| `RABBITMQ_QUEUE_PREFIX`                  | `image-stack`                       | 环境隔离前缀，不允许以 RabbitMQ 保留的 `amq.` 开头                 |
+| `RABBITMQ_CONNECT_TIMEOUT_MS`            | `10000`                             | RabbitMQ 连接超时                                                  |
+| `RABBITMQ_PUBLISH_TIMEOUT_MS`            | `5000`                              | 等待发布确认的最大时长，超时由数据库记录兜底                       |
+| `MEDIA_PROCESSING_CONCURRENCY`           | `2`                                 | 每个服务进程的处理并发，范围 1～8                                  |
+| `MEDIA_PROCESSING_ATTEMPTS`              | `3`                                 | 最大执行次数，含首次执行                                           |
+| `MEDIA_PROCESSING_LEASE_MS`              | `120000`                            | 数据库处理租约，每隔租约时长的 1/3 自动续期                        |
+| `MEDIA_PROCESSING_BACKOFF_MS`            | `1000`                              | 重试指数退避的初始延迟                                             |
+| `MEDIA_PROCESSING_RECONCILE_INTERVAL_MS` | `30000`                             | 数据库待处理记录的补投间隔                                         |
+| `MEDIA_PROCESSING_RECONCILE_BATCH_SIZE`  | `100`                               | 每次按 ID 游标扫描的记录数                                         |
+| `MEDIA_PROCESSING_READ_TIMEOUT_MS`       | `30000`                             | 单次原图流读取超时                                                 |
+| `MEDIA_EXIF_DEFAULT_OFFSET`              | `+00:00`                            | EXIF 没有时区时的回退偏移；国内相机可按需要设为 `+08:00`           |
+
+RabbitMQ 使用持久化队列、持久化消息、发布确认和手动 ACK，账户需要目标 vhost 的配置、读、写权限。
+默认主队列为 `image-stack.media-processing`，失败队列为 `image-stack.media-processing.failed`。
+重试队列按延迟命名，如 `.retry.1000`、`.retry.2000`，通过队列 TTL 和死信路由返回主队列，
+不需要延迟消息插件。不同延迟使用独立队列，避免较长延迟阻塞较短延迟消息。
+重试消息或失败记录发布确认后才 ACK 原消息；无法路由的消息触发重连和队列重建。
+失败队列保留原任务及 `x-media-attempt`、`x-media-error` 头，非法消息直接进入死信队列。
+
+连接使用 15 秒心跳、5 秒重连间隔；断线、流控或发布确认超时不会回滚已上传文件。
+服务启动不等待 RabbitMQ 可用，连接恢复后自动恢复拓扑、消费者及数据库补投。
+消费者通过 prefetch 限制并发，重连时先等待旧通道的处理收尾，再接收新消息；
+关闭服务时先停止消费和补投，等待正在执行的任务收尾，再关闭连接；
+Prisma 在 `onApplicationShutdown` 阶段断开，确保媒体任务排空时仍可写入数据库。
+
+### 状态流转与接口
+
+```text
+上传校验 → 存储原图 → FileNode(PENDING) → RabbitMQ
+                                          ↓
+                                      PROCESSING
+                                      ↙        ↘
+                                    READY     处理失败
+                                              ↙    ↘
+                              PENDING（退避重试）   FAILED
+```
+
+- 上传入口仍为 `POST /uploads/sessions` 与 `PUT /uploads/sessions/:id/content`。
+  上传会话 `COMPLETED` 表示原图和文件记录已保存，不表示后台媒体处理已经结束。
+  入队发生在数据库提交之后，RabbitMQ 短暂故障不会回滚或删除已上传文件。
+- 原有 `GET /assets/:id` 返回 `status`、`processingError`、EXIF、方向修正后的宽高及拍摄时间。
+  `GET /assets` 和 `GET /assets/trash` 新增 `status=PENDING|PROCESSING|READY|FAILED` 筛选。
+- 普通资产和回收站的缩略图接口只读取现有 WebP；未就绪时返回 `202`、`Retry-After: 3`
+  和 `{ success: true, data: { assetId, status }, timestamp }`，客户端应显示占位图并稍后重试。
+  失败且没有可用缩略图时返回 `422 / ASSET_PROCESSING_FAILED`。
+  已完成资产的缩略图文件丢失时会重置重试次数并重新排队修复；已有缩略图不受 EXIF 重试影响。
+- Worker 对当前支持的 JPEG、PNG、WebP 生成最长边 256px 的 sm WebP，自动纠正方向且不放大小图。
+  保留上传阶段的大小、像素和单帧限制，处理过程有流读取和解码超时。
+- EXIF 从 sharp 的原始 EXIF 块提取，由 exifr 解析后仅保存常用相机、镜头、曝光、方向、
+  GPS 与时间字段，过滤二进制和不可 JSON 化的值。没有 EXIF 的图片正常完成，`exif` 为 `{}`。
+  拍摄时间优先使用 `DateTimeOriginal`，其次 `CreateDate`，结合 EXIF 偏移或配置偏移转成 UTC；
+  无效日期保留为 `null`，不使用服务器本地时区猜测。
+- RabbitMQ 采用至少一次投递，消息 ID 不提供去重保证。消费者通过数据库条件更新领取资产、
+  增加重试次数并生成租约令牌；重复消息不会领取仍在有效租约内的资产，旧消费者也不能覆盖新任务结果。
+  重试次数和下次执行时间持久化，重复投递不会重置次数或绕过退避时间，崩溃中断的执行也计入次数。
+- 启动及周期扫描补投到期的 `PENDING`、历史空状态和租约过期的 `PROCESSING` 记录。
+  消息丢失、发布结果不确定或进程崩溃均可从数据库恢复；达到次数上限后进入 `FAILED`，不会无限重试。
+  已失败资产不会自动重新执行。补投使用游标轮转，不会一直只扫描最早的一批资产。
+- 软删除不取消媒体处理，回收站资产仍可完成并预览；处理不会更改删除、收藏或相册/标签关系。
+  更新限定资产、所属用户、原存储对象及处理令牌，成功时一次性写入缩略图引用、元数据与 `READY`。
+  竞争失败时清理未关联的候选缩略图；数据库写入结果不确定时保留对象，避免误删已关联文件。
+
 ## M4：收藏、回收站、手动相册与标签
 
 本阶段在 M3 资产接口上实现后端数据库 CRUD，继续使用 `FileNode`，新增
@@ -30,7 +121,7 @@ JSON 响应沿用 `{ success, data, timestamp }`。
 | DELETE         | `/assets`                             | `{ ids }` 批量移入回收站                                                |
 | GET            | `/assets/trash`                       | 回收站，支持与图库相同的分页和筛选                                      |
 | POST           | `/assets/restore`                     | `{ ids }` 批量恢复                                                      |
-| GET            | `/assets/trash/:id/thumbnail?size=sm` | 回收站缩略图，复用 M3 按需生成逻辑                                      |
+| GET            | `/assets/trash/:id/thumbnail?size=sm` | 回收站缩略图；M5 起由后台生成，未就绪返回 202                           |
 | GET / POST     | `/albums`                             | 相册数组 / 新建 `{ name, description? }`                                |
 | GET            | `/albums/:id?cursor&limit`            | 相册信息和 `assets: { items, nextCursor, hasMore }`                     |
 | PATCH / DELETE | `/albums/:id`                         | 更新 `{ name?, description?, coverAssetId? }` / 删除相册                |
@@ -110,7 +201,7 @@ SearchModule 文件名/OCR/标签/向量/结构化条件的组合搜索
 ─────────────────── ─────────────────────────────────────────────────────
 CollectionsModule 相册、智能相册、标签、收藏集
 ─────────────────── ─────────────────────────────────────────────────────
-JobsModule BullMQ 任务查询、暂停、恢复、重试、取消、SSE 推送
+JobsModule RabbitMQ 媒体处理与恢复；后续扩展任务查询、暂停、重试、取消、SSE 推送
 ─────────────────── ─────────────────────────────────────────────────────
 AiModule OCR、Embedding、Caption、检测等 Provider 注册与调用
 ─────────────────── ─────────────────────────────────────────────────────

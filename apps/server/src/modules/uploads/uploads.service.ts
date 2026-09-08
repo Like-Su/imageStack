@@ -31,6 +31,7 @@ import {
   UPLOAD_SESSION_TTL_MS,
 } from './upload.constants';
 import { inspectImage, readUploadBody } from './upload-validation';
+import { MediaJobsService } from '../jobs/media-jobs.service';
 
 @Injectable()
 export class UploadsService {
@@ -39,6 +40,7 @@ export class UploadsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly mediaJobs: MediaJobsService,
     @Inject(STORAGE_PROVIDER)
     private readonly storage: StorageProvider,
   ) {}
@@ -73,6 +75,10 @@ export class UploadsService {
         session.file.ownerId !== userId
       ) {
         throw new GoneException('上传对应的文件已不可用');
+      }
+
+      if (!['READY', 'FAILED'].includes(session.file.processingStatus)) {
+        await this.mediaJobs.enqueue(session.file.id, userId);
       }
 
       return this.completedResult(session.id, session.file);
@@ -187,6 +193,8 @@ export class UploadsService {
 
         return createdFile;
       });
+
+      await this.mediaJobs.enqueue(file.id, userId);
 
       return this.completedResult(session.id, file);
     } catch (error) {

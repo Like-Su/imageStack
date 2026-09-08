@@ -192,6 +192,11 @@ model FileNode {
   processingStatus MediaProcessingStatus?
   processingError  String?
 
+  processingAttempts      Int       @default(0)
+  processingToken         String?
+  processingLeaseUntil    DateTime?
+  processingNextAttemptAt DateTime?
+
   width      Int?
   height     Int?
   durationMs BigInt?
@@ -221,6 +226,8 @@ model FileNode {
   @@index([ownerId, deleted, createdAt, id])
   @@index([ownerId, deleted, isFavorite, createdAt, id])
   @@index([processingStatus])
+  @@index([processingStatus, processingNextAttemptAt])
+  @@index([processingStatus, processingLeaseUntil])
 }
 
 model Album {
