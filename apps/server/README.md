@@ -1,5 +1,60 @@
 # 项目架构说明
 
+## M7：基础关键词搜索
+
+新增 `GET /search`，使用 Prisma 查询文件名和手动标签，默认且仅支持 `mode=keyword`。
+请求需要登录和 `asset:search` 权限，仅返回当前用户未进入回收站的资产。
+不接入 AI、OCR、向量搜索、关键词联想或搜索历史，不新增依赖及数据库迁移。
+
+### 参数与语义
+
+| 参数               | 默认值      | 说明                                                                 |
+| ------------------ | ----------- | -------------------------------------------------------------------- |
+| `q`                | 空          | 最长 200 字符，按空白拆分，最多 16 个不同关键词                      |
+| `mode`             | `keyword`   | 仅关键词模式；`auto`、`semantic` 返回 400                            |
+| `type`             | 不限        | `image`、`video`、`audio`，兼容大写                                  |
+| `favorite`         | 不限        | `true` 仅收藏，`false` 仅未收藏                                      |
+| `tag` / `tagId`    | 不限        | 精确标签名 / 标签 ID；同时传入时必须匹配同一标签                     |
+| `albumId`          | 不限        | 手动相册 ID                                                          |
+| `status`           | 不限        | `PENDING`、`PROCESSING`、`READY`、`FAILED`；历史空状态归入 `PENDING` |
+| `timeField`        | `createdAt` | `createdAt` 为入库时间，`takenAt` 为 EXIF 拍摄时间                   |
+| `year`             | 不限        | UTC 年份，1～9999；与 `from` / `to` 取交集                           |
+| `from` / `to`      | 不限        | 包含下界 / 不包含上界，支持日期或带时区的 ISO 8601 时间              |
+| `cursor` / `limit` | 无 / `24`   | 游标分页，单页最多 100 条                                            |
+
+关键词不区分大小写，每个词必须在文件名或某个标签名中出现；词之间为 AND，字段之间为 OR。
+例如 `海边 日落` 可由文件名命中“海边”、标签命中“日落”。`%`、`_`、反斜杠按字面匹配，
+不开放 SQL 通配符、表达式或自然语言时间解析。空关键词只做筛选，无条件时按图库顺序浏览。
+所有结构化条件与关键词取交集，不会因为匹配标签而绕过用户隔离、回收站或其他筛选。
+
+日期 `2026-09-01` 表示 UTC 零点；时间戳必须带 `Z` 或时区偏移，最多毫秒精度。
+时间区间为 `[from, to)`，同时提供时必须 `from < to`；例如九月使用 `from=2026-09-01&to=2026-10-01`。
+拍摄时间筛选不回退到入库时间，没有 EXIF 拍摄日期的资产不命中此类时间范围。
+`/assets` 和 `/assets/trash` 同步支持 `type`、`timeField`、`year`、`from`、`to`，原有筛选仍然兼容。
+当前上传和资产访问仍只支持 JPEG/PNG/WebP，因此 `video`、`audio` 暂时返回空列表，并不扩展上传类型。
+
+### 请求与分页
+
+以下示例使用默认 `/api` 前缀，实际以 `API_PREFIX` 为准；客户端需正常编码 URL 参数：
+
+```http
+GET /api/search?q=海边%20日落&mode=keyword&favorite=true&type=image&tag=旅行
+GET /api/search?timeField=takenAt&from=2026-09-01&to=2026-10-01&status=READY
+GET /api/assets?type=image&year=2026&timeField=createdAt
+```
+
+结果继续使用 `{ success: true, data, timestamp }` 包装；`data` 包含 `mode: "keyword"`、
+`items`、`hasMore`、`nextCursor`、`tookMs` 和 `parsed: null`。
+每条命中为 `{ asset, score: null, matchedBy: ["keyword"] }`，`asset` 与图库摘要一致；
+没有关键词时 `matchedBy` 为 `["filter"]`，不会提供伪造的相似度分数。
+
+排序固定为 `createdAt DESC, id DESC`，搜索与图库共用稳定的游标分页和资产摘要。
+搜索游标绑定当前用户、关键词及全部筛选条件；翻页时保持条件不变，只替换 `cursor`，可调整 `limit`。
+切换条件必须清空游标；跨用户、跨条件、损坏的游标或混用图库游标均返回 400。
+原有图库与回收站的无搜索上下文游标保持兼容。
+
+本次仅实现并做静态核对，不安装依赖、不执行构建、测试或服务启动。
+
 ## M5：缩略图与 EXIF 异步处理（RabbitMQ）
 
 上传完成后通过 RabbitMQ 投递 `asset.ingest`，由 `JobsModule` 中的消费者
@@ -197,7 +252,7 @@ AssetsModule 媒体资产 CRUD、元数据、详情、收藏、回收站
 ─────────────────── ─────────────────────────────────────────────────────
 UploadsModule 分片上传、断点续传、秒传、上传会话
 ─────────────────── ─────────────────────────────────────────────────────
-SearchModule 文件名/OCR/标签/向量/结构化条件的组合搜索
+SearchModule M7 文件名/手动标签关键词与结构化筛选；OCR、向量及语义搜索留待后续
 ─────────────────── ─────────────────────────────────────────────────────
 CollectionsModule 相册、智能相册、标签、收藏集
 ─────────────────── ─────────────────────────────────────────────────────

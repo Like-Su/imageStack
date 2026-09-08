@@ -7,6 +7,10 @@ const cursorSchema = z
     ownerId: z.string().min(1).max(128),
     createdAt: z.string().datetime({ precision: 3 }),
     id: z.string().min(1).max(128),
+    scope: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{43}$/)
+      .optional(),
   })
   .strict();
 
@@ -14,19 +18,25 @@ const cursorSchema = z
 export function encodeAssetCursor(
   row: { id: string; createdAt: Date },
   ownerId: string,
+  scope?: string,
 ): string {
   const payload = {
     version: 1,
     ownerId,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
+    scope,
   };
 
   return Buffer.from(JSON.stringify(payload)).toString('base64url');
 }
 
 // 解码 BASE64
-export function decodeAssetCursor(cursor: string, ownerId: string) {
+export function decodeAssetCursor(
+  cursor: string,
+  ownerId: string,
+  scope?: string,
+) {
   try {
     if (cursor.length > 512 || !/^[A-Za-z0-9_-]+$/.test(cursor)) {
       throw new Error();
@@ -44,6 +54,7 @@ export function decodeAssetCursor(cursor: string, ownerId: string) {
 
     if (
       payload.ownerId !== ownerId ||
+      payload.scope !== scope ||
       !Number.isFinite(createdAt.getTime()) ||
       createdAt.toISOString() !== payload.createdAt
     ) {

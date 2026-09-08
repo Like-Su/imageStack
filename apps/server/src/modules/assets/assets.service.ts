@@ -9,6 +9,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { withSerializable } from '../../common/prisma/transaction';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { assetWhere, requireOwnedAssets } from './asset-scope';
+import { buildAssetFilters } from './asset-filters';
 import { ListAssetsDto } from './dto/assets-query.dto';
 import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
 import { ThumbnailsService } from './thumbnails.service';
@@ -38,6 +39,12 @@ type AssetListRow = Prisma.FileNodeGetPayload<{
   select: typeof listSelect;
 }>;
 
+interface AssetPageOptions {
+  deleted: boolean;
+  keywords?: readonly string[];
+  cursorScope?: string;
+}
+
 @Injectable()
 export class AssetsService {
   private readonly apiPrefix: string;
@@ -54,60 +61,48 @@ export class AssetsService {
     this.apiPrefix = prefix ? `/${prefix}` : '';
   }
 
-  async list(userId: string, query: ListAssetsDto, deleted = false) {
+  list(userId: string, query: ListAssetsDto, deleted = false) {
+    return this.findPage(userId, query, { deleted });
+  }
+
+  search(
+    userId: string,
+    query: ListAssetsDto,
+    keywords: readonly string[],
+    cursorScope: string,
+  ) {
+    return this.findPage(userId, query, {
+      deleted: false,
+      keywords,
+      cursorScope,
+    });
+  }
+
+  private async findPage(
+    userId: string,
+    query: ListAssetsDto,
+    options: AssetPageOptions,
+  ) {
     const cursor = query.cursor
-      ? decodeAssetCursor(query.cursor, userId)
+      ? decodeAssetCursor(query.cursor, userId, options.cursorScope)
       : null;
 
     const where: Prisma.FileNodeWhereInput = {
-      ...assetWhere(userId, deleted),
-      ...(query.favorite !== undefined ? { isFavorite: query.favorite } : {}),
-      ...(query.albumId
-        ? {
-            albums: {
-              some: { album: { id: query.albumId, ownerId: userId } },
-            },
-          }
-        : {}),
-      ...(query.tagId || query.tag
-        ? {
-            tags: {
-              some: {
-                tag: {
-                  ownerId: userId,
-                  ...(query.tagId ? { id: query.tagId } : {}),
-                  ...(query.tag ? { name: query.tag } : {}),
-                },
-              },
-            },
-          }
-        : {}),
-      ...(cursor
-        ? {
-            OR: [
+      AND: [
+        assetWhere(userId, options.deleted),
+        buildAssetFilters(userId, query, options.keywords),
+        ...(cursor
+          ? [
               {
-                createdAt: {
-                  lt: cursor.createdAt,
-                },
+                OR: [
+                  { createdAt: { lt: cursor.createdAt } },
+                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                ],
               },
-              {
-                createdAt: cursor.createdAt,
-                id: {
-                  lt: cursor.id,
-                },
-              },
-            ],
-          }
-        : {}),
+            ]
+          : []),
+      ],
     };
-
-    if (query.status === 'PENDING') {
-      where.AND = [
-        { OR: [{ processingStatus: 'PENDING' }, { processingStatus: null }] },
-      ];
-    } else if (query.status) {
-      where.processingStatus = query.status;
-    }
 
     const rows = await this.prisma.fileNode.findMany({
       where,
@@ -123,7 +118,10 @@ export class AssetsService {
     return {
       items: page.map((row) => this.summary(row)),
       hasMore,
-      nextCursor: hasMore && last ? encodeAssetCursor(last, userId) : null,
+      nextCursor:
+        hasMore && last
+          ? encodeAssetCursor(last, userId, options.cursorScope)
+          : null,
     };
   }
 
