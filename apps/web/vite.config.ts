@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
@@ -13,5 +13,5 @@ const FRONTEND_VERSION = pkg.version || "unknown";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), tailwindcss()],
 });
