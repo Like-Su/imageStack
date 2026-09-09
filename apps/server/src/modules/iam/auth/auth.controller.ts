@@ -1,5 +1,17 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import type { Request, Response } from 'express';
 
 // Custom Module
 import {
@@ -9,15 +21,30 @@ import {
   RefreshTokenDto,
   RegisterDto,
   ResetDto,
+  SendResetPasswordMailDto,
 } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { Open } from './decorators/open.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestUser } from './auth.type';
+import { CsrfService } from 'src/common/csrf/csrf.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly csrfService: CsrfService,
+  ) {}
+
+  @Open()
+  @Get('csrf')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  csrf(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.csrfService.issueToken(request, response);
+  }
 
   // captcha
   @Open()
@@ -48,9 +75,21 @@ export class AuthController {
     return await this.authService.register(registerDto);
   }
 
+  @Open()
+  @Post(['forget/send-code', 'reset/send-code'])
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Header('Cache-Control', 'no-store')
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  sendResetPasswordMail(@Body() dto: SendResetPasswordMailDto) {
+    return this.authService.sendResetPasswordMail(dto);
+  }
+
   // 忘记密码
   @Open()
   @Post('forget')
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async forget(@Body() forgetDto: ForgetDto) {
     return this.authService.forgetPassword(
       forgetDto.email,
@@ -62,6 +101,9 @@ export class AuthController {
   // 重置密码
   @Open()
   @Post('reset')
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async reset(@Body() resetDto: ResetDto) {
     return this.authService.forgetPassword(
       resetDto.email,

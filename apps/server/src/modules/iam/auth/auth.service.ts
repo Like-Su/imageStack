@@ -1,8 +1,10 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   ForbiddenException,
+  HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,7 +14,11 @@ import * as svgCaptcha from 'svg-captcha';
 import { compare } from 'bcryptjs';
 
 // Custom Module
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  SendResetPasswordMailDto,
+} from './dto/auth.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from 'src/common/redis/redis.service';
 import { EmailService } from './email.service';
@@ -21,12 +27,18 @@ import { RedisKey } from 'src/common/constants';
 import { UserStatus } from 'src/prisma/generated/prisma/enums';
 import { JwtPayload, RequestUser } from './auth.type';
 import { withSerializable } from 'src/common/prisma/transaction';
+import {
+  PASSWORD_RESET_COOLDOWN_SECONDS,
+  PASSWORD_RESET_INVALID_MESSAGE,
+  PASSWORD_RESET_TTL_SECONDS,
+} from 'src/common/constants/auth';
+import { BusinessException } from 'src/common/exceptions/business.exception';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly accessTtl: number;
   private readonly refreshTtl: number;
-  private readonly forgetOrResetPasswordTtl: number = 30 * 60;
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -43,9 +55,7 @@ export class AuthService {
   // 验证验证码是否正确
   private async verifyCaptcha(captchaId: string, code: string) {
     const key = RedisKey.captcha(captchaId);
-    const expected = await this.redisService.get(key);
-    // 不管对错都删除
-    await this.redisService.del(key);
+    const expected = await this.redisService.getDel(key);
     if (!expected) throw new BadRequestException('验证码已过期');
 
     if (expected !== code.trim().toLowerCase())
@@ -88,7 +98,7 @@ export class AuthService {
     await this.redisService.set(RedisKey.activate(email), token, expire);
 
     // 发送邮件
-    await this.emailService.sendEmail(email, token);
+    await this.emailService.sendEmail(email, token, 'site', expire);
   }
 
   async register(dto: RegisterDto) {
@@ -145,14 +155,18 @@ export class AuthService {
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
-    return this.issueTokens(user.id);
+    return this.issueTokens(user.id, user.sessionVersion);
   }
 
   // 签发token(token 只存放 sub/type/jti 权限从数据库或缓存取)
-  private async issueTokens(userId: string, sessionId: string = randomUUID()) {
-    const sessionVersion = await this.userService.getSessionVersion(userId);
-    if (sessionVersion === null)
-      throw new UnauthorizedException('用户不存在或已禁用');
+  private async issueTokens(
+    userId: string,
+    sessionVersion: number,
+    sessionId: string = randomUUID(),
+  ) {
+    const currentVersion = await this.userService.getSessionVersion(userId);
+    if (currentVersion === null || currentVersion !== sessionVersion)
+      throw new UnauthorizedException('会话已失效，请重新登录');
 
     const accessPayload: JwtPayload = {
       sub: userId,
@@ -223,7 +237,7 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('用户不存在或已禁用');
 
-    return this.issueTokens(payload.sub, payload.sid);
+    return this.issueTokens(payload.sub, tokenVersion, payload.sid);
   }
 
   // 登出
@@ -263,32 +277,114 @@ export class AuthService {
     return true;
   }
 
-  // 发送忘记密码 或 重置密码邮件
-  async sendResetPasswordMail(email: string) {
-    const user = await this.userService.findByEmail(email);
-    if (!user || user.deleted) throw new NotFoundException('用户不存在');
-    const token = randomUUID();
-    await this.redisService.set(
-      RedisKey.forgetPassword(email),
-      token,
-      this.forgetOrResetPasswordTtl,
+  async sendResetPasswordMail(dto: SendResetPasswordMailDto) {
+    await this.verifyCaptcha(dto.captchaId, dto.captcha);
+
+    const email = dto.email.trim();
+    const cooldownKey = RedisKey.forgetPasswordCooldown(email);
+    const reserved = await this.redisService.setIfAbsent(
+      cooldownKey,
+      randomUUID(),
+      PASSWORD_RESET_COOLDOWN_SECONDS,
     );
-    return true;
+
+    if (!reserved) {
+      const retryAfter = Math.max(1, await this.redisService.ttl(cooldownKey));
+      throw new BusinessException(
+        'PASSWORD_RESET_COOLDOWN',
+        `请求过于频繁，请在 ${retryAfter} 秒后重试`,
+        { retryAfter },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const response = {
+      message:
+        '请求已受理。若账户可用，请留意密码重置邮件；未收到请稍后重试或联系管理员。',
+      expiresIn: PASSWORD_RESET_TTL_SECONDS,
+      retryAfter: PASSWORD_RESET_COOLDOWN_SECONDS,
+    };
+    const user = await this.userService.findByEmail(email);
+    if (!user || user.deleted || user.status !== UserStatus.ACTIVE)
+      return response;
+
+    const code = randomBytes(32).toString('hex');
+    const codeHash = this.hashPasswordResetCode(
+      user.id,
+      user.sessionVersion,
+      code,
+    );
+    const key = RedisKey.forgetPassword(email);
+    try {
+      await this.redisService.set(key, codeHash, PASSWORD_RESET_TTL_SECONDS);
+      await this.emailService.sendEmail(
+        user.email,
+        code,
+        'forget',
+        PASSWORD_RESET_TTL_SECONDS,
+      );
+    } catch (error) {
+      const failureCode =
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof error.code === 'string'
+          ? error.code
+          : 'UNKNOWN';
+      this.logger.error({
+        message: '密码重置邮件准备或投递失败',
+        userId: user.id,
+        code: failureCode,
+      });
+      try {
+        await this.redisService.consume(key, codeHash);
+      } catch {
+        this.logger.error(`密码重置验证码清理失败，用户 ID：${user.id}`);
+      }
+    }
+
+    return response;
   }
 
   async forgetPassword(email: string, emailCode: string, newPassword: string) {
-    const user = await this.userService.findByEmail(email);
-    if (!user || user.deleted) throw new NotFoundException('用户不存在');
+    const normalizedEmail = email.trim();
+    const user = await this.userService.findByEmail(normalizedEmail);
+    if (!user || user.deleted || user.status !== UserStatus.ACTIVE)
+      throw new BusinessException(
+        'PASSWORD_RESET_INVALID',
+        PASSWORD_RESET_INVALID_MESSAGE,
+      );
 
-    const cachedToken = await this.redisService.get(
-      RedisKey.forgetPassword(email),
+    const consumed = await this.redisService.consume(
+      RedisKey.forgetPassword(normalizedEmail),
+      this.hashPasswordResetCode(
+        user.id,
+        user.sessionVersion,
+        emailCode.trim().toLowerCase(),
+      ),
     );
-    if (!cachedToken || cachedToken !== emailCode)
-      throw new BadRequestException('忘记密码链接无效或已过期');
+    if (!consumed)
+      throw new BusinessException(
+        'PASSWORD_RESET_INVALID',
+        PASSWORD_RESET_INVALID_MESSAGE,
+      );
 
-    // 重置密码操作
-    this.userService.resetPassword(user.id, newPassword);
+    await this.userService.resetPassword(
+      user.id,
+      newPassword,
+      user.sessionVersion,
+    );
 
     return true;
+  }
+
+  private hashPasswordResetCode(
+    userId: string,
+    sessionVersion: number,
+    code: string,
+  ) {
+    return createHash('sha256')
+      .update(`${userId}:${sessionVersion}:${code}`)
+      .digest('hex');
   }
 }
