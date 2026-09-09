@@ -6,6 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "db:init": "pnpm run db:migrate && pnpm run db:seed",
+    "db:migrate": "prisma migrate deploy --config prisma7.config.ts",
+    "db:generate": "prisma generate --config prisma7.config.ts",
+    "db:seed": "node ../../scripts/init.cjs",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

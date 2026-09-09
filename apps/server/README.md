@@ -328,3 +328,208 @@ CurrentUser
 PermissionsGuard / PoliciesGuard
 ↓
 Controller
+
+## 找回密码与 CSRF
+
+以下接口沿用现有 `IamModule/AuthModule`，没有新增依赖或数据库迁移。示例基址为 `/api`，成功响应统一为 `{ success: true, data, timestamp }`，错误响应为 `{ success: false, code, message, details, timestamp, path }`。
+
+### 环境配置
+
+完整示例位于 `.env.example`，实际凭据仍应填写在本地 `.env`，不要提交到仓库。
+
+| 环境变量                  | 说明                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
+| `JWT_SECRET`              | 必填，至少 32 位，使用独立生成的随机密钥；示例故意留空                                    |
+| `CSRF_SECRET`             | 可选，至少 32 位；未设置时从 `JWT_SECRET` 按独立用途派生，不使用固定密钥                  |
+| `CSRF_COOKIE_SECURE`      | 可选，`true` 或 `false`；默认生产环境为 `true`、开发环境为 `false`                        |
+| `CORS_ORIGIN`             | 同源反代推荐使用 `/api`；跨源同站访问时，填写准确的前端 Origin，多个地址以逗号分隔        |
+| `APP_DOMAIN`              | 前端页面的 HTTP(S) 基址，不是 API 基址；用于邮件中的激活和重置链接，不应带查询参数或片段  |
+| `MAIL_HOST` / `MAIL_PORT` | SMTP 地址和端口；示例的 `localhost:1025` 仅适用于自行配置的开发邮件服务                   |
+| `MAIL_SECURE`             | `true` 表示 SMTP 直连 TLS；通常 465 使用 `true`，587 使用 `false` 并由 SMTP 协商 STARTTLS |
+| `MAIL_USER` / `MAIL_PASS` | SMTP 认证信息；支持匿名中继时可留空，否则填写邮箱服务商的用户名和授权码                   |
+| `MAIL_SEND_FROM`          | 发件人，必须与 SMTP 服务允许的发送地址匹配                                                |
+
+生产环境建议使用 HTTPS，保留 Secure Cookie。若显式配置 `CSRF_COOKIE_SECURE=false`，会降低传输安全性。`CORS_ORIGIN=*` 不启用跨源凭据；不要将通配 Origin 与凭据访问混用。Cookie 使用 `SameSite=Lax`，推荐同源反代或同站部署，不支持将互不相关的站点直接作为带 Cookie 的前后端。
+
+### 1. 获取 CSRF 令牌
+
+`GET /api/auth/csrf`，无需登录，每个 IP 每分钟最多 30 次。浏览器请求需要保留 Cookie，例如使用 `credentials: 'include'`。
+
+```json
+{
+  "success": true,
+  "data": { "csrfToken": "<签名安全令牌>" },
+  "timestamp": "<ISO 8601>"
+}
+```
+
+响应同时设置两个 HttpOnly Cookie：随机浏览器标识和签名 CSRF 令牌。HTTPS/Secure 模式使用 `__Host-` Cookie 名称、`Path=/`，不设置 Domain，Cookie 有效期为 24 小时。接口禁止缓存；合法 Cookie 对会复用令牌，避免多个页面互相使其失效。过期、损坏或签名失效的 Cookie 会在重新获取时换发。
+
+之后所有 POST、PUT、PATCH、DELETE 等非安全请求，包括登录、注册、刷新、发邮件、密码重置和退出，均需要：
+
+```http
+Cookie: <浏览器自动携带，或 API 客户端保存的 Cookie Jar>
+x-csrf-token: <data.csrfToken>
+Content-Type: application/json
+```
+
+GET、HEAD、OPTIONS 不做 CSRF 校验。令牌只从请求头读取，不接受查询参数或请求体作为替代。客户端不需要、也不能通过 JavaScript 读取 HttpOnly Cookie；只使用签发响应中的 `csrfToken`。认证接口仍需原有的 `Authorization: Bearer <accessToken>`，CSRF 令牌不替代用户认证。
+
+校验失败返回 `403 / CSRF_TOKEN_INVALID`，不会执行业务处理。客户端可以重新获取令牌并至多重试一次，且应合并并发的获取请求；不要对其他 403 错误无条件重试。如果仍失败，检查 Cookie、HTTPS、代理和 CORS 配置，而不是关闭校验。
+
+### 2. 发送找回密码邮件
+
+先调用现有 `GET /api/auth/captcha` 获取图形验证码，随后调用：
+
+- `POST /api/auth/forget/send-code`
+- 兼容入口：`POST /api/auth/reset/send-code`
+
+```json
+{
+  "email": "you@example.com",
+  "captcha": "<4 位图形验证码>",
+  "captchaId": "<captcha 接口返回的 UUID>"
+}
+```
+
+成功受理返回 HTTP 202：
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "请求已受理。若账户可用，请留意密码重置邮件；未收到请稍后重试或联系管理员。",
+    "expiresIn": 1800,
+    "retryAfter": 60
+  },
+  "timestamp": "<ISO 8601>"
+}
+```
+
+- 图形验证码验证时原子消费，无论内容正确与否都不能复用；重试发码前需重新获取图片。
+- 两个发码入口共用每 IP 每分钟 3 次的限流；同一邮箱在 Redis 中设置 60 秒发送冷却，并发请求不能重复发送。
+- 不存在、未激活或已删除的账户返回相同的受理响应，不发送邮件，不直接暴露账户是否存在。
+- 202 仅表示请求受理，不保证邮件最终投递成功。SMTP 或重置码准备失败会记录服务端日志，并尝试仅删除本次码的摘要，不误删后发的码；客户端仍收到统一受理响应。
+- 邮件包含一次性重置链接和 **64 位十六进制验证码**，不是 6 位短信码。重置码有 256 位随机熵，仅保存绑定用户及会话版本的 SHA-256 摘要；原始码不会在接口响应中返回。
+- 验证码自签发起 30 分钟有效，只有最新一份有效。邮件链接指向 `${APP_DOMAIN}/forgot-password?email=...&emailCode=...`。
+
+### 3. 提交新密码
+
+`POST /api/auth/forget` 或 `POST /api/auth/reset`：
+
+```json
+{
+  "email": "you@example.com",
+  "emailCode": "<邮件或链接中的完整 64 位验证码>",
+  "password": "<新的密码>"
+}
+```
+
+新密码至少 8 位，UTF-8 编码不超过 bcrypt 的 72 字节上限；确认密码由前端验证，不发送 `enterPassword` 等 DTO 外字段。两个入口执行相同逻辑，每个入口每 IP 每分钟最多 5 次。
+
+服务端先原子消费验证码，再以签发时对应的用户会话版本为条件，原子更新密码哈希并递增 `sessionVersion`，最后等待缓存清理完成。成功后返回 HTTP 200、`data: true`，不会自动登录。
+
+旧 access token、refresh token 和旧会话版本对应的重置码失效；并发的登录或刷新不能将已失效会话提升到新版本。相同验证码的重复或并发提交只有一次能通过。若数据库写入失败，不会返回成功，也不会恢复已消费的验证码，需要重新获取邮件。
+
+### 错误约定与前端对接
+
+| HTTP / code                     | 处理方式                                                                    |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `403 / CSRF_TOKEN_INVALID`      | 重新获取 CSRF 令牌，保留 Cookie，至多重试一次                               |
+| `429 / PASSWORD_RESET_COOLDOWN` | 使用 `details.retryAfter` 或 `Retry-After` 响应头倒计时，随后刷新图形验证码 |
+| `429 / HTTP_429`                | 命中接口 IP 限流，根据 `Retry-After` 等待                                   |
+| `400 / PASSWORD_RESET_INVALID`  | 验证码过期、错误、已消费、账户不可用或会话版本变化，重新获取重置邮件        |
+| `400 / HTTP_400`                | 表单校验或图形验证码失败，修正字段或重新获取图片                            |
+| `401`                           | 登录状态失效，按原有认证流程刷新或重新登录                                  |
+
+`apps/web` 已接入上述认证流程：请求层统一获取 CSRF 令牌并携带 Cookie 与请求头；发邮件请求仅发送 `email/captcha/captchaId`，重置请求仅发送 `email/emailCode/password`。找回密码页面支持邮件发送冷却、链接填充、一次性验证码提交与重置后重新登录。邮件凭据读取后从地址栏清除，页面使用 `no-referrer` 防止向外部资源泄漏。前端配置与完整流程见 `apps/web/README.md`。
+
+本次仅进行代码与接口约定的静态核对，未启动服务、发送实际邮件、运行测试、构建或类型检查。
+
+## 数据库初始化
+
+沿用 `scripts/init.sql` 作为基础数据的唯一来源，`scripts/init.cjs` 负责配置校验、密码哈希和 PostgreSQL 客户端调用，`scripts/init.sh` 提供兼容 Shell 入口。初始化通过部署命令显式执行，不在服务启动或公开接口中自动创建管理员。
+
+### 初始化内容
+
+- 内置角色 `ROLE_ADMIN`、`ROLE_USER`。
+- 与 `src/common/constants/role-permission.ts` 一致的 22 个权限，包含资源下载、分享和上传权限。
+- 管理员绑定全部内置权限；普通用户仅默认绑定 `asset:list`、`asset:search`。上传、编辑、删除、标签等能力需由管理员按需授权，不向普通用户开放系统管理权限。
+- 首个可直接登录的管理员，状态为 `ACTIVE`，无需发送激活邮件。
+
+不创建示例媒体、相册、标签、上传任务或普通用户，不清空现有数据。权限名称、父子关系和缺失的默认授权会同步；自定义角色、权限及额外授权保留，已禁用的角色不会被自动重新启用。
+
+### 配置与执行
+
+先安装工作区依赖及 PostgreSQL 客户端 `psql`，并准备 PostgreSQL 数据库。环境变量优先于 `apps/server/.env`；脚本不会把 `.env` 当 Shell 执行，也不会把密码写入 SQL 文件或命令行参数。
+
+在 `apps/server/.env` 中配置正确的 `DATABASE_URL` 和管理员邮箱（可参考 `.env.example`）：
+
+```dotenv
+DATABASE_URL=postgresql://username:password@localhost:5432/imageStack?schema=public
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=your-admin@example.com
+```
+
+在仓库根目录执行以下命令，应用已有 Prisma 迁移后初始化数据：
+
+```bash
+pnpm db:init
+```
+
+已有完整表结构时，仅补齐基础数据：
+
+```bash
+pnpm db:seed
+```
+
+未设置密码时会在交互终端隐藏输入并要求确认。密码至少 8 位、UTF-8 不超过 bcrypt 的 72 字节上限，建议使用独立的高强度密码。初始化成功后可使用输出的管理员邮箱进入 `/login`；新建邮箱会规范为小写，已有账户保持原邮箱内容。
+
+自动部署时，通过部署平台的 Secret 注入 `ADMIN_PASSWORD`，或提供预先生成的 `ADMIN_PASSWORD_HASH`，两者只能设置一个；后者支持 bcrypt `$2a$` / `$2b$` / `$2y$`、cost 10～14。仓库中不提供通用管理员密码，也不会在日志中显示明文密码或哈希。非交互环境缺少凭据会直接失败，不会等待输入或使用默认密码。
+
+也可使用原有脚本入口或 Prisma seed 入口（这些入口仅初始化数据，不执行迁移）：
+
+```bash
+bash scripts/init.sh
+pnpm --dir apps/server exec prisma db seed --config prisma7.config.ts
+```
+
+`pnpm --dir apps/server run db:generate` 用于在需要时重新生成 Prisma Client。初始化本身不依赖生成客户端，也不连接 SMTP、RabbitMQ 或 Redis；登录和业务服务仍需按各自配置启动这些依赖。
+
+### 重复执行与安全约束
+
+- 整个 SQL 初始化在一个事务中执行，并通过事务级 advisory lock 避免多个初始化实例并发写入。SQL 错误会回滚，命令返回非零退出码，不会自动重试不确定的执行结果。
+- 必须先应用迁移；表缺失、仍有旧 `User.account` 字段、缺少 `sessionVersion` 时会明确报错。当前脚本仅支持 `public` schema；Prisma 连接串中的 `schema=public` 与连接池参数会转换为适合 `psql` 的连接配置。
+- 已有正常管理员默认保留密码、昵称和会话，不会被新传入的密码覆盖。已有普通用户、停用或软删除账户与目标邮箱冲突时默认拒绝；邮箱忽略大小写后对应多个账户时始终拒绝，需先人工处理歧义。
+- 只有明确执行 `pnpm db:seed --force-admin`（或 `bash scripts/init.sh --force-admin`）才会重置目标账户的密码、昵称、角色与状态，并递增 `sessionVersion` 撤销旧访问/刷新令牌。已禁用的 `ROLE_ADMIN` 仍需单独恢复，不会因该选项被偷偷启用。
+- 重新补齐已有数据库的授权或强制重置后，现有 Redis 用户权限快照可能仍缓存旧资料，最长 30 分钟。部署时应按实例配置清理用户权限缓存或等待其过期；初始化脚本不执行 `FLUSHDB`，不删除刷新令牌、验证码或其他业务数据。强制重置的旧会话撤销依赖数据库版本检查，不受该缓存影响。
+
+本次只实现脚本并做静态核对，不执行数据库迁移、初始化写入、管理员重置或服务启动。
+
+## 媒体工作区补充接口
+
+前端工作区按照 `design/index.html` 接入已有资产、上传、相册、标签和关键词搜索接口，并增加以下能力；复用现有 FileNode/Album/Tag 数据模型，无新增迁移。
+
+| 方法   | 路径（以 `/api` 为基址） | 权限           | 返回/行为                                                                                                  |
+| ------ | ------------------------ | -------------- | ---------------------------------------------------------------------------------------------------------- |
+| GET    | `/assets/overview`       | `asset:list`   | 当前用户未删除/回收站数量、收藏、相册、标签、原图字节字符串与 `PENDING/PROCESSING/READY/FAILED` 统计       |
+| GET    | `/assets/places`         | `asset:list`   | 当前用户未删除图片的 EXIF 经纬度按 0.1° 网格聚合；`items/locatedAssets/totalPlaces`，数量最多的 500 个分组 |
+| GET    | `/assets/trash/:id`      | `asset:list`   | 自己的回收站媒体详情，`fileUrl` 为 null，缩略图仍走已有回收站路由                                          |
+| POST   | `/assets/:id/retry`      | `asset:edit`   | 仅重置自己的未删除 FAILED 入库记录；`{id,status:'PENDING',enqueued}`，队列暂不可用时由数据库补投           |
+| DELETE | `/assets/trash`          | `asset:delete` | `{ids}`，1～100 个不重复 ID；仅允许自己的回收站图片，返回 `{count,cleanupPending}`                         |
+| GET    | `/system/capabilities`   | `asset:list`   | 已实现的后端能力与未接入扩展、上传限制、存储类型等；不是健康探测，也不提供插件安装/启停                    |
+
+列表和搜索新增可选条件 `uncategorized`（布尔）、`minSize`（非负安全整数，字节）、`placeId`（`纬度网格整数:经度网格整数`，分别是原始坐标乘 10 向下取整）。条件与所有者、回收站状态及原有筛选取交集；`placeId` 的有效范围为纬度格 -900～900、经度格 -1800～1800。关键词搜索游标签名范围包含这些新条件。
+
+资产摘要补充 `processingAttempts`、`nextAttemptAt`、`updatedAt`，标签摘要补充 `coverAssetId`（该用户的未删除图片），用于任务中心和手动人物分组预览。人物以约定前缀 `人物:` 的普通标签存储，复用标签增删改/合并和媒体关联的权限与所有者隔离，不包含自动检测、识别或人脸裁剪模型。
+
+### 永久删除约束
+
+- 先在可串行化事务内校验全部 ID 都是该用户的回收站图片，删除分享和文件授权，移除文件记录；相册/标签关联与封面/上传会话关系沿用已有外键规则处理。未删除或其他用户文件不会被永久删除。
+- 提交后对原图、缩略图和预览对象去重，检查所有文件引用及未完成上传会话，再清理无引用对象。数据库删除成功、存储清理失败时保留错误日志并返回 `cleanupPending`；不会回滚为可访问的损坏记录，也不假称空间释放成功。需由管理员依据日志处理残留对象。
+- 前端清空先收集当前 ID 清单再确认，以每批 100 项提交；各批独立事务，不承诺整库删除原子性，失败/中断后需刷新查看剩余记录。不自动重试超时的永久删除请求，也不实施自动保留 30 天策略。
+- 上述写接口沿用全局 JWT/权限/CSRF 保护，能力和统计只读接口不泄露其他用户资产信息或磁盘路径。
+
+相关实现仅作源码静态核对，未启动服务、运行测试/构建/类型检查、发起真实上传或删除、执行数据库写入。
+
+> > > > > > > Stashed changes

@@ -4,6 +4,8 @@
   "description": "Multimodal Image Management Solution",
   "scripts": {
     "prepare": "husky",
+    "db:init": "pnpm --dir apps/server run db:init",
+    "db:seed": "pnpm --dir apps/server run db:seed",
     "typecheck:web": "pnpm --dir apps/web exec vue-tsc --noEmit",
     "typecheck:server": "pnpm --dir apps/server exec tsc --noEmit",
     "typecheck": "pnpm run typecheck:web && pnpm run typecheck:server",
