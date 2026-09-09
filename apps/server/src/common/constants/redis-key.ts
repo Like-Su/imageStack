@@ -11,6 +11,7 @@ export const RedisKey = {
   authUser: (userId: string) => `auth:user:${userId}`,
   // 忘记密码
   forgetPassword: (email: string) => `auth:forget:${email}`,
+  forgetPasswordCooldown: (email: string) => `auth:forget-cooldown:${email}`,
   // 会话已失效
   sessionRevoked: (userId: string, sessionId: string) =>
     `auth:session-revoked:${userId}:${sessionId}`,

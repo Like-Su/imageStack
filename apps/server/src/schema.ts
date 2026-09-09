@@ -9,6 +9,11 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   API_PREFIX: z.string().default('/api'),
   CORS_ORIGIN: z.string().default('*'),
+  CSRF_SECRET: z.string().min(32, 'CSRF_SECRET 最少 32 位').optional(),
+  CSRF_COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
   // Database
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   // Redis
@@ -23,7 +28,7 @@ export const envSchema = z.object({
   MAIL_SECURE: z.string(),
   MAIL_PASS: z.string(),
   MAIL_USER: z.string(),
-  MAIL_SEND_FROM: z.string(),
+  MAIL_SEND_FROM: z.string().min(1, 'MAIL_SEND_FROM is required'),
 
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET 最少 32 位'),
@@ -37,5 +42,8 @@ export const envSchema = z.object({
     .int()
     .positive()
     .default(7 * 24 * 60 * 60),
-  APP_DOMAIN: z.string().min(1),
+  APP_DOMAIN: z
+    .string()
+    .url('APP_DOMAIN 必须是有效的前端 URL')
+    .regex(/^https?:\/\//, 'APP_DOMAIN 仅支持 HTTP 或 HTTPS'),
 });

@@ -2,10 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { doubleCsrf } from 'csrf-csrf';
 
 // Custom imports
 import { AppModule } from './app.module';
+import { CsrfService } from './common/csrf/csrf.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,25 +16,27 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const apiPrefix = configService.get<string>('API_PREFIX', '/api');
   const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
+  const allowedOrigins =
+    corsOrigin.trim() === '*'
+      ? '*'
+      : corsOrigin
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean);
 
   // 设置前缀
   app.setGlobalPrefix(apiPrefix);
   // 设置跨域
   app.enableCors({
-    origin: corsOrigin,
+    origin: allowedOrigins,
+    credentials: allowedOrigins !== '*',
+    exposedHeaders: ['Retry-After'],
   });
 
   // 设置Helmet
   app.use(helmet());
 
-  // TODO: CSRF
-  // https://docs.nestjs.com/security/csrf
-  const { doubleCsrfProtection } = doubleCsrf({
-    getSecret: (req) => '123456',
-    getSessionIdentifier: (req) => '123456',
-  });
-
-  app.use(doubleCsrfProtection);
+  app.use(app.get(CsrfService).protect);
 
   // 管道校验
   app.useGlobalPipes(
