@@ -1,24 +1,25 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import {
   ArrowRight,
   CircleAlert,
   CircleCheck,
   LoaderCircle,
 } from "lucide-vue-next";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { authApi } from "@/api/auth";
 import { getErrorMessage } from "@/api/request";
 import AuthNotice from "@/components/auth/AuthNotice.vue";
 
 const route = useRoute();
+const router = useRouter();
+const activationToken = ref("");
 const status = ref<"loading" | "success" | "error">("loading");
 const errorMessage = ref("");
 let controller: AbortController | null = null;
 
 async function activate() {
-  const token =
-    typeof route.query.token === "string" ? route.query.token.trim() : "";
+  const token = activationToken.value;
   if (!token) {
     status.value = "error";
     errorMessage.value = "激活链接缺少 token，请打开邮件中的完整链接。";
@@ -42,7 +43,22 @@ async function activate() {
   }
 }
 
-onMounted(activate);
+watch(
+  () => route.query.token,
+  (token) => {
+    if (token === undefined) {
+      if (!activationToken.value) void activate();
+      return;
+    }
+    controller?.abort();
+    activationToken.value = typeof token === "string" ? token.trim() : "";
+    const query = { ...route.query };
+    delete query.token;
+    void router.replace({ path: route.path, query, hash: route.hash });
+    void activate();
+  },
+  { immediate: true },
+);
 onBeforeUnmount(() => controller?.abort());
 </script>
 
@@ -90,7 +106,7 @@ onBeforeUnmount(() => controller?.abort());
     </p>
     <AuthNotice v-if="errorMessage" class="mt-6" :message="errorMessage" />
     <button
-      v-if="status === 'error' && route.query.token"
+      v-if="status === 'error' && activationToken"
       type="button"
       class="auth-button auth-button-secondary mt-6"
       @click="activate"

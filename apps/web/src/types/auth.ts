@@ -18,6 +18,10 @@ export interface CaptchaResponse {
   image: string;
 }
 
+export interface CsrfTokenResponse {
+  csrfToken: string;
+}
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -39,6 +43,18 @@ export interface ForgotPasswordPayload {
   email: string;
   emailCode: string;
   password: string;
+}
+
+export interface ResetMailPayload {
+  email: string;
+  captcha: string;
+  captchaId: string;
+}
+
+export interface ResetMailResponse {
+  message: string;
+  expiresIn: number;
+  retryAfter: number;
 }
 
 export interface StoredSession extends AuthTokens {

@@ -7,6 +7,8 @@ import type {
   LoginPayload,
   RegisterPayload,
   RegisterResponse,
+  ResetMailPayload,
+  ResetMailResponse,
 } from "@/types/auth";
 
 export const authApi = {
@@ -19,6 +21,13 @@ export const authApi = {
       method: "POST",
       body,
       auth: false,
+    }),
+  sendResetMail: (body: ResetMailPayload, signal?: AbortSignal) =>
+    request<ResetMailResponse>("/auth/forget/send-code", {
+      method: "POST",
+      body,
+      auth: false,
+      signal,
     }),
   forgetPassword: (body: ForgotPasswordPayload) =>
     request<boolean>("/auth/forget", { method: "POST", body, auth: false }),
@@ -40,6 +49,7 @@ export const authApi = {
       method: "POST",
       body: { refreshToken },
     }),
+  logoutAll: () => request<boolean>("/auth/logout-all", { method: "POST" }),
   me: (accessToken?: string) =>
     request<AuthUser | null>("/user/me", {
       method: "POST",

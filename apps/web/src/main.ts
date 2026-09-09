@@ -35,6 +35,7 @@ function bootstrap() {
   const auth = useAuthStore(pinia);
   configureRequestAuth({
     getAccessToken: () => auth.accessToken,
+    getSessionVersion: () => auth.getSessionVersion(),
     refresh: () => auth.refreshSession(),
     onUnauthorized: () => {
       auth.clearSession();

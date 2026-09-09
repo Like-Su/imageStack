@@ -35,7 +35,8 @@ function readSession(): StoredSession | null {
         typeof saved.expiresAt === "number" &&
         Number.isFinite(saved.expiresAt) &&
         typeof saved.expiresIn === "number" &&
-        Number.isFinite(saved.expiresIn)
+        Number.isFinite(saved.expiresIn) &&
+        saved.expiresIn > 0
       ) {
         return { ...saved, remember } as StoredSession;
       }
@@ -64,6 +65,27 @@ function persistSession(session: StoredSession | null, user: AuthUser | null) {
   }
 }
 
+function validateTokens(tokens: AuthTokens) {
+  if (
+    !tokens ||
+    typeof tokens.accessToken !== "string" ||
+    !tokens.accessToken ||
+    typeof tokens.refreshToken !== "string" ||
+    !tokens.refreshToken ||
+    !Number.isFinite(tokens.expiresIn) ||
+    tokens.expiresIn <= 0
+  )
+    throw new ApiError("服务器返回的登录信息不完整", 0, "INVALID_RESPONSE");
+}
+
+function isSessionRejected(error: unknown) {
+  return (
+    error instanceof ApiError &&
+    (error.status === 401 ||
+      (error.status === 403 && error.code !== "CSRF_TOKEN_INVALID"))
+  );
+}
+
 export const useAuthStore = defineStore("auth", () => {
   const session = ref<StoredSession | null>(readSession());
   const user = ref<AuthUser | null>(null);
@@ -72,6 +94,7 @@ export const useAuthStore = defineStore("auth", () => {
   const accessToken = computed(() => session.value?.accessToken ?? null);
   const isAuthenticated = computed(() => Boolean(session.value && user.value));
   let refreshPromise: Promise<boolean> | null = null;
+  let refreshVersion = -1;
   let initializePromise: Promise<void> | null = null;
   let sessionVersion = 0;
 
@@ -80,10 +103,16 @@ export const useAuthStore = defineStore("auth", () => {
     session.value = null;
     user.value = null;
     initialized.value = true;
+    initializationError.value = "";
     persistSession(null, null);
   }
 
+  function getSessionVersion() {
+    return sessionVersion;
+  }
+
   function saveTokens(tokens: AuthTokens, remember: boolean) {
+    validateTokens(tokens);
     session.value = {
       ...tokens,
       remember,
@@ -93,10 +122,14 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(payload: LoginPayload, remember: boolean) {
+    const currentVersion = ++sessionVersion;
     initializationError.value = "";
     const tokens = await authApi.login(payload);
+    validateTokens(tokens);
     const profile = await authApi.me(tokens.accessToken);
     if (!profile) throw new ApiError("无法读取账户信息，请联系管理员", 403);
+    if (sessionVersion !== currentVersion)
+      throw new ApiError("登录状态已变化，请重新登录", 0, "AUTH_CHANGED");
     sessionVersion += 1;
     user.value = profile;
     saveTokens(tokens, remember);
@@ -104,12 +137,13 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   function refreshSession(): Promise<boolean> {
-    if (refreshPromise) return refreshPromise;
     const currentSession = session.value;
     if (!currentSession) return Promise.resolve(false);
     const currentVersion = sessionVersion;
+    if (refreshPromise && refreshVersion === currentVersion)
+      return refreshPromise;
 
-    refreshPromise = (async () => {
+    const pending: Promise<boolean> = (async () => {
       try {
         const tokens = await authApi.refresh(currentSession.refreshToken);
         if (sessionVersion !== currentVersion) return false;
@@ -117,28 +151,28 @@ export const useAuthStore = defineStore("auth", () => {
         return true;
       } catch (error) {
         if (sessionVersion !== currentVersion) return false;
-        if (
-          error instanceof ApiError &&
-          (error.status === 401 || error.status === 403)
-        ) {
+        if (isSessionRejected(error)) {
           clearSession();
           return false;
         }
         throw error;
       }
     })().finally(() => {
-      refreshPromise = null;
+      if (refreshPromise === pending) refreshPromise = null;
     });
 
-    return refreshPromise;
+    refreshVersion = currentVersion;
+    refreshPromise = pending;
+    return pending;
   }
 
-  function initialize(): Promise<void> {
-    if (initialized.value) return Promise.resolve();
+  function initialize(force = false): Promise<void> {
     if (initializePromise) return initializePromise;
+    if (initialized.value && !force) return Promise.resolve();
     const currentVersion = sessionVersion;
+    initializationError.value = "";
 
-    initializePromise = (async () => {
+    const pending: Promise<void> = (async () => {
       try {
         if (!session.value) return;
         if (
@@ -153,26 +187,29 @@ export const useAuthStore = defineStore("auth", () => {
         persistSession(session.value, profile);
       } catch (error) {
         if (currentVersion !== sessionVersion) return;
-        if (
-          error instanceof ApiError &&
-          (error.status === 401 || error.status === 403)
-        )
-          clearSession();
+        if (isSessionRejected(error)) clearSession();
         initializationError.value = getErrorMessage(error);
-      } finally {
-        initialized.value = true;
-        initializePromise = null;
       }
-    })();
+    })().finally(() => {
+      if (currentVersion === sessionVersion) initialized.value = true;
+      if (initializePromise === pending) initializePromise = null;
+    });
 
-    return initializePromise;
+    initializePromise = pending;
+    return pending;
   }
 
-  async function logout() {
+  async function logout(allDevices = false) {
+    const currentVersion = sessionVersion;
     try {
-      if (session.value) await authApi.logout(session.value.refreshToken);
+      if (session.value) {
+        const result = allDevices
+          ? await authApi.logoutAll()
+          : await authApi.logout(session.value.refreshToken);
+        if (!result) throw new ApiError("服务器未完成注销，请稍后重试");
+      }
     } finally {
-      clearSession();
+      if (sessionVersion === currentVersion) clearSession();
     }
   }
 
@@ -187,5 +224,6 @@ export const useAuthStore = defineStore("auth", () => {
     initialize,
     refreshSession,
     clearSession,
+    getSessionVersion,
   };
 });

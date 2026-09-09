@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import {
   ArrowRight,
   KeyRound,
@@ -22,6 +22,7 @@ import { useAuthStore } from "@/stores/auth";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const restoring = ref(false);
 const {
   captchaId,
   image: captchaImage,
@@ -61,6 +62,8 @@ const notice = computed(() => {
       return "登录状态已失效，请重新登录。";
     case "signed-out":
       return "你已退出登录。";
+    case "signed-out-all":
+      return "所有设备上的登录会话已退出，请重新登录。";
     case "local-sign-out":
       return "已清除本机登录状态，但服务器注销未完成，请稍后确认会话状态。";
     default:
@@ -74,7 +77,20 @@ function refreshCaptcha() {
   return reloadCaptcha();
 }
 
+async function restoreSession() {
+  if (restoring.value || isSubmitting.value) return;
+  restoring.value = true;
+  try {
+    await auth.initialize(true);
+    if (auth.isAuthenticated)
+      await router.replace(getSafeRedirect(route.query.redirect));
+  } finally {
+    restoring.value = false;
+  }
+}
+
 const onSubmit = submit(async (values) => {
+  if (restoring.value) return;
   if (!captchaId.value || captchaLoading.value)
     throw new Error("请先加载图形验证码");
   try {
@@ -106,6 +122,20 @@ const onSubmit = submit(async (values) => {
       class="mt-5"
       :message="auth.initializationError"
     />
+    <button
+      v-if="auth.initializationError && auth.accessToken"
+      type="button"
+      class="auth-link mt-3 inline-flex items-center gap-2 text-xs"
+      :disabled="restoring || isSubmitting"
+      @click="restoreSession"
+    >
+      <LoaderCircle
+        v-if="restoring"
+        class="size-3 animate-spin"
+        aria-hidden="true"
+      />
+      {{ restoring ? "正在恢复登录…" : "重试恢复已有登录" }}
+    </button>
 
     <form
       class="auth-form"
@@ -179,7 +209,7 @@ const onSubmit = submit(async (values) => {
       <button
         type="submit"
         class="auth-button"
-        :disabled="isSubmitting || captchaLoading || !captchaId"
+        :disabled="isSubmitting || restoring || captchaLoading || !captchaId"
       >
         <LoaderCircle
           v-if="isSubmitting"

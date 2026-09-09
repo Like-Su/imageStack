@@ -4,6 +4,7 @@ const email = zod
   .string()
   .trim()
   .min(1, "请输入邮箱地址")
+  .max(254, "邮箱地址不能超过 254 位")
   .email("请输入有效的邮箱地址");
 const captcha = zod.string().trim().length(4, "请输入 4 位图形验证码");
 const password = zod
@@ -38,7 +39,10 @@ export const registerSchema = zod
 export const forgotPasswordSchema = zod
   .object({
     email,
-    emailCode: zod.string().trim().min(1, "请输入邮件中的重置验证码"),
+    emailCode: zod
+      .string()
+      .trim()
+      .regex(/^[a-f0-9]{64}$/i, "请输入邮件中的完整 64 位重置验证码"),
     password,
     enterPassword: zod.string().min(1, "请再次输入新密码"),
   })
@@ -47,6 +51,9 @@ export const forgotPasswordSchema = zod
     message: "两次输入的密码不一致",
   });
 
+export const resetMailSchema = zod.object({ email, captcha });
+
 export type LoginForm = zod.infer<typeof loginSchema>;
 export type RegisterForm = zod.infer<typeof registerSchema>;
 export type ForgotPasswordForm = zod.infer<typeof forgotPasswordSchema>;
+export type ResetMailForm = zod.infer<typeof resetMailSchema>;
