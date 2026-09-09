@@ -442,6 +442,6 @@ GET、HEAD、OPTIONS 不做 CSRF 校验。令牌只从请求头读取，不接�
 | `400 / HTTP_400`                | 表单校验或图形验证码失败，修正字段或重新获取图片                            |
 | `401`                           | 登录状态失效，按原有认证流程刷新或重新登录                                  |
 
-当前工作区的 `apps/web` 为模板文件，未保留此前的认证页面，本次未覆盖前端。接回页面时，发邮件请求只发送 `email/captcha/captchaId`，重置请求只发送 `email/emailCode/password`，并统一接入上述 CSRF 请求头和 Cookie。重置页面读取链接后应从地址栏清除验证码，并设置 `Referrer-Policy: no-referrer`，避免向外部图片或链接泄露验证码。
+`apps/web` 已接入上述认证流程：请求层统一获取 CSRF 令牌并携带 Cookie 与请求头；发邮件请求仅发送 `email/captcha/captchaId`，重置请求仅发送 `email/emailCode/password`。找回密码页面支持邮件发送冷却、链接填充、一次性验证码提交与重置后重新登录。邮件凭据读取后从地址栏清除，页面使用 `no-referrer` 防止向外部资源泄漏。前端配置与完整流程见 `apps/web/README.md`。
 
 本次仅进行代码与接口约定的静态核对，未启动服务、发送实际邮件、运行测试、构建或类型检查。
