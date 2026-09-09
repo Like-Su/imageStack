@@ -59,6 +59,8 @@ model User {
   fileShares      FileShare[]
   filePermissions FilePermission[]
   uploadSessions  UploadSession[]
+  albums          Album[]
+  tags            Tag[]
 
   // 原有字段
   auditLogs AuditLog[] @relation("AuditActor")
@@ -190,6 +192,11 @@ model FileNode {
   processingStatus MediaProcessingStatus?
   processingError  String?
 
+  processingAttempts      Int       @default(0)
+  processingToken         String?
+  processingLeaseUntil    DateTime?
+  processingNextAttemptAt DateTime?
+
   width      Int?
   height     Int?
   durationMs BigInt?
@@ -210,11 +217,79 @@ model FileNode {
   fileShares      FileShare[]
   filePermissions FilePermission[]
   uploadSession   UploadSession?
+  albums          AlbumAsset[]
+  tags            AssetTag[]
+  albumCovers     Album[]          @relation("AlbumCover")
 
   @@index([storageProvider, storageKey])
   @@index([ownerId, parentId])
   @@index([ownerId, deleted, createdAt, id])
+  @@index([ownerId, deleted, isFavorite, createdAt, id])
   @@index([processingStatus])
+  @@index([processingStatus, processingNextAttemptAt])
+  @@index([processingStatus, processingLeaseUntil])
+}
+
+model Album {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(200)
+  description String? @db.VarChar(2000)
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  coverAssetId String?
+  coverAsset   FileNode? @relation("AlbumCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+
+  assets AlbumAsset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerId, name])
+  @@index([ownerId, createdAt, id])
+  @@index([coverAssetId])
+}
+
+model AlbumAsset {
+  albumId String
+  assetId String
+
+  album Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  asset FileNode @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  addedAt DateTime @default(now())
+
+  @@id([albumId, assetId])
+  @@index([assetId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @db.VarChar(100)
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  assets AssetTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerId, name])
+}
+
+model AssetTag {
+  assetId String
+  tagId   String
+
+  asset FileNode @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag   Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  addedAt DateTime @default(now())
+
+  @@id([assetId, tagId])
+  @@index([tagId])
 }
 
 model UploadSession {

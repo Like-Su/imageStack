@@ -1,7 +1,7 @@
 import {
   Injectable,
   Logger,
-  OnModuleDestroy,
+  OnApplicationShutdown,
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaClient } from '../../prisma/generated/prisma/client';
@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
+  implements OnModuleInit, OnApplicationShutdown
 {
   private readonly logger = new Logger(PrismaService.name);
 
@@ -37,7 +37,7 @@ export class PrismaService
     }
   }
 
-  async onModuleDestroy() {
+  async onApplicationShutdown() {
     try {
       await this.$disconnect();
       this.logger.log(`Prisma service disconnected`);

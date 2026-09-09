@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import {
+  FileHandle,
   lstat,
   mkdir,
   open,
@@ -19,6 +20,7 @@ import { StorageError } from './storage.provider';
 import type {
   StoredObject,
   StorageProvider,
+  StorageReadRange,
   StorageReadResult,
   StorageStat,
   StorageUsage,
@@ -159,32 +161,54 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
   /**
    * 读取文件
    */
-  async read(key: string): Promise<StorageReadResult> {
+  async read(
+    key: string,
+    range?: StorageReadRange,
+  ): Promise<StorageReadResult> {
     const target = this.resolveKey(key);
-
-    await this.assertFile(target.absolutePath);
+    let handle: FileHandle | undefined;
 
     try {
-      const handle = await open(target.absolutePath, 'r');
+      await this.directory(target.parts.slice(0, -1), false);
+      await this.assertFile(target.absolutePath);
+
+      handle = await open(target.absolutePath, 'r');
 
       const metadata = await handle.stat();
 
       if (!metadata.isFile()) {
-        await handle.close();
-
         throw new StorageError('NOT_FOUND', '文件不存在');
       }
 
+      if (
+        range &&
+        (!Number.isSafeInteger(range.start) ||
+          !Number.isSafeInteger(range.end) ||
+          range.start < 0 ||
+          range.end < range.start ||
+          range.end >= metadata.size)
+      ) {
+        throw new StorageError('INVALID_RANGE', '读取范围无效');
+      }
+
+      const stream = handle.createReadStream({
+        autoClose: true,
+        start: range?.start,
+        end: range?.end,
+      });
+
+      handle = undefined;
+
       return {
-        stream: handle.createReadStream({
-          autoClose: true,
-        }),
+        stream,
         stat: {
           size: BigInt(metadata.size),
           modifiedAt: metadata.mtime,
         },
       };
     } catch (error) {
+      await handle?.close();
+
       if (this.hasCode(error, 'ENOENT')) {
         throw new StorageError('NOT_FOUND', '文件不存在');
       }

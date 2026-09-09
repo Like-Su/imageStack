@@ -33,9 +33,14 @@ export interface StorageUsage {
   totalBytes: bigint;
 }
 
+export interface StorageReadRange {
+  start: number;
+  end: number;
+}
+
 export interface StorageProvider {
   put(key: string, input: Readable): Promise<StoredObject>;
-  read(key: string): Promise<StorageReadResult>;
+  read(key: string, range?: StorageReadRange): Promise<StorageReadResult>;
   stat(key: string): Promise<StorageStat | null>;
   exists(key: string): Promise<boolean>;
   delete(key: string): Promise<boolean>;
@@ -47,6 +52,7 @@ export type StorageErrorCode =
   | 'INVALID_STREAM'
   | 'TOO_LARGE'
   | 'ALREADY_EXISTS'
+  | 'INVALID_RANGE'
   | 'NOT_FOUND';
 
 export class StorageError extends Error {
