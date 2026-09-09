@@ -8,6 +8,8 @@ import { hash } from 'bcryptjs';
 // Custom Module
 import { User as AuthUser } from '../auth/auth.type';
 import { RedisKey, RoleCode } from 'src/common/constants';
+import { PASSWORD_RESET_INVALID_MESSAGE } from 'src/common/constants/auth';
+import { BusinessException } from 'src/common/exceptions/business.exception';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from 'src/common/redis/redis.service';
 import { User, UserStatus } from 'src/prisma/generated/prisma/client';
@@ -168,19 +170,32 @@ export class UserService {
   }
 
   // 重置密码(密码修改后撤销旧的 session)
-  async resetPassword(userId: string, newPassword) {
-    await this.findByIdOrThrow(userId);
-    await this.prismaService.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          password: await hash(newPassword, this.slat),
-          sessionVersion: {
-            increment: 1,
-          },
+  async resetPassword(
+    userId: string,
+    newPassword: string,
+    expectedSessionVersion: number,
+  ) {
+    const password = await hash(newPassword, this.slat);
+    const result = await this.prismaService.user.updateMany({
+      where: {
+        id: userId,
+        deleted: false,
+        status: UserStatus.ACTIVE,
+        sessionVersion: expectedSessionVersion,
+      },
+      data: {
+        password,
+        sessionVersion: {
+          increment: 1,
         },
-      });
+      },
     });
+    if (result.count !== 1)
+      throw new BusinessException(
+        'PASSWORD_RESET_INVALID',
+        PASSWORD_RESET_INVALID_MESSAGE,
+      );
+
     // 清空用户缓存
     await this.evictAuthUser(userId);
     return true;

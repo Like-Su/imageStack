@@ -14,9 +14,11 @@ import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PermissionGuard } from './guards/permission.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CsrfModule } from 'src/common/csrf/csrf.module';
 
 @Module({
   imports: [
+    CsrfModule,
     // 默认 策略为 jwt
     PassportModule.register({ defaultStrategy: 'jwt' }),
     // JWT 模块
@@ -35,15 +37,18 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     MailerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
+        const mailUser = config.get<string>('MAIL_USER');
         return {
           transport: {
             host: config.get<string>('MAIL_HOST'),
             port: Number(config.get<string>('MAIL_PORT')),
             secure: config.get<string>('MAIL_SECURE') === 'true',
-            auth: {
-              user: config.get<string>('MAIL_USER'),
-              pass: config.get<string>('MAIL_PASS'),
-            },
+            connectionTimeout: 10_000,
+            greetingTimeout: 10_000,
+            socketTimeout: 15_000,
+            auth: mailUser
+              ? { user: mailUser, pass: config.get<string>('MAIL_PASS') }
+              : undefined,
           },
           defaults: {
             from: config.get<string>('MAIL_SEND_FROM'),
