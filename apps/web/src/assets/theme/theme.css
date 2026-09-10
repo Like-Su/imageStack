@@ -1,0 +1,36 @@
+:root:root,
+:root:root[theme-mode="dark"] {
+  color-scheme: dark;
+  --app-ink: #0d0f12;
+  --app-panel: #15181d;
+  --app-panel2: #1c2027;
+  --app-panel3: #242932;
+  --app-line: #282e37;
+  --app-soft: #8b93a1;
+  --app-faint: #5c6470;
+  --app-ghost: #e8eaed;
+  --app-accent: #ff6a45;
+  --app-accent2: #ff8a6a;
+  --app-ai: #9b8cff;
+  --app-ok: #4ade80;
+  --app-warn: #fbbf24;
+  --app-err: #f87171;
+}
+
+:root:root[theme-mode="light"] {
+  color-scheme: light;
+  --app-ink: #f7f8fa;
+  --app-panel: #ffffff;
+  --app-panel2: #f0f2f5;
+  --app-panel3: #e4e7ed;
+  --app-line: #d6dbe3;
+  --app-soft: #626c7b;
+  --app-faint: #7c8696;
+  --app-ghost: #202630;
+  --app-accent: #ed6541;
+  --app-accent2: #ff805e;
+  --app-ai: #7964d9;
+  --app-ok: #24834d;
+  --app-warn: #a66a0b;
+  --app-err: #d64242;
+}

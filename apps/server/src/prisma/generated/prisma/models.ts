@@ -18,6 +18,7 @@ export type * from './models/AlbumAsset';
 export type * from './models/Tag';
 export type * from './models/AssetTag';
 export type * from './models/UploadSession';
+export type * from './models/UploadPart';
 export type * from './models/FileShare';
 export type * from './models/FilePermission';
 export type * from './commonInputTypes';

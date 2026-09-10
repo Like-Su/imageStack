@@ -28,10 +28,14 @@ export type AggregateUploadSession = {
 
 export type UploadSessionAvgAggregateOutputType = {
   size: number | null;
+  chunkSize: number | null;
+  chunkCount: number | null;
 };
 
 export type UploadSessionSumAggregateOutputType = {
   size: bigint | null;
+  chunkSize: number | null;
+  chunkCount: number | null;
 };
 
 export type UploadSessionMinAggregateOutputType = {
@@ -43,6 +47,10 @@ export type UploadSessionMinAggregateOutputType = {
   hash: string | null;
   storageKey: string | null;
   status: $Enums.UploadStatus | null;
+  chunkSize: number | null;
+  chunkCount: number | null;
+  mergeToken: string | null;
+  mergeLeaseUntil: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   fileId: string | null;
@@ -57,6 +65,10 @@ export type UploadSessionMaxAggregateOutputType = {
   hash: string | null;
   storageKey: string | null;
   status: $Enums.UploadStatus | null;
+  chunkSize: number | null;
+  chunkCount: number | null;
+  mergeToken: string | null;
+  mergeLeaseUntil: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   fileId: string | null;
@@ -71,6 +83,10 @@ export type UploadSessionCountAggregateOutputType = {
   hash: number;
   storageKey: number;
   status: number;
+  chunkSize: number;
+  chunkCount: number;
+  mergeToken: number;
+  mergeLeaseUntil: number;
   createdAt: number;
   updatedAt: number;
   fileId: number;
@@ -79,10 +95,14 @@ export type UploadSessionCountAggregateOutputType = {
 
 export type UploadSessionAvgAggregateInputType = {
   size?: true;
+  chunkSize?: true;
+  chunkCount?: true;
 };
 
 export type UploadSessionSumAggregateInputType = {
   size?: true;
+  chunkSize?: true;
+  chunkCount?: true;
 };
 
 export type UploadSessionMinAggregateInputType = {
@@ -94,6 +114,10 @@ export type UploadSessionMinAggregateInputType = {
   hash?: true;
   storageKey?: true;
   status?: true;
+  chunkSize?: true;
+  chunkCount?: true;
+  mergeToken?: true;
+  mergeLeaseUntil?: true;
   createdAt?: true;
   updatedAt?: true;
   fileId?: true;
@@ -108,6 +132,10 @@ export type UploadSessionMaxAggregateInputType = {
   hash?: true;
   storageKey?: true;
   status?: true;
+  chunkSize?: true;
+  chunkCount?: true;
+  mergeToken?: true;
+  mergeLeaseUntil?: true;
   createdAt?: true;
   updatedAt?: true;
   fileId?: true;
@@ -122,6 +150,10 @@ export type UploadSessionCountAggregateInputType = {
   hash?: true;
   storageKey?: true;
   status?: true;
+  chunkSize?: true;
+  chunkCount?: true;
+  mergeToken?: true;
+  mergeLeaseUntil?: true;
   createdAt?: true;
   updatedAt?: true;
   fileId?: true;
@@ -233,6 +265,10 @@ export type UploadSessionGroupByOutputType = {
   hash: string | null;
   storageKey: string;
   status: $Enums.UploadStatus;
+  chunkSize: number | null;
+  chunkCount: number | null;
+  mergeToken: string | null;
+  mergeLeaseUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
   fileId: string | null;
@@ -270,10 +306,16 @@ export type UploadSessionWhereInput = {
   hash?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   storageKey?: Prisma.StringFilter<'UploadSession'> | string;
   status?: Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
+  chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+  chunkCount?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+  mergeToken?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
+  mergeLeaseUntil?:
+    Prisma.DateTimeNullableFilter<'UploadSession'> | Date | string | null;
   createdAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
   fileId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+  parts?: Prisma.UploadPartListRelationFilter;
   file?: Prisma.XOR<
     Prisma.FileNodeNullableScalarRelationFilter,
     Prisma.FileNodeWhereInput
@@ -289,10 +331,15 @@ export type UploadSessionOrderByWithRelationInput = {
   hash?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrderInput | Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mergeToken?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mergeLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrderInput | Prisma.SortOrder;
   user?: Prisma.UserOrderByWithRelationInput;
+  parts?: Prisma.UploadPartOrderByRelationAggregateInput;
   file?: Prisma.FileNodeOrderByWithRelationInput;
 };
 
@@ -312,9 +359,15 @@ export type UploadSessionWhereUniqueInput = Prisma.AtLeast<
     storageKey?: Prisma.StringFilter<'UploadSession'> | string;
     status?:
       Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
+    chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+    chunkCount?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+    mergeToken?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
+    mergeLeaseUntil?:
+      Prisma.DateTimeNullableFilter<'UploadSession'> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    parts?: Prisma.UploadPartListRelationFilter;
     file?: Prisma.XOR<
       Prisma.FileNodeNullableScalarRelationFilter,
       Prisma.FileNodeWhereInput
@@ -332,6 +385,10 @@ export type UploadSessionOrderByWithAggregationInput = {
   hash?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrderInput | Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mergeToken?: Prisma.SortOrderInput | Prisma.SortOrder;
+  mergeLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -366,6 +423,17 @@ export type UploadSessionScalarWhereWithAggregatesInput = {
   status?:
     | Prisma.EnumUploadStatusWithAggregatesFilter<'UploadSession'>
     | $Enums.UploadStatus;
+  chunkSize?:
+    Prisma.IntNullableWithAggregatesFilter<'UploadSession'> | number | null;
+  chunkCount?:
+    Prisma.IntNullableWithAggregatesFilter<'UploadSession'> | number | null;
+  mergeToken?:
+    Prisma.StringNullableWithAggregatesFilter<'UploadSession'> | string | null;
+  mergeLeaseUntil?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'UploadSession'>
+    | Date
+    | string
+    | null;
   createdAt?:
     Prisma.DateTimeWithAggregatesFilter<'UploadSession'> | Date | string;
   updatedAt?:
@@ -382,9 +450,14 @@ export type UploadSessionCreateInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
   file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
 };
 
@@ -397,9 +470,14 @@ export type UploadSessionUncheckedCreateInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   fileId?: string | null;
+  parts?: Prisma.UploadPartUncheckedCreateNestedManyWithoutSessionInput;
 };
 
 export type UploadSessionUpdateInput = {
@@ -412,9 +490,15 @@ export type UploadSessionUpdateInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
   file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
 };
 
@@ -429,9 +513,15 @@ export type UploadSessionUncheckedUpdateInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  parts?: Prisma.UploadPartUncheckedUpdateManyWithoutSessionNestedInput;
 };
 
 export type UploadSessionCreateManyInput = {
@@ -443,6 +533,10 @@ export type UploadSessionCreateManyInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   fileId?: string | null;
@@ -458,6 +552,11 @@ export type UploadSessionUpdateManyMutationInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -473,6 +572,11 @@ export type UploadSessionUncheckedUpdateManyInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -502,6 +606,10 @@ export type UploadSessionCountOrderByAggregateInput = {
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrder;
+  mergeToken?: Prisma.SortOrder;
+  mergeLeaseUntil?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrder;
@@ -509,6 +617,8 @@ export type UploadSessionCountOrderByAggregateInput = {
 
 export type UploadSessionAvgOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrder;
 };
 
 export type UploadSessionMaxOrderByAggregateInput = {
@@ -520,6 +630,10 @@ export type UploadSessionMaxOrderByAggregateInput = {
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrder;
+  mergeToken?: Prisma.SortOrder;
+  mergeLeaseUntil?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrder;
@@ -534,6 +648,10 @@ export type UploadSessionMinOrderByAggregateInput = {
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrder;
+  mergeToken?: Prisma.SortOrder;
+  mergeLeaseUntil?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrder;
@@ -541,6 +659,13 @@ export type UploadSessionMinOrderByAggregateInput = {
 
 export type UploadSessionSumOrderByAggregateInput = {
   size?: Prisma.SortOrder;
+  chunkSize?: Prisma.SortOrder;
+  chunkCount?: Prisma.SortOrder;
+};
+
+export type UploadSessionScalarRelationFilter = {
+  is?: Prisma.UploadSessionWhereInput;
+  isNot?: Prisma.UploadSessionWhereInput;
 };
 
 export type UploadSessionCreateNestedManyWithoutUserInput = {
@@ -713,6 +838,32 @@ export type EnumUploadStatusFieldUpdateOperationsInput = {
   set?: $Enums.UploadStatus;
 };
 
+export type UploadSessionCreateNestedOneWithoutPartsInput = {
+  create?: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedCreateWithoutPartsInput
+  >;
+  connectOrCreate?: Prisma.UploadSessionCreateOrConnectWithoutPartsInput;
+  connect?: Prisma.UploadSessionWhereUniqueInput;
+};
+
+export type UploadSessionUpdateOneRequiredWithoutPartsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedCreateWithoutPartsInput
+  >;
+  connectOrCreate?: Prisma.UploadSessionCreateOrConnectWithoutPartsInput;
+  upsert?: Prisma.UploadSessionUpsertWithoutPartsInput;
+  connect?: Prisma.UploadSessionWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UploadSessionUpdateToOneWithWhereWithoutPartsInput,
+      Prisma.UploadSessionUpdateWithoutPartsInput
+    >,
+    Prisma.UploadSessionUncheckedUpdateWithoutPartsInput
+  >;
+};
+
 export type UploadSessionCreateWithoutUserInput = {
   id?: string;
   fileName: string;
@@ -721,8 +872,13 @@ export type UploadSessionCreateWithoutUserInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
   file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
 };
 
@@ -734,9 +890,14 @@ export type UploadSessionUncheckedCreateWithoutUserInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   fileId?: string | null;
+  parts?: Prisma.UploadPartUncheckedCreateNestedManyWithoutSessionInput;
 };
 
 export type UploadSessionCreateOrConnectWithoutUserInput = {
@@ -798,6 +959,11 @@ export type UploadSessionScalarWhereInput = {
   hash?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   storageKey?: Prisma.StringFilter<'UploadSession'> | string;
   status?: Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
+  chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+  chunkCount?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
+  mergeToken?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
+  mergeLeaseUntil?:
+    Prisma.DateTimeNullableFilter<'UploadSession'> | Date | string | null;
   createdAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
   fileId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
@@ -811,9 +977,14 @@ export type UploadSessionCreateWithoutFileInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
 };
 
 export type UploadSessionUncheckedCreateWithoutFileInput = {
@@ -825,8 +996,13 @@ export type UploadSessionUncheckedCreateWithoutFileInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  parts?: Prisma.UploadPartUncheckedCreateNestedManyWithoutSessionInput;
 };
 
 export type UploadSessionCreateOrConnectWithoutFileInput = {
@@ -867,9 +1043,15 @@ export type UploadSessionUpdateWithoutFileInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
 };
 
 export type UploadSessionUncheckedUpdateWithoutFileInput = {
@@ -883,8 +1065,120 @@ export type UploadSessionUncheckedUpdateWithoutFileInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parts?: Prisma.UploadPartUncheckedUpdateManyWithoutSessionNestedInput;
+};
+
+export type UploadSessionCreateWithoutPartsInput = {
+  id?: string;
+  fileName: string;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hash?: string | null;
+  storageKey: string;
+  status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
+};
+
+export type UploadSessionUncheckedCreateWithoutPartsInput = {
+  id?: string;
+  userId: string;
+  fileName: string;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hash?: string | null;
+  storageKey: string;
+  status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  fileId?: string | null;
+};
+
+export type UploadSessionCreateOrConnectWithoutPartsInput = {
+  where: Prisma.UploadSessionWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedCreateWithoutPartsInput
+  >;
+};
+
+export type UploadSessionUpsertWithoutPartsInput = {
+  update: Prisma.XOR<
+    Prisma.UploadSessionUpdateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedUpdateWithoutPartsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedCreateWithoutPartsInput
+  >;
+  where?: Prisma.UploadSessionWhereInput;
+};
+
+export type UploadSessionUpdateToOneWithWhereWithoutPartsInput = {
+  where?: Prisma.UploadSessionWhereInput;
+  data: Prisma.XOR<
+    Prisma.UploadSessionUpdateWithoutPartsInput,
+    Prisma.UploadSessionUncheckedUpdateWithoutPartsInput
+  >;
+};
+
+export type UploadSessionUpdateWithoutPartsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
+};
+
+export type UploadSessionUncheckedUpdateWithoutPartsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 
 export type UploadSessionCreateManyUserInput = {
@@ -895,6 +1189,10 @@ export type UploadSessionCreateManyUserInput = {
   hash?: string | null;
   storageKey: string;
   status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   fileId?: string | null;
@@ -910,8 +1208,14 @@ export type UploadSessionUpdateWithoutUserInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
   file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
 };
 
@@ -925,9 +1229,15 @@ export type UploadSessionUncheckedUpdateWithoutUserInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  parts?: Prisma.UploadPartUncheckedUpdateManyWithoutSessionNestedInput;
 };
 
 export type UploadSessionUncheckedUpdateManyWithoutUserInput = {
@@ -940,9 +1250,52 @@ export type UploadSessionUncheckedUpdateManyWithoutUserInput = {
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
+
+/**
+ * Count Type UploadSessionCountOutputType
+ */
+
+export type UploadSessionCountOutputType = {
+  parts: number;
+};
+
+export type UploadSessionCountOutputTypeSelect<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  parts?: boolean | UploadSessionCountOutputTypeCountPartsArgs;
+};
+
+/**
+ * UploadSessionCountOutputType without action
+ */
+export type UploadSessionCountOutputTypeDefaultArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the UploadSessionCountOutputType
+   */
+  select?: Prisma.UploadSessionCountOutputTypeSelect<ExtArgs> | null;
+};
+
+/**
+ * UploadSessionCountOutputType without action
+ */
+export type UploadSessionCountOutputTypeCountPartsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.UploadPartWhereInput;
 };
 
 export type UploadSessionSelect<
@@ -958,11 +1311,17 @@ export type UploadSessionSelect<
     hash?: boolean;
     storageKey?: boolean;
     status?: boolean;
+    chunkSize?: boolean;
+    chunkCount?: boolean;
+    mergeToken?: boolean;
+    mergeLeaseUntil?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     fileId?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    parts?: boolean | Prisma.UploadSession$partsArgs<ExtArgs>;
     file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
+    _count?: boolean | Prisma.UploadSessionCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['uploadSession']
 >;
@@ -980,6 +1339,10 @@ export type UploadSessionSelectCreateManyAndReturn<
     hash?: boolean;
     storageKey?: boolean;
     status?: boolean;
+    chunkSize?: boolean;
+    chunkCount?: boolean;
+    mergeToken?: boolean;
+    mergeLeaseUntil?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     fileId?: boolean;
@@ -1002,6 +1365,10 @@ export type UploadSessionSelectUpdateManyAndReturn<
     hash?: boolean;
     storageKey?: boolean;
     status?: boolean;
+    chunkSize?: boolean;
+    chunkCount?: boolean;
+    mergeToken?: boolean;
+    mergeLeaseUntil?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     fileId?: boolean;
@@ -1020,6 +1387,10 @@ export type UploadSessionSelectScalar = {
   hash?: boolean;
   storageKey?: boolean;
   status?: boolean;
+  chunkSize?: boolean;
+  chunkCount?: boolean;
+  mergeToken?: boolean;
+  mergeLeaseUntil?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
   fileId?: boolean;
@@ -1037,6 +1408,10 @@ export type UploadSessionOmit<
   | 'hash'
   | 'storageKey'
   | 'status'
+  | 'chunkSize'
+  | 'chunkCount'
+  | 'mergeToken'
+  | 'mergeLeaseUntil'
   | 'createdAt'
   | 'updatedAt'
   | 'fileId',
@@ -1047,7 +1422,9 @@ export type UploadSessionInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+  parts?: boolean | Prisma.UploadSession$partsArgs<ExtArgs>;
   file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
+  _count?: boolean | Prisma.UploadSessionCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UploadSessionIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -1071,6 +1448,7 @@ export type $UploadSessionPayload<
   name: 'UploadSession';
   objects: {
     user: Prisma.$UserPayload<ExtArgs>;
+    parts: Prisma.$UploadPartPayload<ExtArgs>[];
     file: Prisma.$FileNodePayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
@@ -1083,6 +1461,10 @@ export type $UploadSessionPayload<
       hash: string | null;
       storageKey: string;
       status: $Enums.UploadStatus;
+      chunkSize: number | null;
+      chunkCount: number | null;
+      mergeToken: string | null;
+      mergeLeaseUntil: Date | null;
       createdAt: Date;
       updatedAt: Date;
       fileId: string | null;
@@ -1659,6 +2041,17 @@ export interface Prisma__UploadSessionClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  parts<T extends Prisma.UploadSession$partsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.UploadSession$partsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$UploadPartPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   file<T extends Prisma.UploadSession$fileArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.UploadSession$fileArgs<ExtArgs>>,
   ): Prisma.Prisma__FileNodeClient<
@@ -1716,6 +2109,10 @@ export interface UploadSessionFieldRefs {
   readonly hash: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly storageKey: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly status: Prisma.FieldRef<'UploadSession', 'UploadStatus'>;
+  readonly chunkSize: Prisma.FieldRef<'UploadSession', 'Int'>;
+  readonly chunkCount: Prisma.FieldRef<'UploadSession', 'Int'>;
+  readonly mergeToken: Prisma.FieldRef<'UploadSession', 'String'>;
+  readonly mergeLeaseUntil: Prisma.FieldRef<'UploadSession', 'DateTime'>;
   readonly createdAt: Prisma.FieldRef<'UploadSession', 'DateTime'>;
   readonly updatedAt: Prisma.FieldRef<'UploadSession', 'DateTime'>;
   readonly fileId: Prisma.FieldRef<'UploadSession', 'String'>;
@@ -2187,6 +2584,36 @@ export type UploadSessionDeleteManyArgs<
    * Limit how many UploadSessions to delete.
    */
   limit?: number;
+};
+
+/**
+ * UploadSession.parts
+ */
+export type UploadSession$partsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the UploadPart
+   */
+  select?: Prisma.UploadPartSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the UploadPart
+   */
+  omit?: Prisma.UploadPartOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UploadPartInclude<ExtArgs> | null;
+  where?: Prisma.UploadPartWhereInput;
+  orderBy?:
+    | Prisma.UploadPartOrderByWithRelationInput
+    | Prisma.UploadPartOrderByWithRelationInput[];
+  cursor?: Prisma.UploadPartWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.UploadPartScalarFieldEnum | Prisma.UploadPartScalarFieldEnum[];
 };
 
 /**

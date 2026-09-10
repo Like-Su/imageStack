@@ -1,7 +1,17 @@
 import {
-  UPLOAD_MAX_BYTES,
-  UPLOAD_MAX_PIXELS,
+  IMAGE_MAX_BYTES,
+  IMAGE_MAX_PIXELS,
+  IMAGE_MAX_FRAMES,
+  VIDEO_MAX_BYTES,
+  VIDEO_MAX_DURATION_MS,
+  MEDIA_MIME_TYPES,
+  MEDIA_EXTENSIONS,
+} from '../../common/media-formats';
+import {
+  UPLOAD_CHUNK_BYTES,
+  UPLOAD_MULTIPART_TTL_MS,
 } from '../uploads/upload.constants';
+import { HLS_SEGMENT_SECONDS } from '../../common/video-stream';
 
 export const systemCapabilities = {
   storageProvider: 'LOCAL_FS',
@@ -10,9 +20,19 @@ export const systemCapabilities = {
   trashRetentionDays: null,
   pluginManagement: false,
   upload: {
-    maxBytes: UPLOAD_MAX_BYTES,
-    maxPixels: UPLOAD_MAX_PIXELS,
-    mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    maxBytes: VIDEO_MAX_BYTES,
+    imageMaxBytes: IMAGE_MAX_BYTES,
+    videoMaxBytes: VIDEO_MAX_BYTES,
+    videoMaxDurationMs: VIDEO_MAX_DURATION_MS,
+    maxPixels: IMAGE_MAX_PIXELS,
+    maxFrames: IMAGE_MAX_FRAMES,
+    extensions: MEDIA_EXTENSIONS,
+    mimeTypes: MEDIA_MIME_TYPES,
+    chunkThresholdBytes: UPLOAD_CHUNK_BYTES,
+    chunkSizeBytes: UPLOAD_CHUNK_BYTES,
+    resumableTtlMs: UPLOAD_MULTIPART_TTL_MS,
+    instantUpload: 'same-owner-blake3',
+    hlsSegmentSeconds: HLS_SEGMENT_SECONDS,
   },
   extensions: [
     {
@@ -20,9 +40,9 @@ export const systemCapabilities = {
       name: '本地文件存储',
       category: '存储',
       builtin: true,
-      description: '原图与派生文件保存于本地文件系统。',
+      description: '原图片、视频与派生文件保存于本地文件系统。',
       detail:
-        '当前存储提供器为 LOCAL_FS。存储根目录由服务器部署配置决定，网页不能修改磁盘路径；界面统计仅包含当前账户记录的原图大小。',
+        '当前存储提供器为 LOCAL_FS。存储根目录由服务器部署配置决定，网页不能修改磁盘路径；界面统计仅包含当前账户记录的原文件大小。',
     },
     {
       id: 'thumbnails',
@@ -31,7 +51,7 @@ export const systemCapabilities = {
       builtin: true,
       description: 'Sharp 图像缩略图与 exifr 拍摄信息提取。',
       detail:
-        '上传图片后异步生成 WebP 缩略图并提取 EXIF、拍摄时间和 GPS；支持 JPEG、PNG、WebP。缺少 EXIF 的图片不会生成虚构的拍摄信息。',
+        '支持 JPEG（含 JFIF/PJPEG/PJP）、PNG/APNG、WebP、GIF、AVIF 与安全静态 SVG；动图原文件保留动画，缩略图取首帧。仅提取存在的 EXIF、拍摄时间和 GPS，不生成虚构信息。',
     },
     {
       id: 'queue',
@@ -109,10 +129,10 @@ export const systemCapabilities = {
       id: 'video',
       name: '视频处理',
       category: '媒体',
-      builtin: false,
+      builtin: true,
       description: '视频抽帧、转码与在线预览。',
       detail:
-        '视频处理与 FFmpeg 尚未接入，当前上传端只接受 JPEG、PNG 和 WebP 图片。',
+        '超过 5 MiB 自动分片，支持 24 小时断点续传和同账户 BLAKE3 秒传复用。视频不超过 512 MiB、4 小时；后台生成封面、H.264/AAC 兼容预览及约 4 秒一段的 HLS 视频流，浏览器通过 m3u8 按需播放。原文件不改动，下载支持 HTTP Range。服务器需部署包含 libx264、AAC、libwebp 的 FFmpeg/ffprobe；首次转码完成前可读取原视频，不保证任意网络环境下固定一秒起播。',
     },
     {
       id: 'sso',

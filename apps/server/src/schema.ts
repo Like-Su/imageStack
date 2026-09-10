@@ -87,6 +87,20 @@ export const envSchema = z.object({
     .string()
     .regex(/^[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00)$/)
     .default('+00:00'),
+  FFMPEG_PATH: z.string().trim().min(1).default('ffmpeg'),
+  FFPROBE_PATH: z.string().trim().min(1).default('ffprobe'),
+  MEDIA_VIDEO_PROBE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(120000)
+    .default(30000),
+  MEDIA_VIDEO_PROCESSING_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(10000)
+    .max(3600000)
+    .default(600000),
 
   // 邮箱配置
   MAIL_HOST: z.string().min(1),

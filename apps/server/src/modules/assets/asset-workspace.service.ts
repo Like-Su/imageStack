@@ -5,6 +5,9 @@ import { MediaJobsService } from '../jobs/media-jobs.service';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 import { assetWhere, requireOwnedAssets } from './asset-scope';
+import { IMAGE_MIME_TYPES } from '../../common/media-formats';
+import { Prisma } from '../../prisma/generated/prisma/client';
+import { hlsObjectKeys } from '../../common/video-stream';
 
 interface PlaceRow {
   latitudeCell: number;
@@ -25,13 +28,15 @@ export class AssetWorkspaceService {
   ) {}
 
   async overview(userId: string) {
+    const groupByData = this.prisma.fileNode.groupBy({
+      by: ['deleted', 'processingStatus'],
+      where: assetWhere(userId, null),
+      _count: { _all: true },
+      _sum: { size: true },
+    });
+
     const [groups, favorites, albums, tags] = await this.prisma.$transaction([
-      this.prisma.fileNode.groupBy({
-        by: ['deleted', 'processingStatus'],
-        where: assetWhere(userId, null),
-        _count: { _all: true },
-        _sum: { size: true },
-      }),
+      groupByData,
       this.prisma.fileNode.count({
         where: { ...assetWhere(userId), isFavorite: true },
       }),
@@ -77,7 +82,7 @@ export class AssetWorkspaceService {
         WHERE "ownerId" = ${userId} AND "deleted" = false
           AND "type" = 'FILE' AND "mediaType" = 'IMAGE'
           AND "storageProvider" = 'LOCAL_FS' AND "storageKey" IS NOT NULL
-          AND "mimeType" IN ('image/jpeg', 'image/png', 'image/webp')
+          AND "mimeType" IN (${Prisma.join(IMAGE_MIME_TYPES)})
       )
       SELECT floor(latitude * 10)::int AS "latitudeCell",
         floor(longitude * 10)::int AS "longitudeCell", count(*) AS count,
@@ -125,7 +130,13 @@ export class AssetWorkspaceService {
       await requireOwnedAssets(transaction, userId, ids, true);
       const files = await transaction.fileNode.findMany({
         where: { ...assetWhere(userId, true), id: { in: ids } },
-        select: { storageKey: true, thumbnailKey: true, previewKey: true },
+        select: {
+          storageKey: true,
+          thumbnailKey: true,
+          previewKey: true,
+          hlsKey: true,
+          hlsSegmentCount: true,
+        },
       });
       await transaction.fileShare.deleteMany({
         where: { fileId: { in: ids } },
@@ -140,10 +151,18 @@ export class AssetWorkspaceService {
     });
     const keys = new Set(
       removed.flatMap((file) =>
-        [file.storageKey, file.thumbnailKey, file.previewKey].filter(
-          (key): key is string => Boolean(key),
-        ),
+        [
+          file.storageKey,
+          file.thumbnailKey,
+          file.previewKey,
+          file.hlsKey,
+        ].filter((key): key is string => Boolean(key)),
       ),
+    );
+    const hlsCounts = new Map(
+      removed
+        .filter((file) => file.hlsKey)
+        .map((file) => [file.hlsKey, file.hlsSegmentCount]),
     );
     let cleanupPending = 0;
     for (const key of keys) {
@@ -154,13 +173,24 @@ export class AssetWorkspaceService {
               { storageKey: key },
               { thumbnailKey: key },
               { previewKey: key },
+              { hlsKey: key },
             ],
           },
         });
         const uploads = await this.prisma.uploadSession.count({
           where: { storageKey: key, status: { in: ['PENDING', 'UPLOADING'] } },
         });
-        if (references === 0 && uploads === 0) await this.storage.delete(key);
+        if (references === 0 && uploads === 0) {
+          const objects = hlsCounts.has(key)
+            ? hlsObjectKeys(key, hlsCounts.get(key))
+            : [key];
+          for (let offset = 0; offset < objects.length; offset += 16)
+            await Promise.all(
+              objects
+                .slice(offset, offset + 16)
+                .map((objectKey) => this.storage.delete(objectKey)),
+            );
+        }
       } catch (error) {
         cleanupPending += 1;
         this.logger.error(

@@ -27,6 +27,7 @@ const listSelect = {
   mimeType: true,
   width: true,
   height: true,
+  durationMs: true,
   takenAt: true,
   isFavorite: true,
   deleted: true,
@@ -160,6 +161,10 @@ export class AssetsService {
       fileUrl: deleted
         ? null
         : `${this.apiPrefix}/assets/${encodeURIComponent(asset.id)}/file`,
+      previewUrl:
+        !deleted && asset.mediaType === 'VIDEO'
+          ? `${this.apiPrefix}/assets/${encodeURIComponent(asset.id)}/preview`
+          : null,
     };
   }
 
@@ -211,6 +216,13 @@ export class AssetsService {
     return this.thumbnails.get(asset);
   }
 
+  async preview(assetId: string, userId: string) {
+    const asset = await this.findOwned(assetId, userId);
+    if (asset.mediaType !== 'VIDEO')
+      throw new BadRequestException('兼容预览仅用于视频');
+    return this.thumbnails.get(asset, 'preview');
+  }
+
   thumbnailUrl(assetId: string, deleted = false) {
     const path = deleted ? 'assets/trash' : 'assets';
     return `${this.apiPrefix}/${path}/${encodeURIComponent(assetId)}/thumbnail?size=sm`;
@@ -256,6 +268,7 @@ export class AssetsService {
       mimeType: asset.mimeType,
       width: asset.width,
       height: asset.height,
+      durationMs: asset.durationMs?.toString() ?? null,
       takenAt: asset.takenAt?.toISOString() ?? null,
       isFavorite: asset.isFavorite,
       deleted: asset.deleted,

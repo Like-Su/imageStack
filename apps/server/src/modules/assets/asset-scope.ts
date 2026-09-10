@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import type { Prisma } from '../../prisma/generated/prisma/client';
+import { MEDIA_MIME_TYPES } from '../../common/media-formats';
 
 export function assetWhere(
   ownerId: string,
@@ -9,10 +10,10 @@ export function assetWhere(
     ownerId,
     ...(deleted === null ? {} : { deleted }),
     type: 'FILE',
-    mediaType: 'IMAGE',
+    mediaType: { in: ['IMAGE', 'VIDEO'] },
     storageProvider: 'LOCAL_FS',
     storageKey: { not: null },
-    mimeType: { in: ['image/jpeg', 'image/png', 'image/webp'] },
+    mimeType: { in: MEDIA_MIME_TYPES },
   };
 }
 

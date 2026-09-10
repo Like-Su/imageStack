@@ -72,6 +72,11 @@ export type AssetTag = Prisma.AssetTagModel;
  */
 export type UploadSession = Prisma.UploadSessionModel;
 /**
+ * Model UploadPart
+ *
+ */
+export type UploadPart = Prisma.UploadPartModel;
+/**
  * Model FileShare
  *
  */

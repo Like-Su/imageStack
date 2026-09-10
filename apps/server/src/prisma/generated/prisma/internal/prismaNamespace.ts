@@ -438,6 +438,7 @@ export const ModelName = {
   Tag: 'Tag',
   AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
+  UploadPart: 'UploadPart',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
 } as const;
@@ -473,6 +474,7 @@ export type TypeMap<
       | 'tag'
       | 'assetTag'
       | 'uploadSession'
+      | 'uploadPart'
       | 'fileShare'
       | 'filePermission';
     txIsolationLevel: TransactionIsolationLevel;
@@ -1314,6 +1316,82 @@ export type TypeMap<
         };
       };
     };
+    UploadPart: {
+      payload: Prisma.$UploadPartPayload<ExtArgs>;
+      fields: Prisma.UploadPartFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.UploadPartFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.UploadPartFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        findFirst: {
+          args: Prisma.UploadPartFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.UploadPartFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        findMany: {
+          args: Prisma.UploadPartFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>[];
+        };
+        create: {
+          args: Prisma.UploadPartCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        createMany: {
+          args: Prisma.UploadPartCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.UploadPartCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>[];
+        };
+        delete: {
+          args: Prisma.UploadPartDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        update: {
+          args: Prisma.UploadPartUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        deleteMany: {
+          args: Prisma.UploadPartDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.UploadPartUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.UploadPartUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>[];
+        };
+        upsert: {
+          args: Prisma.UploadPartUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadPartPayload>;
+        };
+        aggregate: {
+          args: Prisma.UploadPartAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUploadPart>;
+        };
+        groupBy: {
+          args: Prisma.UploadPartGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.UploadPartGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.UploadPartCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.UploadPartCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     FileShare: {
       payload: Prisma.$FileSharePayload<ExtArgs>;
       fields: Prisma.FileShareFieldRefs;
@@ -1598,6 +1676,8 @@ export const FileNodeScalarFieldEnum = {
   exif: 'exif',
   thumbnailKey: 'thumbnailKey',
   previewKey: 'previewKey',
+  hlsKey: 'hlsKey',
+  hlsSegmentCount: 'hlsSegmentCount',
   isFavorite: 'isFavorite',
   deleted: 'deleted',
   deletedAt: 'deletedAt',
@@ -1659,6 +1739,10 @@ export const UploadSessionScalarFieldEnum = {
   hash: 'hash',
   storageKey: 'storageKey',
   status: 'status',
+  chunkSize: 'chunkSize',
+  chunkCount: 'chunkCount',
+  mergeToken: 'mergeToken',
+  mergeLeaseUntil: 'mergeLeaseUntil',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   fileId: 'fileId',
@@ -1666,6 +1750,18 @@ export const UploadSessionScalarFieldEnum = {
 
 export type UploadSessionScalarFieldEnum =
   (typeof UploadSessionScalarFieldEnum)[keyof typeof UploadSessionScalarFieldEnum];
+
+export const UploadPartScalarFieldEnum = {
+  sessionId: 'sessionId',
+  index: 'index',
+  size: 'size',
+  hash: 'hash',
+  storageKey: 'storageKey',
+  createdAt: 'createdAt',
+} as const;
+
+export type UploadPartScalarFieldEnum =
+  (typeof UploadPartScalarFieldEnum)[keyof typeof UploadPartScalarFieldEnum];
 
 export const FileShareScalarFieldEnum = {
   id: 'id',
@@ -2122,6 +2218,7 @@ export type GlobalOmitConfig = {
   tag?: Prisma.TagOmit;
   assetTag?: Prisma.AssetTagOmit;
   uploadSession?: Prisma.UploadSessionOmit;
+  uploadPart?: Prisma.UploadPartOmit;
   fileShare?: Prisma.FileShareOmit;
   filePermission?: Prisma.FilePermissionOmit;
 };

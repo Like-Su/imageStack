@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Put, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { PermissionCode } from '../../common/constants';
 import type { RequestUser } from '../iam/auth/auth.type';
@@ -42,5 +52,34 @@ export class UploadsController {
         request.resume();
       }
     }
+  }
+
+  @Put('sessions/:id/parts/:index')
+  async uploadPart(
+    @Param('id') sessionId: string,
+    @Param('index', ParseIntPipe) index: number,
+    @CurrentUser() user: RequestUser,
+    @Req() request: Request,
+  ) {
+    try {
+      return await this.uploadsService.uploadPart(
+        sessionId,
+        user.id,
+        index,
+        request,
+      );
+    } finally {
+      if (!request.destroyed && !request.readableEnded) request.resume();
+    }
+  }
+
+  @Post('sessions/:id/complete')
+  complete(@Param('id') sessionId: string, @CurrentUser() user: RequestUser) {
+    return this.uploadsService.complete(sessionId, user.id);
+  }
+
+  @Delete('sessions/:id')
+  cancel(@Param('id') sessionId: string, @CurrentUser() user: RequestUser) {
+    return this.uploadsService.cancel(sessionId, user.id);
   }
 }

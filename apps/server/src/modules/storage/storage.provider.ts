@@ -3,7 +3,7 @@ import type { Readable } from 'node:stream';
 
 export const STORAGE_PROVIDER = Symbol('STORAGE_PROVIDER');
 
-export type StorageNamespace = 'originals' | 'derived';
+export type StorageNamespace = 'originals' | 'derived' | 'uploads';
 
 export function createStorageKey(
   namespace: StorageNamespace = 'originals',

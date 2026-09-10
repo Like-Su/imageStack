@@ -110,7 +110,7 @@ export class AssetsController {
       true,
     );
 
-    return this.thumbnailResponse(resource, request, response);
+    return this.mediaResponse(resource, request, response);
   }
 
   @Get(':id')
@@ -157,10 +157,23 @@ export class AssetsController {
   ) {
     const resource = await this.assets.thumbnail(assetId, user.id, query.size);
 
-    return this.thumbnailResponse(resource, request, response);
+    return this.mediaResponse(resource, request, response);
   }
 
-  private thumbnailResponse(
+  @Get(':id/preview')
+  @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
+  @SkipResponseWrap()
+  async preview(
+    @Param('id') assetId: string,
+    @CurrentUser() user: RequestUser,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const resource = await this.assets.preview(assetId, user.id);
+    return this.mediaResponse(resource, request, response);
+  }
+
+  private mediaResponse(
     resource: ThumbnailResponse,
     request: Request,
     response: Response,
