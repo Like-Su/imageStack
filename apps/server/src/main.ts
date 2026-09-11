@@ -2,13 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import type { Server } from 'node:http';
 
 // Custom imports
 import { AppModule } from './app.module';
 import { CsrfService } from './common/csrf/csrf.service';
+import { UPLOAD_VIDEO_READ_TIMEOUT_MS } from './modules/uploads/upload.constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const httpServer = app.getHttpServer() as Server;
+  httpServer.requestTimeout = UPLOAD_VIDEO_READ_TIMEOUT_MS + 60_000;
 
   // 获取 ConfigService 实例
   const configService = app.get(ConfigService);
@@ -37,7 +41,13 @@ async function bootstrap() {
   app.enableCors({
     origin: allowedOrigins,
     credentials: allowedOrigins !== '*',
-    exposedHeaders: ['Retry-After'],
+    exposedHeaders: [
+      'Retry-After',
+      'Accept-Ranges',
+      'Content-Range',
+      'Content-Disposition',
+      'ETag',
+    ],
   });
 
   // 设置Helmet

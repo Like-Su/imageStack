@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { Star, Check, CheckSquare } from "lucide-vue-next";
+import { Star, Check, CheckSquare, Play } from "lucide-vue-next";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { formatBytes, formatDate } from "@/composables/mediaFormat";
+import {
+  formatBytes,
+  formatDate,
+  formatDuration,
+} from "@/composables/mediaFormat";
 import { processingLabels } from "@/config/workspace";
 import type { AssetSummary } from "@/types/media";
 import AssetImage from "./AssetImage.vue";
@@ -43,7 +47,7 @@ function ratio(asset: AssetSummary) {
         type="button"
         class="relative block w-full"
         :style="{ aspectRatio: ratio(asset) }"
-        :aria-label="`查看 ${asset.name}`"
+        :aria-label="$t('查看 {value1}', { value1: asset.name })"
         @click="selecting ? $emit('select', asset.id) : $emit('open', asset)"
       >
         <AssetImage
@@ -53,6 +57,14 @@ function ratio(asset: AssetSummary) {
           :version="asset.status"
           :class="{ 'opacity-60': asset.deleted }"
         />
+        <span
+          v-if="asset.type === 'VIDEO'"
+          class="pointer-events-none absolute top-2 left-10 inline-flex items-center gap-1 rounded-md bg-black/65 px-2 py-1 text-[10px] text-white"
+        >
+          <Play class="size-3 fill-current" />{{
+            formatDuration(asset.durationMs)
+          }}
+        </span>
         <span class="media-card-caption"
           ><span class="block truncate text-xs font-medium">{{
             asset.name
@@ -66,7 +78,7 @@ function ratio(asset: AssetSummary) {
             ><span
               v-if="asset.status !== 'READY'"
               class="text-[10px] text-white/70"
-              >{{ processingLabels[asset.status] }}</span
+              >{{ $t(processingLabels[asset.status]) }}</span
             ></span
           ></span
         >
@@ -75,7 +87,7 @@ function ratio(asset: AssetSummary) {
         class="media-card-selector absolute top-2 left-2 grid size-6 place-items-center rounded-md border border-white/20 bg-black/50 text-white backdrop-blur"
         type="button"
         :class="{ '!bg-accent !text-ink': selected.has(asset.id) }"
-        :aria-label="`${selected.has(asset.id) ? '取消选择' : '选择'} ${asset.name}`"
+        :aria-label="`${selected.has(asset.id) ? $t('取消选择') : $t('选择')} ${asset.name}`"
         :aria-pressed="selected.has(asset.id)"
         @click="$emit('select', asset.id)"
       >
@@ -90,7 +102,7 @@ function ratio(asset: AssetSummary) {
         :class="{ '!text-accent': asset.isFavorite }"
         type="button"
         :disabled="workspace.favoriteBusy.has(asset.id)"
-        :aria-label="`${asset.isFavorite ? '取消收藏' : '收藏'} ${asset.name}`"
+        :aria-label="`${asset.isFavorite ? $t('取消收藏') : $t('收藏')} ${asset.name}`"
         :aria-pressed="asset.isFavorite"
         @click="workspace.toggleFavorite(asset)"
       >
@@ -102,8 +114,11 @@ function ratio(asset: AssetSummary) {
     <div
       class="hidden grid-cols-[28px_1fr_110px_100px_70px_32px] items-center gap-3 border-b border-line bg-panel2 px-4 py-3 text-[11px] text-faint lg:grid"
     >
-      <span /><span>文件名称</span><span>处理状态</span><span>上传日期</span
-      ><span>大小</span><span />
+      <span /><span>{{ $t("文件名称") }}</span
+      ><span>{{ $t("处理状态") }}</span
+      ><span>{{ $t("上传日期") }}</span
+      ><span>{{ $t("大小") }}</span
+      ><span />
     </div>
     <article
       v-for="asset in items"
@@ -115,7 +130,7 @@ function ratio(asset: AssetSummary) {
         type="checkbox"
         class="mh-checkbox"
         :checked="selected.has(asset.id)"
-        :aria-label="`选择 ${asset.name}`"
+        :aria-label="$t('选择 {value1}', { value1: asset.name })"
         @change="$emit('select', asset.id)"
       />
       <button
@@ -132,6 +147,11 @@ function ratio(asset: AssetSummary) {
         ><span class="min-w-0"
           ><span class="block truncate text-xs">{{ asset.name }}</span
           ><span class="mt-1 block truncate text-[10px] text-faint"
+            ><span v-if="asset.type === 'VIDEO'">{{
+              $t("视频 · {value1} ·", {
+                value1: formatDuration(asset.durationMs),
+              })
+            }}</span
             >{{
               asset.width && asset.height
                 ? `${asset.width} × ${asset.height}`
@@ -144,7 +164,7 @@ function ratio(asset: AssetSummary) {
       </button>
       <span class="hidden lg:block"
         ><span class="mh-badge" :class="`mh-status-${asset.status}`">{{
-          processingLabels[asset.status]
+          $t(processingLabels[asset.status])
         }}</span></span
       >
       <span class="hidden text-[11px] text-soft lg:block">{{
@@ -159,7 +179,7 @@ function ratio(asset: AssetSummary) {
         class="shrink-0 p-1 text-faint hover:text-accent"
         :class="{ '!text-accent': asset.isFavorite }"
         :disabled="workspace.favoriteBusy.has(asset.id)"
-        :aria-label="asset.isFavorite ? '取消收藏' : '收藏'"
+        :aria-label="asset.isFavorite ? $t('取消收藏') : $t('收藏')"
         :aria-pressed="asset.isFavorite"
         @click="workspace.toggleFavorite(asset)"
       >

@@ -64,6 +64,26 @@ export class ListAssetsDto extends CursorPaginationDto {
   @IsBoolean()
   favorite?: boolean;
 
+  @Transform(({ obj, key }) => {
+    const value: unknown = obj[key];
+    return value === 'true' ? true : value === 'false' ? false : value;
+  })
+  @IsOptional()
+  @IsBoolean()
+  uncategorized?: boolean;
+
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(Number.MAX_SAFE_INTEGER)
+  minSize?: number;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^-?\d{1,4}:-?\d{1,4}$/)
+  placeId?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(1)

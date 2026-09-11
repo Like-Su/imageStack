@@ -20,10 +20,14 @@ const listSelect = {
   mediaType: true,
   processingStatus: true,
   processingError: true,
+  processingAttempts: true,
+  processingNextAttemptAt: true,
+  updatedAt: true,
   size: true,
   mimeType: true,
   width: true,
   height: true,
+  durationMs: true,
   takenAt: true,
   isFavorite: true,
   deleted: true,
@@ -125,9 +129,9 @@ export class AssetsService {
     };
   }
 
-  async detail(assetId: string, userId: string) {
+  async detail(assetId: string, userId: string, deleted = false) {
     const asset = await this.prisma.fileNode.findFirst({
-      where: { ...assetWhere(userId), id: assetId },
+      where: { ...assetWhere(userId, deleted), id: assetId },
       select: {
         ...listSelect,
         hashAlgorithm: true,
@@ -154,7 +158,13 @@ export class AssetsService {
       exif: asset.exif ?? null,
       albums: asset.albums.map(({ album }) => album),
       updatedAt: asset.updatedAt.toISOString(),
-      fileUrl: `${this.apiPrefix}/assets/${encodeURIComponent(asset.id)}/file`,
+      fileUrl: deleted
+        ? null
+        : `${this.apiPrefix}/assets/${encodeURIComponent(asset.id)}/file`,
+      previewUrl:
+        !deleted && asset.mediaType === 'VIDEO'
+          ? `${this.apiPrefix}/assets/${encodeURIComponent(asset.id)}/preview`
+          : null,
     };
   }
 
@@ -206,6 +216,13 @@ export class AssetsService {
     return this.thumbnails.get(asset);
   }
 
+  async preview(assetId: string, userId: string) {
+    const asset = await this.findOwned(assetId, userId);
+    if (asset.mediaType !== 'VIDEO')
+      throw new BadRequestException('兼容预览仅用于视频');
+    return this.thumbnails.get(asset, 'preview');
+  }
+
   thumbnailUrl(assetId: string, deleted = false) {
     const path = deleted ? 'assets/trash' : 'assets';
     return `${this.apiPrefix}/${path}/${encodeURIComponent(assetId)}/thumbnail?size=sm`;
@@ -244,10 +261,14 @@ export class AssetsService {
       type: asset.mediaType,
       status: asset.processingStatus ?? 'PENDING',
       processingError: asset.processingError,
+      processingAttempts: asset.processingAttempts,
+      nextAttemptAt: asset.processingNextAttemptAt?.toISOString() ?? null,
+      updatedAt: asset.updatedAt.toISOString(),
       size: asset.size?.toString() ?? null,
       mimeType: asset.mimeType,
       width: asset.width,
       height: asset.height,
+      durationMs: asset.durationMs?.toString() ?? null,
       takenAt: asset.takenAt?.toISOString() ?? null,
       isFavorite: asset.isFavorite,
       deleted: asset.deleted,

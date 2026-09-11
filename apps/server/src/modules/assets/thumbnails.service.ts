@@ -10,7 +10,7 @@ import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 
 export type ThumbnailResponse =
-  | { key: string; mimeType: 'image/webp' }
+  | { key: string; mimeType: 'image/webp' | 'video/mp4' }
   | { assetId: string; status: 'PENDING' | 'PROCESSING' };
 
 @Injectable()
@@ -22,9 +22,16 @@ export class ThumbnailsService {
     private readonly storage: StorageProvider,
   ) {}
 
-  async get(asset: FileNode): Promise<ThumbnailResponse> {
-    if (asset.thumbnailKey && (await this.storage.exists(asset.thumbnailKey))) {
-      return { key: asset.thumbnailKey, mimeType: 'image/webp' };
+  async get(
+    asset: FileNode,
+    variant: 'thumbnail' | 'preview' = 'thumbnail',
+  ): Promise<ThumbnailResponse> {
+    const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;
+    if (key && (await this.storage.exists(key))) {
+      return {
+        key,
+        mimeType: variant === 'preview' ? 'video/mp4' : 'image/webp',
+      };
     }
 
     if (asset.processingStatus === 'FAILED') {
@@ -42,6 +49,7 @@ export class ThumbnailsService {
           ownerId: asset.ownerId,
           storageKey: asset.storageKey,
           thumbnailKey: asset.thumbnailKey,
+          previewKey: asset.previewKey,
           processingStatus: 'READY',
         },
         data: {

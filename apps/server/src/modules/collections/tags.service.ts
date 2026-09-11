@@ -12,6 +12,15 @@ import { CreateTagDto, UpdateTagDto } from './dto/collections.dto';
 
 function tagInclude(userId: string) {
   return {
+    assets: {
+      where: { asset: assetWhere(userId) },
+      select: { assetId: true },
+      orderBy: [
+        { asset: { createdAt: 'desc' as const } },
+        { assetId: 'desc' as const },
+      ],
+      take: 1,
+    },
     _count: {
       select: { assets: { where: { asset: assetWhere(userId) } } },
     },
@@ -177,6 +186,7 @@ export class TagsService {
       name: tag.name,
       source: 'MANUAL' as const,
       count: tag._count.assets,
+      coverAssetId: tag.assets[0]?.assetId ?? null,
     };
   }
 }

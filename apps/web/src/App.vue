@@ -1,23 +1,33 @@
 <script setup lang="ts">
 import { LoaderCircle } from "lucide-vue-next";
 import { RouterView } from "vue-router";
+import { computed } from "vue";
+import zhCn from "element-plus/es/locale/lang/zh-cn";
+import en from "element-plus/es/locale/lang/en";
+import { i18n } from "@/i18n";
+
+const elementLocale = computed(() =>
+  i18n.global.locale.value === "zh-CN" ? zhCn : en,
+);
 </script>
 
 <template>
-  <RouterView v-slot="{ Component }">
-    <component :is="Component" v-if="Component" />
-    <div
-      v-else
-      class="flex min-h-svh items-center justify-center gap-3 bg-ink text-sm text-soft"
-      role="status"
-    >
-      <LoaderCircle
-        class="size-5 animate-spin text-accent"
-        aria-hidden="true"
-      />
-      正在准备你的媒体库…
-    </div>
-  </RouterView>
+  <el-config-provider :locale="elementLocale" :message="{ max: 4 }">
+    <RouterView v-slot="{ Component }">
+      <component :is="Component" v-if="Component" />
+      <div
+        v-else
+        class="flex min-h-svh items-center justify-center gap-3 bg-ink text-sm text-soft"
+        role="status"
+      >
+        <LoaderCircle
+          class="size-5 animate-spin text-accent"
+          aria-hidden="true"
+        />
+        {{ $t("正在准备你的媒体库…") }}
+      </div>
+    </RouterView>
+  </el-config-provider>
 </template>
 
 <style>

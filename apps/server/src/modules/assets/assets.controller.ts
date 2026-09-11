@@ -24,6 +24,7 @@ import type { StorageProvider } from '../storage/storage.provider';
 import { ListAssetsDto, ThumbnailQueryDto } from './dto/assets-query.dto';
 import { AssetIdsDto } from './dto/asset-ids.dto';
 import { AssetsService } from './assets.service';
+import { AssetWorkspaceService } from './asset-workspace.service';
 import { streamStoredMedia } from './asset-file-response';
 import type { ThumbnailResponse } from './thumbnails.service';
 
@@ -32,6 +33,7 @@ import type { ThumbnailResponse } from './thumbnails.service';
 export class AssetsController {
   constructor(
     private readonly assets: AssetsService,
+    private readonly workspace: AssetWorkspaceService,
     @Inject(STORAGE_PROVIDER)
     private readonly storage: StorageProvider,
   ) {}
@@ -42,10 +44,41 @@ export class AssetsController {
     return this.assets.list(user.id, query);
   }
 
+  @Get('overview')
+  @Header('Cache-Control', 'no-store')
+  overview(@CurrentUser() user: RequestUser) {
+    return this.workspace.overview(user.id);
+  }
+
+  @Get('places')
+  @Header('Cache-Control', 'no-store')
+  places(@CurrentUser() user: RequestUser) {
+    return this.workspace.places(user.id);
+  }
+
+  @Delete('trash')
+  @RequirePermission(PermissionCode.ASSET_DELETE)
+  purge(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+    return this.workspace.purge(user.id, body.ids);
+  }
+
+  @Post(':id/retry')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(PermissionCode.ASSET_EDIT)
+  retry(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
+    return this.workspace.retry(assetId, user.id);
+  }
+
   @Get('trash')
   @Header('Cache-Control', 'no-store')
   trash(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
     return this.assets.list(user.id, query, true);
+  }
+
+  @Get('trash/:id')
+  @Header('Cache-Control', 'no-store')
+  trashDetail(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
+    return this.assets.detail(assetId, user.id, true);
   }
 
   @Delete()
@@ -77,7 +110,7 @@ export class AssetsController {
       true,
     );
 
-    return this.thumbnailResponse(resource, request, response);
+    return this.mediaResponse(resource, request, response);
   }
 
   @Get(':id')
@@ -124,10 +157,23 @@ export class AssetsController {
   ) {
     const resource = await this.assets.thumbnail(assetId, user.id, query.size);
 
-    return this.thumbnailResponse(resource, request, response);
+    return this.mediaResponse(resource, request, response);
   }
 
-  private thumbnailResponse(
+  @Get(':id/preview')
+  @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
+  @SkipResponseWrap()
+  async preview(
+    @Param('id') assetId: string,
+    @CurrentUser() user: RequestUser,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const resource = await this.assets.preview(assetId, user.id);
+    return this.mediaResponse(resource, request, response);
+  }
+
+  private mediaResponse(
     resource: ThumbnailResponse,
     request: Request,
     response: Response,

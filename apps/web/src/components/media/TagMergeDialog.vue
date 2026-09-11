@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { computed, ref } from "vue";
-import { LoaderCircle } from "lucide-vue-next";
+
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { PERSON_TAG_PREFIX } from "@/config/workspace";
@@ -39,9 +40,12 @@ async function submit() {
     if (
       !target ||
       !(await workspace.confirm({
-        title: "确认合并？",
-        message: `「${props.tag.name}」的所有关联将转移到「${target.name}」，原分组会被删除，重复关联会自动去重。`,
-        confirmLabel: "合并分组",
+        title: translate("确认合并？"),
+        message: translate(
+          "「{value1}」的所有关联将转移到「{value2}」，原分组会被删除，重复关联会自动去重。",
+          { value1: props.tag.name, value2: target.name },
+        ),
+        confirmLabel: translate("合并分组"),
       }))
     )
       return;
@@ -49,7 +53,7 @@ async function submit() {
       mergeIntoId: target.id,
     });
     workspace.invalidate();
-    workspace.notify("分组已合并，媒体文件保持不变");
+    workspace.notify(translate("分组已合并，媒体文件保持不变"));
     emit("merged", result);
     emit("close");
   } catch (cause) {
@@ -63,8 +67,10 @@ async function submit() {
 <template>
   <AppModal
     open
-    title="合并分组"
-    :description="`将「${tag.name}」合并到其他同类分组。`"
+    :title="$t('合并分组')"
+    :description="
+      $t('将「{value1}」合并到其他同类分组。', { value1: tag.name })
+    "
     :busy="busy"
     @update:open="emit('close')"
     ><form class="space-y-4 p-5" @submit.prevent="submit">
@@ -74,36 +80,44 @@ async function submit() {
         :error="loadError"
         @retry="refresh"
       /><label v-else class="mh-label"
-        >合并到<select
+        >{{ $t("合并到")
+        }}<el-select
           v-model="targetId"
-          class="mh-input"
+          class="min-w-36"
           required
           :disabled="busy"
         >
-          <option value="">
-            {{ targets.length ? "请选择目标分组" : "没有其他可合并的同类分组" }}
-          </option>
-          <option v-for="target in targets" :key="target.id" :value="target.id">
-            {{ target.name }} · {{ target.count }} 项
-          </option>
-        </select></label
-      >
+          <el-option
+            :label="
+              targets.length
+                ? $t('请选择目标分组')
+                : $t('没有其他可合并的同类分组')
+            "
+            value=""
+          >
+          </el-option>
+          <el-option
+            :label="target.name + '·' + target.count + $t('项')"
+            v-for="target in targets"
+            :key="target.id"
+            :value="target.id"
+          >
+          </el-option> </el-select
+      ></label>
       <p v-if="error" class="text-xs text-err" role="alert">{{ error }}</p>
       <div class="flex justify-end gap-2">
-        <button
-          class="mh-button"
-          type="button"
+        <el-button
+          native-type="button"
           :disabled="busy"
           @click="emit('close')"
-        >
-          取消</button
-        ><button
-          class="mh-button mh-button-primary"
-          type="submit"
+          >{{ $t("取消") }}</el-button
+        ><el-button
+          type="primary"
+          :loading="busy"
+          native-type="submit"
           :disabled="busy || !targetId"
+          >{{ $t("合并") }}</el-button
         >
-          <LoaderCircle v-if="busy" class="animate-spin" />合并
-        </button>
       </div>
     </form></AppModal
   >

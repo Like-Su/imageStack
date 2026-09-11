@@ -37,14 +37,27 @@
 
 BEGIN;
 
+SET LOCAL lock_timeout = '10s';
+SET LOCAL statement_timeout = '60s';
+
 -- Prisma creates these tables in the public schema. Do not let a caller's
 -- session search_path redirect the bootstrap to another schema.
-SET search_path TO public;
+SET LOCAL search_path TO public;
 
 -- This seed targets the current Prisma model. Fail early if the migration
 -- which removed the legacy account column has not been applied yet.
 DO $schema_check$
 BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext('imageStack:iam:bootstrap'));
+
+  IF to_regclass('public."User"') IS NULL
+     OR to_regclass('public."Role"') IS NULL
+     OR to_regclass('public."Permission"') IS NULL
+     OR to_regclass('public."RolePermission"') IS NULL THEN
+    RAISE EXCEPTION
+      'IAM tables are missing; apply Prisma migrations before running this seed';
+  END IF;
+
   IF EXISTS (
     SELECT 1
       FROM information_schema.columns
@@ -54,6 +67,17 @@ BEGIN
   ) THEN
     RAISE EXCEPTION
       'Legacy User.account column is still present; apply Prisma migrations before running this seed';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+      FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name = 'User'
+       AND column_name = 'sessionVersion'
+  ) THEN
+    RAISE EXCEPTION
+      'User.sessionVersion is missing; apply Prisma migrations before running this seed';
   END IF;
 END
 $schema_check$;
@@ -111,7 +135,6 @@ BEGIN
       UPDATE "Role"
          SET "roleName" = seed_role.role_name,
              "description" = seed_role.description,
-             "status" = seed_role.status,
              "updatedAt" = CURRENT_TIMESTAMP
        WHERE "id" = role_id;
     END IF;
@@ -139,6 +162,9 @@ VALUES
   ('asset:tag',       '管理资源标签', NULL),
   ('asset:category',  '管理资源分类', NULL),
   ('asset:search',    '搜索资源', NULL),
+  ('asset:download',  '下载资源', NULL),
+  ('asset:share',     '分享资源', NULL),
+  ('upload:create',  '上传资源', NULL),
 
   -- User permissions
   ('system:user',         '用户管理', NULL),
@@ -302,16 +328,18 @@ DO $seed_admin$
 DECLARE
   config_row RECORD;
   admin_role_id TEXT;
+  admin_role_status INTEGER;
   existing_user RECORD;
   target_user_id TEXT;
+  matching_users INTEGER;
 BEGIN
   SELECT *
     INTO config_row
     FROM _init_config
    LIMIT 1;
 
-  SELECT r."id"
-    INTO admin_role_id
+  SELECT r."id", r."status"
+    INTO admin_role_id, admin_role_status
     FROM "Role" AS r
    WHERE r."roleCode" = 'ROLE_ADMIN'
    ORDER BY r."id"
@@ -319,6 +347,20 @@ BEGIN
 
   IF admin_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_ADMIN was not initialized';
+  END IF;
+
+  IF admin_role_status IS DISTINCT FROM 1 THEN
+    RAISE EXCEPTION
+      'ROLE_ADMIN is disabled; restore the role explicitly before initializing an administrator';
+  END IF;
+
+  SELECT COUNT(*) INTO matching_users
+    FROM "User"
+   WHERE lower("email") = config_row.admin_email;
+
+  IF matching_users > 1 THEN
+    RAISE EXCEPTION
+      'Multiple users match administrator email ignoring case; resolve the ambiguity before initializing';
   END IF;
 
   SELECT
@@ -376,6 +418,7 @@ BEGIN
              "status" = 'ACTIVE'::"UserStatus",
              "deleted" = FALSE,
              "roleId" = admin_role_id,
+             "sessionVersion" = "sessionVersion" + 1,
              "updatedAt" = CURRENT_TIMESTAMP
        WHERE "id" = existing_user."id";
     ELSIF existing_user."status" IS DISTINCT FROM 'ACTIVE'::"UserStatus"
@@ -410,6 +453,19 @@ BEGIN
   END IF;
 END
 $seed_admin$;
+
+SELECT
+  (SELECT COUNT(*) FROM _init_roles) AS initialized_roles,
+  (SELECT COUNT(*) FROM _init_permissions) AS initialized_permissions,
+  (SELECT COUNT(*) FROM _init_role_permissions) AS required_role_permissions,
+  target_user."email" AS administrator_email,
+  CASE
+    WHEN config_row.force_admin THEN 'created_or_reset'
+    ELSE 'created_or_preserved'
+  END AS administrator_action
+FROM "User" AS target_user
+JOIN _init_config AS config_row
+  ON lower(target_user."email") = config_row.admin_email;
 
 COMMIT;
 

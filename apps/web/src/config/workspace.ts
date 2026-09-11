@@ -13,8 +13,49 @@ import {
 } from "lucide-vue-next";
 
 export const PERSON_TAG_PREFIX = "人物:";
-export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
-export const UPLOAD_ACCEPT = "image/jpeg,image/png,image/webp";
+export const UPLOAD_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+export const UPLOAD_VIDEO_MAX_BYTES = 512 * 1024 * 1024;
+export const UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024;
+export const UPLOAD_CHUNK_CONCURRENCY = 3;
+const imageExtensions = [
+  "jpg",
+  "jpeg",
+  "jfif",
+  "pjpeg",
+  "pjp",
+  "png",
+  "apng",
+  "webp",
+  "gif",
+  "avif",
+  "svg",
+];
+const videoExtensions = ["mp4", "mov", "mkv"];
+export const UPLOAD_ACCEPT = [
+  ...imageExtensions.map((extension) => `.${extension}`),
+  ...videoExtensions.map((extension) => `.${extension}`),
+  "image/jpeg",
+  "image/png",
+  "image/apng",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "image/svg+xml",
+  "video/mp4",
+  "video/quicktime",
+  "video/x-matroska",
+].join(",");
+export const UPLOAD_IMAGE_LABEL =
+  "JPEG（含 JFIF / PJPEG / PJP）、PNG / APNG、WebP、GIF、AVIF、SVG";
+export const UPLOAD_VIDEO_LABEL = "MP4 / MOV / MKV";
+export const UPLOAD_LIMITS_LABEL = "图片 ≤ 10 MiB；视频 ≤ 512 MiB、4 小时";
+
+export function uploadMediaKind(fileName: string): "image" | "video" | null {
+  const extension = /\.([^.]+)$/.exec(fileName)?.[1]?.toLowerCase() ?? "";
+  if (imageExtensions.includes(extension)) return "image";
+  if (videoExtensions.includes(extension)) return "video";
+  return null;
+}
 
 export const navigation = [
   {

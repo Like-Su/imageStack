@@ -61,16 +61,13 @@ const icons: Record<string, Component> = {
 <template>
   <section>
     <PageHeader
-      title="插件与扩展"
-      description="按需拓展媒体库，每项能力的边界都清晰可见"
-      ><button
-        type="button"
-        class="mh-button"
-        :disabled="loading"
-        @click="refresh"
-      >
-        <RefreshCw :class="{ 'animate-spin': loading }" />刷新能力
-      </button></PageHeader
+      :title="$t('插件与扩展')"
+      :description="$t('按需拓展媒体库，每项能力的边界都清晰可见')"
+      ><el-button native-type="button" :disabled="loading" @click="refresh">
+        <RefreshCw :class="{ 'animate-spin': loading }" />{{
+          $t("刷新能力")
+        }}</el-button
+      ></PageHeader
     >
     <div class="px-4 sm:px-6">
       <div
@@ -78,7 +75,11 @@ const icons: Record<string, Component> = {
       >
         <Info class="mt-0.5 size-4 shrink-0 text-ai" />
         <p class="text-xs leading-6 text-soft">
-          能力清单由后端返回。「已内置」表示代码已集成，不是运行健康检查。当前没有插件热安装或启停接口，不能在网页中假装打开未部署的服务。
+          {{
+            $t(
+              "能力清单由后端返回。「已内置」表示代码已集成，不是运行健康检查。当前没有插件热安装或启停接口，不能在网页中假装打开未部署的服务。",
+            )
+          }}
         </p>
       </div>
       <div class="mb-5 flex flex-wrap gap-2">
@@ -90,7 +91,7 @@ const icons: Record<string, Component> = {
           :aria-pressed="filter === item.value"
           @click="filter = item.value"
         >
-          {{ item.label }}
+          {{ $t(item.label) }}
         </button>
       </div>
       <DataState
@@ -117,23 +118,20 @@ const icons: Record<string, Component> = {
               ><component
                 :is="icons[extension.id] ?? Puzzle"
                 class="size-5" /></span
-            ><button
-              type="button"
-              class="mh-switch"
-              role="switch"
-              :aria-checked="extension.builtin"
-              :aria-label="`${extension.name}：${extension.builtin ? '已内置，不支持网页关闭' : '尚未接入，不可启用'}`"
+            ><el-switch
+              :model-value="extension.builtin"
+              :aria-label="`${$t(extension.name)}：${extension.builtin ? $t('已内置，不支持网页关闭') : $t('尚未接入，不可启用')}`"
               disabled
               :title="
                 extension.builtin
-                  ? '内置能力随服务器部署，不支持网页关闭'
-                  : '后端尚未接入此能力'
+                  ? $t('内置能力随服务器部署，不支持网页关闭')
+                  : $t('后端尚未接入此能力')
               "
             />
           </div>
-          <h2 class="mt-4 text-sm font-semibold">{{ extension.name }}</h2>
+          <h2 class="mt-4 text-sm font-semibold">{{ $t(extension.name) }}</h2>
           <p class="mt-2 flex-1 text-xs leading-6 text-soft">
-            {{ extension.description }}
+            {{ $t(extension.description) }}
           </p>
           <div
             class="mt-5 flex items-center justify-between gap-2 border-t border-line pt-3"
@@ -141,14 +139,14 @@ const icons: Record<string, Component> = {
             <span
               class="text-[10px]"
               :class="extension.builtin ? 'text-ok' : 'text-faint'"
-              >{{ extension.builtin ? "已内置" : "尚未接入" }} ·
-              {{ extension.category }}</span
+              >{{ extension.builtin ? $t("已内置") : $t("尚未接入") }} ·
+              {{ $t(extension.category) }}</span
             ><button
               type="button"
               class="text-xs text-soft hover:text-accent"
               @click="selected = extension"
             >
-              查看详情
+              {{ $t("查看详情") }}
             </button>
           </div>
         </article>
@@ -156,15 +154,17 @@ const icons: Record<string, Component> = {
     </div>
     <AppModal
       :open="Boolean(selected)"
-      :title="selected?.name ?? '扩展详情'"
+      :title="selected?.name ? $t(selected.name) : $t('扩展详情')"
       @update:open="selected = undefined"
       ><div class="p-5">
         <span
           class="mh-badge"
           :class="selected?.builtin ? 'mh-status-READY' : ''"
-          >{{ selected?.builtin ? "内置能力" : "尚未接入" }}</span
+          >{{ selected?.builtin ? $t("内置能力") : $t("尚未接入") }}</span
         >
-        <p class="mt-4 text-sm leading-7 text-soft">{{ selected?.detail }}</p>
+        <p class="mt-4 text-sm leading-7 text-soft">
+          {{ $t(selected?.detail ?? "") }}
+        </p>
       </div></AppModal
     >
   </section>

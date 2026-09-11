@@ -115,7 +115,7 @@ onBeforeUnmount(() => {
       v-else
       class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-faint"
       role="img"
-      :aria-label="`${name}：${state === 'error' ? '预览不可用' : '缩略图生成中'}`"
+      :aria-label="`${name}：${state === 'error' ? $t('预览不可用') : $t('缩略图生成中')}`"
     >
       <ImageOff v-if="state === 'error'" class="size-6" aria-hidden="true" />
       <LoaderCircle
@@ -127,7 +127,9 @@ onBeforeUnmount(() => {
       <span
         v-if="state === 'processing' || state === 'error'"
         class="text-[10px]"
-        >{{ state === "processing" ? "缩略图生成中" : "预览不可用" }}</span
+        >{{
+          state === "processing" ? $t("缩略图生成中") : $t("预览不可用")
+        }}</span
       >
     </div>
   </div>

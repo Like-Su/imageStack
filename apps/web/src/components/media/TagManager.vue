@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { i18n, translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 import {
@@ -47,7 +48,7 @@ const filtered = computed(() =>
     .sort(
       (left, right) =>
         right.count - left.count ||
-        left.name.localeCompare(right.name, "zh-CN"),
+        left.name.localeCompare(right.name, i18n.global.locale.value),
     ),
 );
 function label(tag: Tag) {
@@ -63,16 +64,20 @@ async function remove(tag: Tag) {
   try {
     if (
       !(await workspace.confirm({
-        title: `删除${props.people ? "人物" : "标签"}？`,
-        message: `删除「${label(tag)}」与全部关联，不会删除媒体文件。`,
-        confirmLabel: "删除分组",
+        title: translate("删除{value1}？", {
+          value1: props.people ? translate("人物") : translate("标签"),
+        }),
+        message: translate("删除「{value1}」与全部关联，不会删除媒体文件。", {
+          value1: label(tag),
+        }),
+        confirmLabel: translate("删除分组"),
         danger: true,
       }))
     )
       return;
     await workspace.perform(
       () => mediaApi.deleteTag(tag.id),
-      "分组已删除，原文件已保留",
+      translate("分组已删除，原文件已保留"),
     );
   } finally {
     deleting.value = false;
@@ -83,28 +88,33 @@ async function remove(tag: Tag) {
 <template>
   <section>
     <PageHeader
-      :title="people ? '人物' : '标签'"
+      :title="people ? $t('人物') : $t('标签')"
       :description="
         people
-          ? `${scoped.length} 位人物 · 按人整理，让重要的人更容易找到`
-          : `${scoped.length} 个标签 · 为灵感建立自己的索引`
+          ? $t('{value1} 位人物 · 按人整理，让重要的人更容易找到', {
+              value1: scoped.length,
+            })
+          : $t('{value1} 个标签 · 为灵感建立自己的索引', {
+              value1: scoped.length,
+            })
       "
-      ><button
+      ><el-button
         v-if="workspace.can('asset:tag')"
-        type="button"
-        class="mh-button"
+        native-type="button"
         :aria-pressed="managing"
         @click="managing = !managing"
       >
-        <SlidersHorizontal />{{ managing ? "完成管理" : "管理分组" }}</button
-      ><button
-        type="button"
-        class="mh-button mh-button-primary"
+        <SlidersHorizontal />{{
+          managing ? $t("完成管理") : $t("管理分组")
+        }}</el-button
+      ><el-button
+        type="primary"
+        native-type="button"
         :disabled="!workspace.can('asset:tag')"
         @click="edit()"
       >
-        <Plus />{{ people ? "添加人物" : "新建标签" }}
-      </button></PageHeader
+        <Plus />{{ people ? $t("添加人物") : $t("新建标签") }}
+      </el-button></PageHeader
     >
     <div class="px-4 sm:px-6">
       <div
@@ -113,7 +123,11 @@ async function remove(tag: Tag) {
       >
         <Sparkles class="mt-0.5 size-5 shrink-0 text-ai" />
         <p class="text-xs leading-6 text-soft">
-          当前提供手动人物归类，可命名、关联媒体与合并同一人物。头像使用分组中的照片预览，不进行人脸裁剪；自动人脸识别模型尚未接入。
+          {{
+            $t(
+              "当前提供手动人物归类，可命名、关联媒体与合并同一人物。头像使用分组中的照片预览，不进行人脸裁剪；自动人脸识别模型尚未接入。",
+            )
+          }}
         </p>
       </div>
       <label
@@ -122,8 +136,8 @@ async function remove(tag: Tag) {
           v-model="text"
           type="search"
           class="h-10 w-full bg-transparent text-xs outline-none"
-          :aria-label="people ? '查找人物' : '查找标签'"
-          :placeholder="people ? '查找人物…' : '查找标签…'"
+          :aria-label="people ? $t('查找人物') : $t('查找标签')"
+          :placeholder="people ? $t('查找人物…') : $t('查找标签…')"
       /></label>
       <DataState
         v-if="loading || error || !filtered.length"
@@ -132,25 +146,25 @@ async function remove(tag: Tag) {
         :icon="people ? Users : Tags"
         :title="
           text
-            ? '没有找到匹配分组'
+            ? $t('没有找到匹配分组')
             : people
-              ? '为照片里的重要人物命名'
-              : '还没有标签'
+              ? $t('为照片里的重要人物命名')
+              : $t('还没有标签')
         "
         :description="
           people
-            ? '添加人物后，可从图库选择照片，或在详情中添加人物标签。'
-            : '创建主题标签，或在媒体详情中直接添加。'
+            ? $t('添加人物后，可从图库选择照片，或在详情中添加人物标签。')
+            : $t('创建主题标签，或在媒体详情中直接添加。')
         "
         @retry="refresh"
-        ><button
+        ><el-button
+          type="primary"
           v-if="!text && workspace.can('asset:tag')"
-          type="button"
-          class="mh-button mh-button-primary"
+          native-type="button"
           @click="edit()"
         >
-          <Plus />{{ people ? "添加第一位人物" : "新建标签" }}
-        </button></DataState
+          <Plus />{{ people ? $t("添加第一位人物") : $t("新建标签") }}
+        </el-button></DataState
       >
       <div
         v-else
@@ -211,7 +225,7 @@ async function remove(tag: Tag) {
                   ? 'mt-1 block text-[11px] text-faint'
                   : 'text-[10px] text-faint'
               "
-              >{{ tag.count }}{{ people ? " 项媒体" : "" }}</span
+              >{{ tag.count }}{{ people ? $t(" 项媒体") : "" }}</span
             >
           </RouterLink>
           <div
@@ -222,14 +236,14 @@ async function remove(tag: Tag) {
             <button
               type="button"
               class="hover:text-accent"
-              :aria-label="`重命名 ${label(tag)}`"
+              :aria-label="$t('重命名 {value1}', { value1: label(tag) })"
               @click="edit(tag)"
             >
               <Pencil class="size-3.5" /></button
             ><button
               type="button"
               class="hover:text-ai"
-              :aria-label="`合并 ${label(tag)}`"
+              :aria-label="$t('合并 {value1}', { value1: label(tag) })"
               @click="merging = tag"
             >
               <Merge class="size-3.5" /></button
@@ -237,7 +251,7 @@ async function remove(tag: Tag) {
               type="button"
               class="hover:text-err"
               :disabled="deleting"
-              :aria-label="`删除 ${label(tag)}`"
+              :aria-label="$t('删除 {value1}', { value1: label(tag) })"
               @click="remove(tag)"
             >
               <Trash2 class="size-3.5" />

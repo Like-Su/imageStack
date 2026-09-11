@@ -71,6 +71,8 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
     await this.directory(['originals'], true);
 
     await this.directory(['derived'], true);
+
+    await this.directory(['uploads'], true);
   }
 
   /**
@@ -294,7 +296,7 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
       totalBytes: 0n,
     };
 
-    for (const namespace of ['originals', 'derived']) {
+    for (const namespace of ['originals', 'derived', 'uploads']) {
       const namespacePath = join(this.root, namespace);
 
       let buckets: string[];
@@ -349,9 +351,8 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
     absolutePath: string;
     parts: string[];
   } {
-    const matched = /^(originals|derived)\/([0-9a-f]{2})\/([0-9a-f]{32})$/.exec(
-      key,
-    );
+    const matched =
+      /^(originals|derived|uploads)\/([0-9a-f]{2})\/([0-9a-f]{32})$/.exec(key);
 
     if (!matched) {
       throw new StorageError('INVALID_KEY', '非法 storage key');

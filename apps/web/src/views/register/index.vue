@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { ref } from "vue";
 import {
   ArrowRight,
-  LoaderCircle,
   Lock,
   LockKeyhole,
   Mail,
@@ -65,7 +65,7 @@ function refreshCaptcha() {
 
 const onSubmit = submit(async (values) => {
   if (!captchaId.value || captchaLoading.value)
-    throw new Error("请先加载图形验证码");
+    throw new Error(translate("请先加载图形验证码"));
   try {
     const result = await authApi.register({
       username: values.username,
@@ -77,7 +77,7 @@ const onSubmit = submit(async (values) => {
     });
     registeredEmail.value = values.email;
     successMessage.value =
-      result.message || "账户创建成功，请前往邮箱激活账户。";
+      result.message || translate("账户创建成功，请前往邮箱激活账户。");
     resetForm();
   } catch (error) {
     void refreshCaptcha();
@@ -93,18 +93,22 @@ const onSubmit = submit(async (values) => {
         class="mb-6 grid size-14 place-items-center rounded-2xl border border-ok/20 bg-ok/10 text-ok"
         ><MailCheck class="size-7" aria-hidden="true"
       /></span>
-      <h1 id="register-title" class="auth-heading">查收激活邮件</h1>
-      <p class="auth-description">离你的本地媒体库，只差最后一步。</p>
+      <h1 id="register-title" class="auth-heading">{{ $t("查收激活邮件") }}</h1>
+      <p class="auth-description">
+        {{ $t("离你的本地媒体库，只差最后一步。") }}
+      </p>
       <AuthNotice class="mt-6" variant="success" :message="successMessage" />
       <p class="mt-5 text-[13px] leading-7 text-soft">
-        激活邮件已发送至
-        <strong class="break-all font-medium text-ghost">{{
+        {{ $t("激活邮件已发送至")
+        }}<strong class="break-all font-medium text-ghost">{{
           registeredEmail
         }}</strong
-        >。请在 30 分钟内打开邮件中的激活链接，激活后再登录。
+        >{{ $t("。请在 30 分钟内打开邮件中的激活链接，激活后再登录。") }}
       </p>
       <p class="mt-2 text-xs leading-6 text-faint">
-        未收到邮件？请检查垃圾邮件，或联系实例管理员确认邮件服务配置。
+        {{
+          $t("未收到邮件？请检查垃圾邮件，或联系实例管理员确认邮件服务配置。")
+        }}
       </p>
       <RouterLink
         :to="{
@@ -116,14 +120,13 @@ const onSubmit = submit(async (values) => {
           },
         }"
         class="auth-button mt-7"
-      >
-        返回登录<ArrowRight class="size-4" aria-hidden="true" />
+        >{{ $t("返回登录") }}<ArrowRight class="size-4" aria-hidden="true" />
       </RouterLink>
     </template>
     <template v-else>
       <AuthTabs />
-      <h1 id="register-title" class="auth-heading">创建账户</h1>
-      <p class="auth-description">在本地服务器上建立你的账户</p>
+      <h1 id="register-title" class="auth-heading">{{ $t("创建账户") }}</h1>
+      <p class="auth-description">{{ $t("在本地服务器上建立你的账户") }}</p>
       <form
         class="auth-form"
         novalidate
@@ -134,9 +137,9 @@ const onSubmit = submit(async (values) => {
           id="register-username"
           v-model="username"
           v-bind="usernameAttrs"
-          label="昵称"
+          :label="$t('昵称')"
           :icon="UserRound"
-          placeholder="你的名字"
+          :placeholder="$t('你的名字')"
           autocomplete="nickname"
           :error="errors.username"
           :disabled="isSubmitting"
@@ -146,7 +149,7 @@ const onSubmit = submit(async (values) => {
           id="register-email"
           v-model="email"
           v-bind="emailAttrs"
-          label="邮箱"
+          :label="$t('邮箱')"
           :icon="Mail"
           type="email"
           placeholder="you@local.host"
@@ -161,10 +164,10 @@ const onSubmit = submit(async (values) => {
           id="register-password"
           v-model="password"
           v-bind="passwordAttrs"
-          label="密码"
+          :label="$t('密码')"
           :icon="Lock"
           type="password"
-          placeholder="至少 8 位"
+          :placeholder="$t('至少 8 位')"
           autocomplete="new-password"
           :error="errors.password"
           :disabled="isSubmitting"
@@ -176,10 +179,10 @@ const onSubmit = submit(async (values) => {
           id="register-confirm-password"
           v-model="enterPassword"
           v-bind="enterPasswordAttrs"
-          label="确认密码"
+          :label="$t('确认密码')"
           :icon="LockKeyhole"
           type="password"
-          placeholder="再次输入密码"
+          :placeholder="$t('再次输入密码')"
           autocomplete="new-password"
           :error="errors.enterPassword"
           :disabled="isSubmitting"
@@ -212,23 +215,22 @@ const onSubmit = submit(async (values) => {
               required
             />
             <span>
-              <label for="register-agree" class="cursor-pointer"
-                >我已阅读并同意
-              </label>
+              <label for="register-agree" class="cursor-pointer">{{
+                $t("我已阅读并同意")
+              }}</label>
               <button
                 type="button"
                 class="auth-link"
                 @click="policyDialog?.open('terms')"
               >
-                服务条款
-              </button>
-              与
-              <button
+                {{ $t("服务条款") }}</button
+              >{{ $t("与")
+              }}<button
                 type="button"
                 class="auth-link"
                 @click="policyDialog?.open('privacy')"
               >
-                隐私政策
+                {{ $t("隐私政策") }}
               </button>
             </span>
           </div>
@@ -241,29 +243,26 @@ const onSubmit = submit(async (values) => {
           </p>
         </div>
         <AuthNotice :message="serverError" />
-        <button
-          type="submit"
-          class="auth-button"
+        <el-button
+          type="primary"
+          :loading="isSubmitting"
+          native-type="submit"
+          class="w-full !h-11 !rounded-xl"
           :disabled="isSubmitting || captchaLoading || !captchaId"
         >
-          <LoaderCircle
-            v-if="isSubmitting"
-            class="size-4 animate-spin"
-            aria-hidden="true"
-          />
-          {{ isSubmitting ? "正在创建账户…" : "创建账户" }}
+          {{ isSubmitting ? $t("正在创建账户…") : $t("创建账户") }}
           <ArrowRight v-if="!isSubmitting" class="size-4" aria-hidden="true" />
-        </button>
+        </el-button>
       </form>
       <p class="auth-footer">
-        已经有账户？
-        <RouterLink
+        {{ $t("已经有账户？")
+        }}<RouterLink
           :to="{
             name: 'login',
             query: { email, redirect: route.query.redirect },
           }"
           class="auth-link font-semibold"
-          >去登录</RouterLink
+          >{{ $t("去登录") }}</RouterLink
         >
       </p>
     </template>

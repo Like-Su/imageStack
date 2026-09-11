@@ -60,11 +60,13 @@ export const ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   FileNode: 'FileNode',
+  AssetRecognition: 'AssetRecognition',
   Album: 'Album',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
   AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
+  UploadPart: 'UploadPart',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
 } as const;
@@ -178,6 +180,8 @@ export const FileNodeScalarFieldEnum = {
   exif: 'exif',
   thumbnailKey: 'thumbnailKey',
   previewKey: 'previewKey',
+  hlsKey: 'hlsKey',
+  hlsSegmentCount: 'hlsSegmentCount',
   isFavorite: 'isFavorite',
   deleted: 'deleted',
   deletedAt: 'deletedAt',
@@ -187,6 +191,28 @@ export const FileNodeScalarFieldEnum = {
 
 export type FileNodeScalarFieldEnum =
   (typeof FileNodeScalarFieldEnum)[keyof typeof FileNodeScalarFieldEnum];
+
+export const AssetRecognitionScalarFieldEnum = {
+  assetId: 'assetId',
+  status: 'status',
+  description: 'description',
+  keywords: 'keywords',
+  ocrText: 'ocrText',
+  searchText: 'searchText',
+  model: 'model',
+  sourceHash: 'sourceHash',
+  error: 'error',
+  attempts: 'attempts',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  nextAttemptAt: 'nextAttemptAt',
+  indexedAt: 'indexedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AssetRecognitionScalarFieldEnum =
+  (typeof AssetRecognitionScalarFieldEnum)[keyof typeof AssetRecognitionScalarFieldEnum];
 
 export const AlbumScalarFieldEnum = {
   id: 'id',
@@ -239,6 +265,10 @@ export const UploadSessionScalarFieldEnum = {
   hash: 'hash',
   storageKey: 'storageKey',
   status: 'status',
+  chunkSize: 'chunkSize',
+  chunkCount: 'chunkCount',
+  mergeToken: 'mergeToken',
+  mergeLeaseUntil: 'mergeLeaseUntil',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   fileId: 'fileId',
@@ -246,6 +276,18 @@ export const UploadSessionScalarFieldEnum = {
 
 export type UploadSessionScalarFieldEnum =
   (typeof UploadSessionScalarFieldEnum)[keyof typeof UploadSessionScalarFieldEnum];
+
+export const UploadPartScalarFieldEnum = {
+  sessionId: 'sessionId',
+  index: 'index',
+  size: 'size',
+  hash: 'hash',
+  storageKey: 'storageKey',
+  createdAt: 'createdAt',
+} as const;
+
+export type UploadPartScalarFieldEnum =
+  (typeof UploadPartScalarFieldEnum)[keyof typeof UploadPartScalarFieldEnum];
 
 export const FileShareScalarFieldEnum = {
   id: 'id',

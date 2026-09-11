@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import {
   Clock3,
@@ -48,8 +49,8 @@ async function retry(id: string) {
     workspace.invalidate();
     workspace.notify(
       result.enqueued
-        ? "任务已重新投递到处理队列"
-        : "已重置为待处理；队列恢复连接后将自动补投",
+        ? translate("任务已重新投递到处理队列")
+        : translate("已重置为待处理；队列恢复连接后将自动补投"),
       result.enqueued ? "success" : "info",
     );
   } catch (cause) {
@@ -78,23 +79,23 @@ onBeforeUnmount(() => window.clearInterval(polling));
 <template>
   <section>
     <PageHeader
-      title="后台任务中心"
-      description="图片入库处理 · 缩略图生成 · EXIF 元数据提取"
-      ><button
-        type="button"
-        class="mh-button"
+      :title="$t('后台任务中心')"
+      :description="$t('图片入库处理 · 缩略图生成 · EXIF 元数据提取')"
+      ><el-button
+        native-type="button"
         disabled
-        title="当前后端不支持暂停或取消运行中的任务"
+        :title="$t('当前后端不支持暂停或取消运行中的任务')"
       >
-        <Pause />暂停全部</button
-      ><button
-        type="button"
-        class="mh-button"
+        <Pause />{{ $t("暂停全部") }}</el-button
+      ><el-button
+        native-type="button"
         :disabled="loading || refreshing"
         @click="refresh"
       >
-        <RefreshCw :class="{ 'animate-spin': loading || refreshing }" />刷新
-      </button></PageHeader
+        <RefreshCw :class="{ 'animate-spin': loading || refreshing }" />{{
+          $t("刷新")
+        }}</el-button
+      ></PageHeader
     >
     <div class="space-y-5 px-4 sm:px-6">
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -108,7 +109,7 @@ onBeforeUnmount(() => window.clearInterval(polling));
           @click="status = status === state.key ? undefined : state.key"
         >
           <span
-            ><span class="block text-xs text-soft">{{ state.title }}</span
+            ><span class="block text-xs text-soft">{{ $t(state.title) }}</span
             ><span
               class="mt-2 block font-display text-3xl font-semibold tabular-nums"
               >{{ workspace.overview?.statuses[state.key] ?? "—" }}</span
@@ -127,15 +128,17 @@ onBeforeUnmount(() => window.clearInterval(polling));
           :aria-pressed="!status"
           @click="status = undefined"
         >
-          全部入库任务
+          {{ $t("全部入库任务") }}
         </button>
         <p class="text-[11px] text-faint">
           {{
-            preferences.values.autoRefresh && items.length <= 40
-              ? "每 10 秒刷新首页"
-              : "手动刷新列表"
+            $t("{value1} · 仅当前账户的未删除图片", {
+              value1:
+                preferences.values.autoRefresh && items.length <= 40
+                  ? $t("每 10 秒刷新首页")
+                  : $t("手动刷新列表"),
+            })
           }}
-          · 仅当前账户的未删除图片
         </p>
       </div>
       <DataState
@@ -143,8 +146,10 @@ onBeforeUnmount(() => window.clearInterval(polling));
         :loading="loading"
         :error="error"
         :icon="CircleCheck"
-        title="这里暂时没有任务"
-        description="上传图片后将自动创建入库任务，完成后可查看缩略图与拍摄信息。"
+        :title="$t('这里暂时没有任务')"
+        :description="
+          $t('上传图片后将自动创建入库任务，完成后可查看缩略图与拍摄信息。')
+        "
         @retry="refresh"
       />
       <div v-else class="space-y-3">
@@ -159,24 +164,30 @@ onBeforeUnmount(() => window.clearInterval(polling));
           /></span>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-sm font-medium">缩略图生成与元数据提取</h2>
+              <h2 class="text-sm font-medium">
+                {{ $t("缩略图生成与元数据提取") }}
+              </h2>
               <span class="mh-badge" :class="`mh-status-${asset.status}`"
                 ><LoaderCircle
                   v-if="asset.status === 'PROCESSING'"
                   class="size-3 animate-spin"
-                />{{ processingLabels[asset.status] }}</span
+                />{{ $t(processingLabels[asset.status]) }}</span
               >
             </div>
             <p class="mt-1 truncate text-xs text-soft" :title="asset.name">
               {{ asset.name }}
             </p>
             <p class="mt-2 text-[10px] leading-5 text-faint">
-              上传于 {{ formatDate(asset.createdAt, true) }} · 已尝试
-              {{ asset.processingAttempts ?? 0 }} 次<span
-                v-if="asset.nextAttemptAt"
-              >
-                · 下次尝试 {{ formatDate(asset.nextAttemptAt, true) }}</span
-              >
+              {{
+                $t("上传于 {value1} · 已尝试 {value2} 次", {
+                  value1: formatDate(asset.createdAt, true),
+                  value2: asset.processingAttempts ?? 0,
+                })
+              }}<span v-if="asset.nextAttemptAt">{{
+                $t("· 下次尝试 {value1}", {
+                  value1: formatDate(asset.nextAttemptAt, true),
+                })
+              }}</span>
             </p>
             <div
               v-if="asset.status === 'PROCESSING' || asset.status === 'READY'"
@@ -199,25 +210,25 @@ onBeforeUnmount(() => window.clearInterval(polling));
             </p>
           </div>
           <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <button
+            <el-button
+              :loading="retrying.has(asset.id)"
               v-if="asset.status === 'FAILED' && workspace.can('asset:edit')"
-              type="button"
-              class="mh-button"
+              native-type="button"
               :disabled="retrying.has(asset.id)"
               @click="retry(asset.id)"
             >
-              <LoaderCircle
-                v-if="retrying.has(asset.id)"
-                class="animate-spin"
-              /><RotateCcw v-else />重试</button
-            ><button
-              type="button"
-              class="mh-icon-button"
-              :aria-label="`查看 ${asset.name}`"
+              <RotateCcw v-if="!retrying.has(asset.id)" />{{
+                $t("重试")
+              }}</el-button
+            ><el-button
+              text
+              circle
+              native-type="button"
+              :aria-label="$t('查看 {value1}', { value1: asset.name })"
               @click="workspace.selectedAsset = asset"
             >
               <Eye />
-            </button>
+            </el-button>
           </div>
         </article>
       </div>
@@ -225,17 +236,20 @@ onBeforeUnmount(() => window.clearInterval(polling));
         {{ moreError }}
       </p>
       <div v-if="hasMore" class="flex justify-center">
-        <button
-          type="button"
-          class="mh-button"
+        <el-button
+          :loading="loadingMore"
+          native-type="button"
           :disabled="loadingMore || refreshing"
           @click="feed.loadMore"
+          >{{ $t("加载更多任务") }}</el-button
         >
-          <LoaderCircle v-if="loadingMore" class="animate-spin" />加载更多任务
-        </button>
       </div>
       <p class="text-[11px] leading-6 text-faint">
-        状态与重试次数来自真实入库记录，处理中不展示虚构的百分比。暂不支持队列暂停、任务取消或自动清理已完成记录。
+        {{
+          $t(
+            "状态与重试次数来自真实入库记录，处理中不展示虚构的百分比。暂不支持队列暂停、任务取消或自动清理已完成记录。",
+          )
+        }}
       </p>
     </div>
   </section>

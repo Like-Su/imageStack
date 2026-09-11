@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Plus, Pencil, Merge, Trash2 } from "lucide-vue-next";
@@ -34,7 +35,8 @@ const {
         item.id === tagId.value &&
         (!props.people || item.name.startsWith(PERSON_TAG_PREFIX)),
     );
-    if (!found) throw new Error("分组不存在或已被合并，请返回分组列表。");
+    if (!found)
+      throw new Error(translate("分组不存在或已被合并，请返回分组列表。"));
     return found;
   },
   [tagId],
@@ -45,8 +47,8 @@ const label = computed(() =>
       ? tag.value.name.slice(PERSON_TAG_PREFIX.length)
       : tag.value.name
     : props.people
-      ? "人物详情"
-      : "标签详情",
+      ? translate("人物详情")
+      : translate("标签详情"),
 );
 const editing = ref(false);
 const merging = ref(false);
@@ -65,10 +67,15 @@ async function addAssets(ids: string[]) {
       await mediaApi.addTags(id, [name]);
       completed += 1;
     }
-    workspace.notify(`已关联 ${completed} 项媒体`);
+    workspace.notify(
+      translate("已关联 {value1} 项媒体", { value1: completed }),
+    );
     picking.value = false;
   } catch (cause) {
-    pickerError.value = `已成功关联 ${completed} 项；${getErrorMessage(cause)}。可重试，已有记录不会重复添加。`;
+    pickerError.value = translate(
+      "已成功关联 {value1} 项；{value2}。可重试，已有记录不会重复添加。",
+      { value1: completed, value2: getErrorMessage(cause) },
+    );
   } finally {
     workspace.invalidate();
     busy.value = false;
@@ -81,9 +88,11 @@ async function remove() {
   try {
     if (
       !(await workspace.confirm({
-        title: "删除分组？",
-        message: `删除「${current.name}」及关联，媒体文件仍保留。`,
-        confirmLabel: "删除分组",
+        title: translate("删除分组？"),
+        message: translate("删除「{value1}」及关联，媒体文件仍保留。", {
+          value1: current.name,
+        }),
+        confirmLabel: translate("删除分组"),
         danger: true,
       }))
     )
@@ -91,7 +100,7 @@ async function remove() {
     if (
       await workspace.perform(
         () => mediaApi.deleteTag(current.id),
-        "分组已删除",
+        translate("分组已删除"),
       )
     )
       await router.replace({ name: props.people ? "people" : "tags" });
@@ -113,7 +122,10 @@ function merged(target: Tag) {
       :title="label"
       :description="
         tag
-          ? `${tag.count} 项媒体 · ${people ? '手动人物归类' : '手动标签'}`
+          ? $t('{value1} 项媒体 · {value2}', {
+              value1: tag.count,
+              value2: people ? $t('手动人物归类') : $t('手动标签'),
+            })
           : ''
       "
       ><template #eyebrow
@@ -121,45 +133,49 @@ function merged(target: Tag) {
           :to="{ name: people ? 'people' : 'tags' }"
           class="mb-3 flex items-center gap-1 text-xs text-soft hover:text-accent"
           ><ArrowLeft class="size-3.5" />{{
-            people ? "全部人物" : "全部标签"
+            people ? $t("全部人物") : $t("全部标签")
           }}</RouterLink
         ></template
       ><ViewToggle /><template v-if="tag && workspace.can('asset:tag')"
-        ><button
-          type="button"
-          class="mh-icon-button"
-          aria-label="重命名分组"
+        ><el-button
+          text
+          circle
+          native-type="button"
+          :aria-label="$t('重命名分组')"
           :disabled="busy"
           @click="editing = true"
         >
-          <Pencil /></button
-        ><button
-          type="button"
-          class="mh-icon-button"
-          aria-label="合并分组"
+          <Pencil /></el-button
+        ><el-button
+          text
+          circle
+          native-type="button"
+          :aria-label="$t('合并分组')"
           :disabled="busy"
           @click="merging = true"
         >
-          <Merge /></button
-        ><button
-          type="button"
-          class="mh-icon-button !text-err"
-          aria-label="删除分组"
+          <Merge /></el-button
+        ><el-button
+          text
+          circle
+          native-type="button"
+          class="!text-err"
+          :aria-label="$t('删除分组')"
           :disabled="busy"
           @click="remove"
         >
-          <Trash2 /></button
-        ><button
-          type="button"
-          class="mh-button mh-button-primary"
+          <Trash2 /></el-button
+        ><el-button
+          type="primary"
+          native-type="button"
           :disabled="busy"
           @click="
             picking = true;
             pickerError = '';
           "
         >
-          <Plus />关联媒体
-        </button></template
+          <Plus />{{ $t("关联媒体") }}</el-button
+        ></template
       ></PageHeader
     >
     <DataState
@@ -171,7 +187,9 @@ function merged(target: Tag) {
     <AssetBrowser
       v-else-if="tag"
       :query="{ tagId }"
-      :empty-title="people ? '为这个人物添加照片' : '这个标签下还没有媒体'"
+      :empty-title="
+        people ? $t('为这个人物添加照片') : $t('这个标签下还没有媒体')
+      "
       empty-description="点击「关联媒体」从图库选择，或在照片详情中添加对应标签。"
     />
     <TagForm
@@ -188,7 +206,7 @@ function merged(target: Tag) {
     />
     <AssetPicker
       v-if="picking"
-      :title="`关联到 ${label}`"
+      :title="$t('关联到 {value1}', { value1: label })"
       :busy="busy"
       :error="pickerError"
       @close="picking = false"

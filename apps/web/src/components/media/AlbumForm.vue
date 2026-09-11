@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { ref } from "vue";
-import { LoaderCircle } from "lucide-vue-next";
+
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -18,7 +19,7 @@ const error = ref("");
 async function submit() {
   if (busy.value) return;
   if (!name.value.trim()) {
-    error.value = "请输入相册名称";
+    error.value = translate("请输入相册名称");
     return;
   }
   busy.value = true;
@@ -32,7 +33,11 @@ async function submit() {
       ? await mediaApi.updateAlbum(props.album.id, body)
       : await mediaApi.createAlbum(body);
     workspace.invalidate();
-    workspace.notify(props.album ? "相册已更新" : "相册已创建，可以添加照片了");
+    workspace.notify(
+      props.album
+        ? translate("相册已更新")
+        : translate("相册已创建，可以添加照片了"),
+    );
     emit("saved", album);
     emit("close");
   } catch (cause) {
@@ -46,49 +51,48 @@ async function submit() {
 <template>
   <AppModal
     open
-    :title="album ? '编辑相册' : '新建相册'"
-    description="给回忆一个名字，让每一张照片都有归属。"
+    :title="album ? $t('编辑相册') : $t('新建相册')"
+    :description="$t('给回忆一个名字，让每一张照片都有归属。')"
     :busy="busy"
     @update:open="emit('close')"
   >
     <form class="space-y-4 p-5" @submit.prevent="submit">
       <label class="mh-label"
-        >相册名称<input
+        >{{ $t("相册名称")
+        }}<el-input
           v-model="name"
-          class="mh-input"
           maxlength="200"
           required
           autofocus
           :disabled="busy"
-          placeholder="例如：夏日旅行"
+          :placeholder="$t('例如：夏日旅行')"
       /></label>
       <label class="mh-label"
-        >描述（可选）<textarea
+        >{{ $t("描述（可选）")
+        }}<el-input
+          type="textarea"
+          :rows="4"
           v-model="description"
-          class="mh-input min-h-28 resize-y"
           maxlength="2000"
           :disabled="busy"
-          placeholder="记录一些与这段回忆有关的事…"
+          :placeholder="$t('记录一些与这段回忆有关的事…')"
         />
       </label>
       <p v-if="error" class="text-xs text-err" role="alert">{{ error }}</p>
       <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          class="mh-button"
+        <el-button
+          native-type="button"
           :disabled="busy"
           @click="emit('close')"
-        >
-          取消</button
-        ><button
-          type="submit"
-          class="mh-button mh-button-primary"
+          >{{ $t("取消") }}</el-button
+        ><el-button
+          type="primary"
+          :loading="busy"
+          native-type="submit"
           :disabled="busy"
         >
-          <LoaderCircle v-if="busy" class="animate-spin" />{{
-            album ? "保存更改" : "创建相册"
-          }}
-        </button>
+          {{ album ? $t("保存更改") : $t("创建相册") }}
+        </el-button>
       </div>
     </form>
   </AppModal>

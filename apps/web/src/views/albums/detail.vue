@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-vue-next";
@@ -36,7 +37,9 @@ async function addAssets(ids: string[]) {
     const result = await mediaApi.addToAlbum(albumId.value, ids);
     workspace.invalidate();
     workspace.notify(
-      result.count ? `已添加 ${result.count} 项媒体` : "所选媒体已在此相册中",
+      result.count
+        ? translate("已添加 {value1} 项媒体", { value1: result.count })
+        : translate("所选媒体已在此相册中"),
     );
     picking.value = false;
   } catch (cause) {
@@ -52,9 +55,11 @@ async function remove() {
   try {
     if (
       !(await workspace.confirm({
-        title: "删除相册？",
-        message: `删除「${current.name}」及其关联，图库原文件将保留。`,
-        confirmLabel: "删除相册",
+        title: translate("删除相册？"),
+        message: translate("删除「{value1}」及其关联，图库原文件将保留。", {
+          value1: current.name,
+        }),
+        confirmLabel: translate("删除相册"),
         danger: true,
       }))
     )
@@ -62,7 +67,7 @@ async function remove() {
     if (
       await workspace.perform(
         () => mediaApi.deleteAlbum(current.id),
-        "相册已删除",
+        translate("相册已删除"),
       )
     )
       await router.replace({ name: "albums" });
@@ -75,46 +80,52 @@ async function remove() {
 <template>
   <section>
     <PageHeader
-      :title="album?.name ?? '相册详情'"
+      :title="album?.name ?? $t('相册详情')"
       :description="
         album
-          ? `${album.count} 项媒体${album.description ? ` · ${album.description}` : ''}`
+          ? $t('{value1} 项媒体{value2}', {
+              value1: album.count,
+              value2: album.description ? ` · ${album.description}` : '',
+            })
           : ''
       "
       ><template #eyebrow
         ><RouterLink
           :to="{ name: 'albums' }"
           class="mb-3 flex items-center gap-1 text-xs text-soft hover:text-accent"
-          ><ArrowLeft class="size-3.5" />全部相册</RouterLink
+          ><ArrowLeft class="size-3.5" />{{ $t("全部相册") }}</RouterLink
         ></template
       ><ViewToggle /><template v-if="album && workspace.can('asset:category')"
-        ><button
-          type="button"
-          class="mh-icon-button"
-          aria-label="编辑相册"
+        ><el-button
+          text
+          circle
+          native-type="button"
+          :aria-label="$t('编辑相册')"
           :disabled="busy"
           @click="editing = true"
         >
-          <Pencil /></button
-        ><button
-          type="button"
-          class="mh-icon-button !text-err"
-          aria-label="删除相册"
+          <Pencil /></el-button
+        ><el-button
+          text
+          circle
+          native-type="button"
+          class="!text-err"
+          :aria-label="$t('删除相册')"
           :disabled="busy"
           @click="remove"
         >
-          <Trash2 /></button
-        ><button
-          type="button"
-          class="mh-button mh-button-primary"
+          <Trash2 /></el-button
+        ><el-button
+          type="primary"
+          native-type="button"
           :disabled="busy"
           @click="
             picking = true;
             pickerError = '';
           "
         >
-          <Plus />添加媒体
-        </button></template
+          <Plus />{{ $t("添加媒体") }}</el-button
+        ></template
       ></PageHeader
     >
     <DataState
@@ -136,7 +147,7 @@ async function remove() {
     />
     <AssetPicker
       v-if="picking"
-      :title="`添加到 ${album?.name ?? '相册'}`"
+      :title="$t('添加到 {value1}', { value1: album?.name ?? $t('相册') })"
       :busy="busy"
       :error="pickerError"
       @close="picking = false"

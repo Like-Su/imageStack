@@ -1,6 +1,7 @@
 import {
   HttpException,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
@@ -11,6 +12,8 @@ import type {
   StorageProvider,
   StorageReadRange,
 } from '../storage/storage.provider';
+
+const streamLogger = new Logger('MediaStream');
 
 function parseSingleRange(
   header: string | undefined,
@@ -65,6 +68,7 @@ export async function streamStoredMedia(
   resource: {
     key: string;
     mimeType: string;
+    disposition?: string;
   },
   request: Request,
   response: Response,
@@ -85,6 +89,13 @@ export async function streamStoredMedia(
   response.setHeader('Cache-Control', 'private, no-cache');
   response.setHeader('Accept-Ranges', 'bytes');
   response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('Referrer-Policy', 'no-referrer');
+  if (resource.mimeType === 'image/svg+xml') {
+    response.setHeader(
+      'Content-Security-Policy',
+      "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+    );
+  }
   response.vary('Authorization');
 
   if (request.fresh) {
@@ -108,6 +119,14 @@ export async function streamStoredMedia(
     }
 
     throw error;
+  }
+
+  if (request.method === 'HEAD') {
+    response.setHeader('Content-Length', metadata.size.toString());
+    response.setHeader('Content-Type', resource.mimeType);
+    response.setHeader('Content-Disposition', resource.disposition ?? 'inline');
+    response.status(200);
+    return;
   }
 
   const opened = await storage
@@ -139,8 +158,17 @@ export async function streamStoredMedia(
   return new StreamableFile(opened.stream, {
     type: resource.mimeType,
     length,
-    disposition: 'inline',
-  }).setErrorHandler(() => {
-    response.destroy();
-  });
+    disposition: resource.disposition ?? 'inline',
+  })
+    .setErrorHandler(() => {
+      response.destroy();
+    })
+    .setErrorLogger((error: Error & { code?: string }) => {
+      if (error.code === 'ERR_STREAM_PREMATURE_CLOSE' && response.destroyed)
+        return;
+      streamLogger.error(
+        `${request.method} ${request.path}: ${error.message}`,
+        error.stack,
+      );
+    });
 }

@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { ref, watch } from "vue";
 import { defineStore } from "pinia";
 import { useAuthStore } from "./auth";
@@ -47,7 +48,9 @@ export const usePreferencesStore = defineStore("preferences", () => {
           }
         }
       } catch {
-        storageError.value = "浏览器无法读取偏好，当前使用默认设置。";
+        storageError.value = translate(
+          "浏览器无法读取偏好，当前使用默认设置。",
+        );
       }
       values.value = next;
     },
@@ -60,7 +63,9 @@ export const usePreferencesStore = defineStore("preferences", () => {
       try {
         localStorage.setItem(storageKey(), JSON.stringify(value));
       } catch {
-        storageError.value = "浏览器禁止本地存储，设置仅在本次页面中生效。";
+        storageError.value = translate(
+          "浏览器禁止本地存储，设置仅在本次页面中生效。",
+        );
       }
     },
     { deep: true },

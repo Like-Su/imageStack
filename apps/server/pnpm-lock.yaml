@@ -107,6 +107,9 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      sax:
+        specifier: ^1.6.1
+        version: 1.6.1
       sharp:
         specifier: ^0.35.4
         version: 0.35.4(@types/node@20.19.43)
@@ -10983,8 +10986,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sax@1.6.1:
-    optional: true
+  sax@1.6.1: {}
 
   scheduler@0.27.0: {}
 

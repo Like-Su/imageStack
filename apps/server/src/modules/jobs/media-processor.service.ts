@@ -1,10 +1,21 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import type { Metadata, Sharp } from 'sharp';
+import { pipeline } from 'node:stream/promises';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { sharp } from '../../common/sharp';
+import { inspectImageContent } from '../../common/image-inspection';
+import { IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '../../common/media-formats';
+import type { VideoFormat } from '../../common/media-formats';
+import {
+  hlsObjectKeys,
+  hlsSegmentKey,
+  hlsSegmentName,
+} from '../../common/video-stream';
 import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
 import {
   createStorageKey,
@@ -12,11 +23,9 @@ import {
   StorageError,
 } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
-import {
-  UPLOAD_MAX_BYTES,
-  UPLOAD_MAX_PIXELS,
-} from '../uploads/upload.constants';
 import { extractExif } from './exif-metadata';
+import { VideoProcessorService } from './video-processor.service';
+import type { PreparedHls } from './video-processor.service';
 import {
   mediaAssetWhere,
   MediaProcessingError,
@@ -28,6 +37,17 @@ import type {
   MediaProcessingResult,
 } from './media-processing.constants';
 
+interface PreparedMedia {
+  width: number;
+  height: number;
+  durationMs: bigint | null;
+  exif: Prisma.InputJsonValue;
+  takenAt: Date | null;
+  thumbnail: Buffer | null;
+  previewPath: string | null;
+  hls: PreparedHls | null;
+}
+
 @Injectable()
 export class MediaProcessorService {
   private readonly logger = new Logger(MediaProcessorService.name);
@@ -35,6 +55,7 @@ export class MediaProcessorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly videos: VideoProcessorService,
     @Inject(STORAGE_PROVIDER)
     private readonly storage: StorageProvider,
   ) {}
@@ -63,6 +84,9 @@ export class MediaProcessorService {
       ownerId: asset.ownerId,
       storageKey: asset.storageKey,
       thumbnailKey: asset.thumbnailKey,
+      previewKey: asset.previewKey,
+      hlsKey: asset.hlsKey,
+      hlsSegmentCount: asset.hlsSegmentCount,
     };
     const claimWhere = {
       ...mediaAssetWhere,
@@ -118,13 +142,24 @@ export class MediaProcessorService {
     } satisfies Prisma.FileNodeWhereInput;
     const stopHeartbeat = this.maintainLease(processingWhere, leaseMs);
 
-    let candidateKey: string | null = null;
+    const candidateKeys: string[] = [];
+    let temporaryDirectory: string | undefined;
     let linkAttempted = false;
 
     try {
-      const bytes = await this.readOriginal(asset);
-      const prepared = await this.prepare(asset, bytes);
+      let prepared: PreparedMedia;
+      if (asset.mediaType === 'VIDEO') {
+        temporaryDirectory = await mkdtemp(
+          join(tmpdir(), 'image-stack-video-'),
+        );
+        prepared = await this.prepareVideo(asset, temporaryDirectory);
+      } else {
+        prepared = await this.prepare(asset, await this.readOriginal(asset));
+      }
       let thumbnailKey = asset.thumbnailKey;
+      let previewKey = asset.previewKey;
+      let hlsKey = asset.hlsKey;
+      let hlsSegmentCount = asset.hlsSegmentCount;
 
       if (prepared.thumbnail) {
         const key = createStorageKey('derived');
@@ -132,7 +167,7 @@ export class MediaProcessorService {
           key,
           Readable.from([prepared.thumbnail]),
         );
-        candidateKey = key;
+        candidateKeys.push(key);
 
         if (
           stored.key !== key ||
@@ -144,13 +179,59 @@ export class MediaProcessorService {
         thumbnailKey = key;
       }
 
+      if (prepared.previewPath) {
+        const key = createStorageKey('derived');
+        const metadata = await stat(prepared.previewPath);
+        const stored = await this.storage.put(
+          key,
+          createReadStream(prepared.previewPath),
+        );
+        candidateKeys.push(key);
+        if (stored.key !== key || stored.size !== BigInt(metadata.size))
+          throw new MediaProcessingError('视频预览写入结果不完整');
+        previewKey = key;
+      }
+
+      if (prepared.hls) {
+        const key = createStorageKey('derived');
+        for (let index = 0; index < prepared.hls.segmentCount; index += 1) {
+          const segmentKey = hlsSegmentKey(key, index);
+          const segmentPath = join(
+            prepared.hls.directory,
+            hlsSegmentName(index),
+          );
+          const metadata = await stat(segmentPath);
+          const stored = await this.storage.put(
+            segmentKey,
+            createReadStream(segmentPath),
+          );
+          candidateKeys.push(segmentKey);
+          if (metadata.size < 1 || stored.size !== BigInt(metadata.size))
+            throw new MediaProcessingError('HLS 视频分段写入不完整');
+        }
+        const metadata = await stat(prepared.hls.playlistPath);
+        const stored = await this.storage.put(
+          key,
+          createReadStream(prepared.hls.playlistPath),
+        );
+        candidateKeys.push(key);
+        if (stored.size !== BigInt(metadata.size))
+          throw new MediaProcessingError('HLS 播放列表写入不完整');
+        hlsKey = key;
+        hlsSegmentCount = prepared.hls.segmentCount;
+      }
+
       linkAttempted = true;
       const updated = await this.prisma.fileNode.updateMany({
         where: processingWhere,
         data: {
           thumbnailKey,
+          previewKey,
+          hlsKey,
+          hlsSegmentCount,
           width: prepared.width,
           height: prepared.height,
+          durationMs: prepared.durationMs,
           exif: prepared.exif,
           takenAt: prepared.takenAt,
           processingStatus: 'READY',
@@ -161,15 +242,17 @@ export class MediaProcessorService {
         },
       });
 
-      if (updated.count !== 1 && candidateKey) {
-        await this.discard(candidateKey);
+      if (updated.count !== 1) {
+        await this.discardAll(candidateKeys);
+      } else {
+        await this.discardReplaced(asset, thumbnailKey, previewKey, hlsKey);
       }
       return { kind: updated.count === 1 ? 'complete' : 'skip' };
     } catch (error) {
-      if (candidateKey && !linkAttempted) {
-        await this.discard(candidateKey);
-      } else if (candidateKey) {
-        this.logger.warn(`媒体关联结果未确认，保留候选缩略图：${asset.id}`);
+      if (!linkAttempted) {
+        await this.discardAll(candidateKeys);
+      } else if (candidateKeys.length) {
+        this.logger.warn(`媒体关联结果未确认，保留候选派生文件：${asset.id}`);
       }
 
       const permanent =
@@ -208,6 +291,15 @@ export class MediaProcessorService {
         : { kind: 'retry', attempt, delayMs, error: message };
     } finally {
       await stopHeartbeat();
+      if (temporaryDirectory) {
+        await rm(temporaryDirectory, { recursive: true, force: true }).catch(
+          (error: unknown) => {
+            this.logger.warn(
+              `视频临时文件清理失败：${error instanceof Error ? error.message : String(error)}`,
+            );
+          },
+        );
+      }
     }
   }
 
@@ -249,7 +341,7 @@ export class MediaProcessorService {
       !asset.storageKey ||
       asset.size === null ||
       asset.size <= 0n ||
-      asset.size > BigInt(UPLOAD_MAX_BYTES)
+      asset.size > BigInt(IMAGE_MAX_BYTES)
     ) {
       throw new MediaProcessingError('原图大小或存储信息无效', true);
     }
@@ -283,7 +375,7 @@ export class MediaProcessorService {
 
         receivedBytes += chunk.length;
         if (
-          receivedBytes > UPLOAD_MAX_BYTES ||
+          receivedBytes > IMAGE_MAX_BYTES ||
           BigInt(receivedBytes) > asset.size
         ) {
           throw new MediaProcessingError('原图超过处理大小限制', true);
@@ -302,42 +394,27 @@ export class MediaProcessorService {
     }
   }
 
-  private async prepare(asset: FileNode, bytes: Buffer) {
-    let decoder: Sharp;
-    let metadata: Metadata;
-
+  private async prepare(
+    asset: FileNode,
+    bytes: Buffer,
+  ): Promise<PreparedMedia> {
+    let image: Awaited<ReturnType<typeof inspectImageContent>>;
     try {
-      decoder = sharp(bytes, {
-        failOn: 'warning',
-        limitInputPixels: UPLOAD_MAX_PIXELS,
-        animated: true,
-      }).timeout({ seconds: 10 });
-      metadata = await decoder.metadata();
-    } catch {
-      throw new MediaProcessingError('图片损坏、解码超时或超过像素限制', true);
-    }
-
-    const mimeTypes: Record<string, string> = {
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      webp: 'image/webp',
-    };
-
-    if (
-      mimeTypes[metadata.format] !== asset.mimeType ||
-      (metadata.pages ?? 1) !== 1 ||
-      !metadata.width ||
-      !metadata.height ||
-      metadata.width * metadata.height > UPLOAD_MAX_PIXELS
-    ) {
+      image = await inspectImageContent(bytes);
+    } catch (error) {
       throw new MediaProcessingError(
-        '图片格式、帧数或尺寸不符合处理要求',
+        error instanceof Error ? error.message : '图片损坏或超过处理限制',
         true,
       );
     }
+    if (
+      image.mimeType !== asset.mimeType &&
+      !(image.mimeType === 'image/apng' && asset.mimeType === 'image/png')
+    )
+      throw new MediaProcessingError('图片格式与资产记录不一致', true);
 
     const extracted = await extractExif(
-      metadata.exif,
+      image.metadata.exif,
       this.config.get<string>('MEDIA_EXIF_DEFAULT_OFFSET', '+00:00'),
     );
     let thumbnail: Buffer | null = null;
@@ -347,7 +424,7 @@ export class MediaProcessorService {
       !(await this.storage.exists(asset.thumbnailKey))
     ) {
       try {
-        thumbnail = await decoder
+        thumbnail = await image.decoder
           .rotate()
           .resize({
             width: 256,
@@ -362,14 +439,92 @@ export class MediaProcessorService {
       }
     }
 
-    const rotated =
-      (metadata.orientation ?? 1) >= 5 && (metadata.orientation ?? 1) <= 8;
-
     return {
       ...extracted,
-      width: rotated ? metadata.height : metadata.width,
-      height: rotated ? metadata.width : metadata.height,
+      width: image.width,
+      height: image.height,
+      durationMs: null,
       thumbnail,
+      previewPath: null,
+      hls: null,
+    };
+  }
+
+  private async prepareVideo(
+    asset: FileNode,
+    directory: string,
+  ): Promise<PreparedMedia> {
+    if (
+      !asset.storageKey ||
+      asset.size === null ||
+      asset.size <= 0n ||
+      asset.size > BigInt(VIDEO_MAX_BYTES)
+    )
+      throw new MediaProcessingError('视频大小或存储信息无效', true);
+    const formats: Record<string, VideoFormat> = {
+      'video/mp4': 'mp4',
+      'video/quicktime': 'mov',
+      'video/x-matroska': 'mkv',
+    };
+    const format = formats[asset.mimeType ?? ''];
+    if (!format) throw new MediaProcessingError('视频格式不受支持', true);
+    const source = await this.storage
+      .read(asset.storageKey)
+      .catch((error: unknown) => {
+        if (error instanceof StorageError && error.code === 'NOT_FOUND')
+          throw new MediaProcessingError('原视频对象不存在', true);
+        throw error;
+      });
+    const timeout = setTimeout(
+      () => {
+        source.stream.destroy(new MediaProcessingError('原视频读取超时'));
+      },
+      this.config.get<number>('MEDIA_PROCESSING_READ_TIMEOUT_MS', 30000),
+    );
+    const path = join(directory, 'source');
+    try {
+      if (source.stat.size !== asset.size)
+        throw new MediaProcessingError('视频大小与数据库记录不一致', true);
+      async function* content() {
+        let received = 0n;
+        for await (const chunk of source.stream) {
+          if (!Buffer.isBuffer(chunk))
+            throw new MediaProcessingError('视频读取格式无效', true);
+          received += BigInt(chunk.length);
+          if (received > asset.size || received > BigInt(VIDEO_MAX_BYTES))
+            throw new MediaProcessingError('视频超过处理大小限制', true);
+          yield chunk;
+        }
+        if (received !== asset.size)
+          throw new MediaProcessingError('原视频读取不完整');
+      }
+      await pipeline(
+        Readable.from(content()),
+        createWriteStream(path, { flags: 'wx', mode: 0o600 }),
+      );
+    } finally {
+      clearTimeout(timeout);
+      source.stream.destroy();
+    }
+
+    const video = await this.videos.inspect(path, format);
+    const prepared = await this.videos.prepare(path, directory, video, {
+      thumbnail:
+        !asset.thumbnailKey || !(await this.storage.exists(asset.thumbnailKey)),
+      preview:
+        !asset.previewKey || !(await this.storage.exists(asset.previewKey)),
+      hls:
+        !asset.hlsKey ||
+        asset.hlsSegmentCount < 1 ||
+        !(await this.storage.exists(asset.hlsKey)),
+    });
+    return {
+      ...prepared,
+      width: video.width,
+      height: video.height,
+      durationMs: BigInt(video.durationMs),
+      exif: {},
+      takenAt: null,
     };
   }
 
@@ -378,8 +533,52 @@ export class MediaProcessorService {
       await this.storage.delete(key);
     } catch (error) {
       this.logger.warn(
-        `候选缩略图清理失败：${error instanceof Error ? error.message : String(error)}`,
+        `候选派生文件清理失败：${error instanceof Error ? error.message : String(error)}`,
       );
+    }
+  }
+
+  private async discardAll(keys: string[]) {
+    for (let offset = 0; offset < keys.length; offset += 16)
+      await Promise.all(
+        keys.slice(offset, offset + 16).map((key) => this.discard(key)),
+      );
+  }
+
+  private async discardReplaced(
+    asset: FileNode,
+    thumbnailKey: string,
+    previewKey: string,
+    hlsKey: string,
+  ) {
+    const retired = [
+      asset.thumbnailKey !== thumbnailKey ? asset.thumbnailKey : null,
+      asset.previewKey !== previewKey ? asset.previewKey : null,
+    ].filter((key): key is string => Boolean(key));
+    try {
+      for (const key of retired) {
+        const references = await this.prisma.fileNode.count({
+          where: {
+            OR: [
+              { thumbnailKey: key },
+              { previewKey: key },
+              { storageKey: key },
+            ],
+          },
+        });
+        if (!references) await this.discard(key);
+      }
+      if (asset.hlsKey && asset.hlsKey !== hlsKey) {
+        const references = await this.prisma.fileNode.count({
+          where: { hlsKey: asset.hlsKey },
+        });
+        if (!references)
+          await this.discardAll(
+            hlsObjectKeys(asset.hlsKey, asset.hlsSegmentCount),
+          );
+      }
+    } catch (error) {
+      this.logger.warn(`旧派生文件清理暂缓：${String(error)}`);
     }
   }
 }

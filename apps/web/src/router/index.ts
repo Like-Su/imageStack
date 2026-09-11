@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import AuthLayout from "@/components/auth/AuthLayout.vue";
 import { useAuthStore } from "@/stores/auth";
 import { getSafeRedirect } from "./redirect";
+import { watch } from "vue";
+import { i18n, translate } from "@/i18n";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -158,8 +160,12 @@ router.beforeEach(async (to) => {
   return true;
 });
 
-router.afterEach((to) => {
-  document.title = `${to.meta.title ?? "本地媒体库"} · Media Hub`;
-});
+watch(
+  () => [router.currentRoute.value.meta.title, i18n.global.locale.value],
+  () => {
+    document.title = `${translate(router.currentRoute.value.meta.title ?? "本地媒体库")} · Media Hub`;
+  },
+  { immediate: true },
+);
 
 export default router;

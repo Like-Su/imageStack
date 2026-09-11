@@ -33,6 +33,45 @@ export function buildAssetFilters(
   if (query.favorite !== undefined) {
     conditions.push({ isFavorite: query.favorite });
   }
+  if (query.uncategorized !== undefined) {
+    conditions.push({
+      albums: query.uncategorized
+        ? { none: { album: { ownerId: userId } } }
+        : { some: { album: { ownerId: userId } } },
+    });
+  }
+  if (query.minSize !== undefined) {
+    conditions.push({ size: { gte: BigInt(query.minSize) } });
+  }
+  if (query.placeId) {
+    const [latitudeCell, longitudeCell] = query.placeId.split(':').map(Number);
+    if (
+      !Number.isInteger(latitudeCell) ||
+      !Number.isInteger(longitudeCell) ||
+      latitudeCell < -900 ||
+      latitudeCell > 900 ||
+      longitudeCell < -1800 ||
+      longitudeCell > 1800
+    ) {
+      throw new BadRequestException('地点坐标无效');
+    }
+    conditions.push(
+      {
+        exif: {
+          path: ['latitude'],
+          gte: latitudeCell / 10,
+          lt: (latitudeCell + 1) / 10,
+        },
+      },
+      {
+        exif: {
+          path: ['longitude'],
+          gte: longitudeCell / 10,
+          lt: (longitudeCell + 1) / 10,
+        },
+      },
+    );
+  }
   if (query.status === 'PENDING') {
     conditions.push({
       OR: [{ processingStatus: 'PENDING' }, { processingStatus: null }],
@@ -88,6 +127,14 @@ export function buildAssetFilters(
     conditions.push({
       OR: [
         { name: { contains: literal, mode: 'insensitive' } },
+        {
+          recognition: {
+            is: {
+              status: 'READY',
+              searchText: { contains: literal, mode: 'insensitive' },
+            },
+          },
+        },
         {
           tags: {
             some: {

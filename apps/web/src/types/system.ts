@@ -13,6 +13,15 @@ export interface SystemCapabilities {
   peopleMode: string;
   trashRetentionDays: number | null;
   pluginManagement: boolean;
-  upload: { maxBytes: number; maxPixels: number; mimeTypes: string[] };
+  upload: {
+    maxBytes: number;
+    imageMaxBytes: number;
+    videoMaxBytes: number;
+    videoMaxDurationMs: number;
+    maxPixels: number;
+    maxFrames: number;
+    extensions: string[];
+    mimeTypes: string[];
+  };
   extensions: ExtensionCapability[];
 }

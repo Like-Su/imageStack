@@ -7,12 +7,12 @@ const route = useRoute();
 <template>
   <nav
     class="mb-7 flex rounded-xl border border-line bg-panel2 p-1 text-[13.5px] font-semibold"
-    aria-label="账户入口"
+    :aria-label="$t('账户入口')"
   >
     <RouterLink
       v-for="tab in [
-        { name: 'login', label: '登录' },
-        { name: 'register', label: '注册' },
+        { name: 'login', label: $t('登录') },
+        { name: 'register', label: $t('注册') },
       ]"
       :key="tab.name"
       :to="{ name: tab.name, query: { redirect: route.query.redirect } }"

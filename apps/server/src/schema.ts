@@ -87,6 +87,55 @@ export const envSchema = z.object({
     .string()
     .regex(/^[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00)$/)
     .default('+00:00'),
+  FFMPEG_PATH: z.string().trim().min(1).default('ffmpeg'),
+  FFPROBE_PATH: z.string().trim().min(1).default('ffprobe'),
+  MEDIA_VIDEO_PROBE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(120000)
+    .default(30000),
+  MEDIA_VIDEO_PROCESSING_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(10000)
+    .max(3600000)
+    .default(600000),
+
+  OPENAI_API_MODULE: z.string().trim().max(200).optional(),
+  OPENAI_API_VISION_MODULE: z.string().trim().max(200).optional(),
+  OPENAI_API_IMAGE_MODULE: z.string().trim().max(200).optional(),
+  OPENAI_EMBEDDING: z.string().trim().max(200).optional(),
+  OPENAI_API_KEY: z.string().trim().optional(),
+  OPENAI_BASE_URL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string()
+      .trim()
+      .url()
+      .refine((value) => {
+        const url = new URL(value);
+        return (
+          ['https:', 'http:'].includes(url.protocol) &&
+          !url.username &&
+          !url.password &&
+          !url.search &&
+          !url.hash
+        );
+      }, 'OPENAI_BASE_URL 必须是不含凭证、查询参数的 HTTP(S) API 根地址')
+      .optional(),
+  ),
+  AI_AUTO_INDEX: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
+  AI_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(120000)
+    .default(60000),
+  AI_INDEX_CONCURRENCY: z.coerce.number().int().min(1).max(4).default(1),
 
   // 邮箱配置
   MAIL_HOST: z.string().min(1),

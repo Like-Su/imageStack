@@ -1,6 +1,29 @@
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
 
+export interface ImageRecognition {
+  status: ProcessingStatus;
+  description: string | null;
+  keywords: string[];
+  ocrText: string | null;
+  model: string | null;
+  error: string | null;
+  attempts: number;
+  indexedAt: string | null;
+  nextAttemptAt: string | null;
+}
+
+export interface AiIndexStatus {
+  configured: boolean;
+  configurationError: string | null;
+  model: string | null;
+  autoIndex: boolean;
+  total: number;
+  unindexed: number;
+  counts: Record<ProcessingStatus, number>;
+  batchSize: number;
+}
+
 export interface AssetTag {
   id: string;
   name: string;
@@ -19,6 +42,7 @@ export interface AssetSummary {
   mimeType: string | null;
   width: number | null;
   height: number | null;
+  durationMs: string | null;
   takenAt: string | null;
   isFavorite: boolean;
   deleted: boolean;
@@ -32,10 +56,10 @@ export interface AssetSummary {
 export interface AssetDetail extends AssetSummary {
   hashAlgorithm: string | null;
   hash: string | null;
-  durationMs: string | null;
   exif: Record<string, unknown> | null;
   albums: { id: string; name: string }[];
   fileUrl: string | null;
+  previewUrl: string | null;
 }
 
 export interface CursorPage<Item> {
@@ -121,6 +145,8 @@ export interface UploadedFile {
   name: string;
   size: string | null;
   mimeType: string | null;
+  mediaType: MediaType;
+  durationMs: string | null;
   hash: string | null;
   width: number | null;
   height: number | null;
@@ -135,5 +161,18 @@ export interface UploadSession {
   size: string | null;
   expiresAt: string;
   expired: boolean;
+  mode: "DIRECT" | "CHUNKED";
+  chunkSize: number | null;
+  chunkCount: number | null;
+  uploadedParts: number[];
+  uploadedBytes: number;
+  merging: boolean;
+  instant: boolean;
   file: UploadedFile | null;
+}
+
+export interface MediaStreamTicket {
+  path: string;
+  expiresAt: string;
+  kind: "hls" | "original" | "download";
 }

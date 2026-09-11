@@ -1,4 +1,6 @@
+import { translate } from "@/i18n";
 import { request } from "./request";
+import { API_BASE_URL } from "@/config/api";
 import type {
   Album,
   AlbumDetail,
@@ -6,8 +8,11 @@ import type {
   AssetQuery,
   AssetSummary,
   AssetTag,
+  AiIndexStatus,
   CursorPage,
   LibraryOverview,
+  ImageRecognition,
+  MediaStreamTicket,
   PlacesResult,
   SearchResult,
   Tag,
@@ -25,6 +30,17 @@ function queryString(query: object = {}) {
 }
 
 const identifier = encodeURIComponent;
+export function mediaStreamUrl(path: string) {
+  if (!path.startsWith("/assets/"))
+    throw new Error(translate("媒体播放地址无效"));
+  return `${API_BASE_URL}${path}`;
+}
+const originalFile = (assetId: string, signal?: AbortSignal) =>
+  request<Blob>(`/assets/${identifier(assetId)}/file`, {
+    signal,
+    responseType: "blob",
+    timeoutMs: 660_000,
+  });
 
 export const mediaApi = {
   overview: (signal?: AbortSignal) =>
@@ -44,11 +60,22 @@ export const mediaApi = {
       `/assets/${trash ? "trash/" : ""}${identifier(assetId)}/thumbnail?size=sm`,
       { signal, responseType: "blob" },
     ),
-  download: (assetId: string, signal?: AbortSignal) =>
-    request<Blob>(`/assets/${identifier(assetId)}/file`, {
+  original: originalFile,
+  streamTicket: (
+    assetId: string,
+    kind: MediaStreamTicket["kind"],
+    signal?: AbortSignal,
+  ) =>
+    request<MediaStreamTicket>(`/assets/${identifier(assetId)}/stream-ticket`, {
+      method: "POST",
+      body: { kind },
+      signal,
+    }),
+  preview: (assetId: string, signal?: AbortSignal) =>
+    request<Blob>(`/assets/${identifier(assetId)}/preview`, {
       signal,
       responseType: "blob",
-      timeoutMs: 120_000,
+      timeoutMs: 660_000,
     }),
   favorite: (assetId: string, favorite: boolean) =>
     request<{ id: string; isFavorite: boolean }>(
@@ -77,6 +104,17 @@ export const mediaApi = {
       `/search${queryString({ ...query, q: text, mode: "keyword" })}`,
       { signal },
     ),
+  aiStatus: (signal?: AbortSignal) =>
+    request<AiIndexStatus>("/ai/status", { signal }),
+  recognition: (assetId: string, signal?: AbortSignal) =>
+    request<ImageRecognition | null>(`/ai/assets/${identifier(assetId)}`, {
+      signal,
+    }),
+  indexImages: (ids?: string[]) =>
+    request<{ queued: number }>("/ai/index", {
+      method: "POST",
+      body: ids ? { ids } : {},
+    }),
   places: (signal?: AbortSignal) =>
     request<PlacesResult>("/assets/places", { signal }),
   albums: (signal?: AbortSignal) => request<Album[]>("/albums", { signal }),
@@ -126,16 +164,46 @@ export const mediaApi = {
       `/assets/${identifier(assetId)}/tags/${identifier(tagId)}`,
       { method: "DELETE" },
     ),
-  createUpload: (file: File, signal?: AbortSignal) =>
+  createUpload: (file: File, hash: string, signal?: AbortSignal) =>
     request<UploadSession>("/uploads/sessions", {
       method: "POST",
-      body: { fileName: file.name, size: file.size },
+      body: { fileName: file.name, size: file.size, hash },
       signal,
     }),
   uploadSession: (sessionId: string, signal?: AbortSignal) =>
     request<UploadSession>(`/uploads/sessions/${identifier(sessionId)}`, {
       signal,
     }),
+  uploadPart: (
+    sessionId: string,
+    index: number,
+    chunk: Blob,
+    hash: string,
+    signal?: AbortSignal,
+  ) =>
+    request<{ index: number; size: number; hash: string }>(
+      `/uploads/sessions/${identifier(sessionId)}/parts/${index}`,
+      {
+        method: "PUT",
+        body: chunk,
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "X-Chunk-Hash": hash,
+        },
+        signal,
+        timeoutMs: 120_000,
+      },
+    ),
+  completeUpload: (sessionId: string, signal?: AbortSignal) =>
+    request<{ sessionId: string; status: "COMPLETED"; file: UploadedFile }>(
+      `/uploads/sessions/${identifier(sessionId)}/complete`,
+      { method: "POST", signal, timeoutMs: 660_000 },
+    ),
+  cancelUpload: (sessionId: string) =>
+    request<{ id: string; status: "CANCELLED" }>(
+      `/uploads/sessions/${identifier(sessionId)}`,
+      { method: "DELETE" },
+    ),
   upload: (sessionId: string, file: File, signal?: AbortSignal) =>
     request<{ sessionId: string; status: "COMPLETED"; file: UploadedFile }>(
       `/uploads/sessions/${identifier(sessionId)}/content`,
@@ -144,7 +212,7 @@ export const mediaApi = {
         body: file,
         headers: { "Content-Type": "application/octet-stream" },
         signal,
-        timeoutMs: 150_000,
+        timeoutMs: 660_000,
       },
     ),
 };

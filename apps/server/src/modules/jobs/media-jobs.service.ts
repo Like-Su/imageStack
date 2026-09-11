@@ -16,6 +16,7 @@ import type { ConsumeMessage, Message } from 'amqplib';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { AiIndexService } from '../ai/ai-index.service';
 import {
   MEDIA_JOB_NAME,
   mediaAssetWhere,
@@ -51,6 +52,7 @@ export class MediaJobsService
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly processor: MediaProcessorService,
+    private readonly aiIndex: AiIndexService,
   ) {}
 
   onModuleInit(): void {
@@ -359,6 +361,13 @@ export class MediaJobsService
 
     try {
       const result = await this.processor.process(data);
+      if (result.kind === 'complete' || result.kind === 'skip') {
+        await this.aiIndex.enqueueAutomatic(data).catch(() => {
+          this.logger.warn(
+            `图片 ${data.assetId} 的自动识图入队失败，可在搜索页补建索引`,
+          );
+        });
+      }
       if (result.kind === 'retry') {
         await this.publish(
           mediaRetryQueue(this.settings.queueName, result.delayMs),

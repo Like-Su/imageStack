@@ -25,11 +25,11 @@ const emit = defineEmits<{ refresh: [] }>();
     v-bind="$attrs"
     :id="id"
     v-model="value"
-    label="图形验证码"
+    :label="$t('图形验证码')"
     :icon="ShieldCheck"
     :error="error || loadError"
     :disabled="disabled || loading || !image"
-    placeholder="输入验证码"
+    :placeholder="$t('输入验证码')"
     autocomplete="off"
     autocapitalize="off"
     :spellcheck="false"
@@ -43,14 +43,14 @@ const emit = defineEmits<{ refresh: [] }>();
         :disabled="disabled || loading"
         @click="emit('refresh')"
       >
-        <RefreshCw class="size-3" aria-hidden="true" />换一张
+        <RefreshCw class="size-3" aria-hidden="true" />{{ $t("换一张") }}
       </button>
     </template>
     <template #suffix>
       <button
         type="button"
         :disabled="disabled || loading"
-        :aria-label="loading ? '正在加载验证码' : '刷新图形验证码'"
+        :aria-label="loading ? $t('正在加载验证码') : $t('刷新图形验证码')"
         class="-mr-2 flex h-9 w-[108px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white text-xs text-slate-600"
         @click="emit('refresh')"
       >
@@ -62,10 +62,10 @@ const emit = defineEmits<{ refresh: [] }>();
         <img
           v-else-if="image"
           :src="image"
-          alt="图形验证码，点击换一张"
+          :alt="$t('图形验证码，点击换一张')"
           class="h-full w-full object-contain"
         />
-        <span v-else>点击重试</span>
+        <span v-else>{{ $t("点击重试") }}</span>
       </button>
     </template>
   </AuthField>

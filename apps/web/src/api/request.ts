@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { API_BASE_URL, API_TIMEOUT_MS } from "@/config/api";
 import type { ApiSuccessResponse } from "@/types/api";
 import type { CsrfTokenResponse } from "@/types/auth";
@@ -52,7 +53,9 @@ export class ApiError extends Error {
 }
 
 export function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "操作失败，请稍后重试";
+  return error instanceof Error
+    ? error.message
+    : translate("操作失败，请稍后重试");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -72,15 +75,18 @@ function responseError(response: Response, payload: unknown): ApiError {
         : "";
 
   if (code === "CSRF_TOKEN_INVALID") {
-    message =
-      "安全校验失败，请重新提交；若仍失败，请检查 Cookie 设置或联系管理员";
+    message = translate(
+      "安全校验失败，请重新提交；若仍失败，请检查 Cookie 设置或联系管理员",
+    );
   } else if (status === 429 && !message) {
-    message = "操作过于频繁，请稍后再试";
-  } else if (status >= 500) {
-    message = "服务器暂时不可用，请稍后重试";
+    message = translate("操作过于频繁，请稍后再试");
+  } else if (status >= 500 && code !== "VIDEO_PROCESSING_UNAVAILABLE") {
+    message = translate("服务器暂时不可用，请稍后重试");
   } else if (!message) {
     message =
-      status === 401 ? "登录状态已失效，请重新登录" : "请求失败，请稍后重试";
+      status === 401
+        ? translate("登录状态已失效，请重新登录")
+        : translate("请求失败，请稍后重试");
   }
 
   const detailsRetryAfter = isRecord(data.details)
@@ -113,7 +119,7 @@ function ensureCsrfToken(rejectedToken?: string): Promise<string> {
     .then((result) => {
       if (!result || typeof result.csrfToken !== "string" || !result.csrfToken)
         throw new ApiError(
-          "服务器未返回安全令牌，请联系管理员",
+          translate("服务器未返回安全令牌，请联系管理员"),
           0,
           "INVALID_RESPONSE",
         );
@@ -131,20 +137,22 @@ export async function request<Data>(
   path: string,
   options: RequestOptions = {},
 ): Promise<Data> {
-  if (options.signal?.aborted) throw new ApiError("请求已取消", 0, "ABORTED");
+  if (options.signal?.aborted)
+    throw new ApiError(translate("请求已取消"), 0, "ABORTED");
   const auth = options.auth !== false ? requestAuth : null;
   const sessionVersion = auth?.getSessionVersion();
   const method = options.method ?? "GET";
   const requestCsrfToken = method !== "GET" ? await ensureCsrfToken() : null;
-  if (options.signal?.aborted) throw new ApiError("请求已取消", 0, "ABORTED");
+  if (options.signal?.aborted)
+    throw new ApiError(translate("请求已取消"), 0, "ABORTED");
   if (auth && sessionVersion !== auth.getSessionVersion())
-    throw new ApiError("登录状态已变化，请重试", 0, "AUTH_CHANGED");
+    throw new ApiError(translate("登录状态已变化，请重试"), 0, "AUTH_CHANGED");
 
   const headers = new Headers(options.headers);
   headers.set(
     "Accept",
     options.responseType === "blob"
-      ? "image/*, application/octet-stream"
+      ? "image/*, video/*, application/octet-stream"
       : "application/json",
   );
   const rawBody =
@@ -195,7 +203,11 @@ export async function request<Data>(
       ) {
         const blob = await response.blob();
         if (auth && sessionVersion !== auth.getSessionVersion())
-          throw new ApiError("登录状态已变化，请重试", 0, "AUTH_CHANGED");
+          throw new ApiError(
+            translate("登录状态已变化，请重试"),
+            0,
+            "AUTH_CHANGED",
+          );
         return blob as Data;
       }
     }
@@ -207,7 +219,7 @@ export async function request<Data>(
     } catch {
       if (!response.ok) throw responseError(response, undefined);
       throw new ApiError(
-        "服务器返回了非 JSON 响应，请检查 API 地址与代理配置",
+        translate("服务器返回了非 JSON 响应，请检查 API 地址与代理配置"),
         response.status,
         "INVALID_RESPONSE",
       );
@@ -223,7 +235,11 @@ export async function request<Data>(
       ) {
         await ensureCsrfToken(requestCsrfToken);
         if (auth && sessionVersion !== auth.getSessionVersion())
-          throw new ApiError("登录状态已变化，请重试", 0, "AUTH_CHANGED");
+          throw new ApiError(
+            translate("登录状态已变化，请重试"),
+            0,
+            "AUTH_CHANGED",
+          );
         return request<Data>(path, { ...options, retryCsrf: false });
       }
 
@@ -255,18 +271,22 @@ export async function request<Data>(
     }
 
     if (auth && sessionVersion !== auth.getSessionVersion())
-      throw new ApiError("登录状态已变化，请重试", 0, "AUTH_CHANGED");
+      throw new ApiError(
+        translate("登录状态已变化，请重试"),
+        0,
+        "AUTH_CHANGED",
+      );
     if (options.responseType === "blob") {
       if (response.status === 202)
         throw new ApiError(
-          "缩略图正在生成",
+          translate("媒体预览正在生成"),
           202,
           "MEDIA_PENDING",
           payload,
           responseError(response, payload).retryAfter ?? 3,
         );
       throw new ApiError(
-        "服务器未返回可用的媒体文件",
+        translate("服务器未返回可用的媒体文件"),
         response.status,
         "INVALID_RESPONSE",
       );
@@ -277,11 +297,12 @@ export async function request<Data>(
     return payload as Data;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    if (options.signal?.aborted) throw new ApiError("请求已取消", 0, "ABORTED");
+    if (options.signal?.aborted)
+      throw new ApiError(translate("请求已取消"), 0, "ABORTED");
     if (controller.signal.aborted)
-      throw new ApiError("请求超时，请稍后重试", 0, "TIMEOUT");
+      throw new ApiError(translate("请求超时，请稍后重试"), 0, "TIMEOUT");
     throw new ApiError(
-      "无法连接服务器，请检查网络及后端服务",
+      translate("无法连接服务器，请检查网络及后端服务"),
       0,
       "NETWORK_ERROR",
     );

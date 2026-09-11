@@ -7,6 +7,7 @@ import {
 } from "vee-validate";
 import type { z as zod } from "zod";
 import { getErrorMessage } from "@/api/request";
+import { i18n, translate } from "@/i18n";
 
 export function useAuthForm<Values extends Record<string, unknown>>(
   schema: zod.ZodType<Values>,
@@ -20,7 +21,7 @@ export function useAuthForm<Values extends Record<string, unknown>>(
       return {
         errors: result.error.issues.map((issue) => ({
           path: issue.path.join("."),
-          errors: [issue.message],
+          errors: [translate(issue.message)],
         })),
       };
     },
@@ -28,6 +29,10 @@ export function useAuthForm<Values extends Record<string, unknown>>(
 
   const form = useForm<Values>({ validationSchema, initialValues });
   const serverError = ref("");
+
+  watch(i18n.global.locale, () => {
+    if (Object.keys(form.errors.value).length) void form.validate();
+  });
 
   watch(
     form.values,

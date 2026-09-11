@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { onBeforeUnmount, ref, watch } from "vue";
-import { ArrowRight, LoaderCircle, Mail } from "lucide-vue-next";
+import { ArrowRight, Mail } from "lucide-vue-next";
 import { authApi } from "@/api/auth";
 import { ApiError } from "@/api/request";
 import { useCaptcha } from "@/composables/useCaptcha";
@@ -67,9 +68,13 @@ function refreshCaptcha() {
 
 const onSubmit = submit(async (values) => {
   if (remainingSeconds.value > 0)
-    throw new Error(`请在 ${remainingSeconds.value} 秒后重新发送`);
+    throw new Error(
+      translate("请在 {value1} 秒后重新发送", {
+        value1: remainingSeconds.value,
+      }),
+    );
   if (!captchaId.value || captchaLoading.value)
-    throw new Error("请先加载图形验证码");
+    throw new Error(translate("请先加载图形验证码"));
 
   controller?.abort();
   const currentController = new AbortController();
@@ -93,7 +98,7 @@ const onSubmit = submit(async (values) => {
       response.expiresIn <= 0
     )
       throw new ApiError(
-        "邮件请求响应不完整，请稍后重试",
+        translate("邮件请求响应不完整，请稍后重试"),
         0,
         "INVALID_RESPONSE",
       );
@@ -122,7 +127,7 @@ const onSubmit = submit(async (values) => {
       id="reset-mail-email"
       v-model="email"
       v-bind="emailAttrs"
-      label="账户邮箱"
+      :label="$t('账户邮箱')"
       :icon="Mail"
       type="email"
       placeholder="you@local.host"
@@ -145,33 +150,34 @@ const onSubmit = submit(async (values) => {
       @refresh="refreshCaptcha"
     />
     <AuthNotice :message="serverError" />
-    <button
-      type="submit"
-      class="auth-button"
+    <el-button
+      type="primary"
+      :loading="isSubmitting"
+      native-type="submit"
+      class="w-full !h-11 !rounded-xl"
       :disabled="
         isSubmitting || captchaLoading || !captchaId || remainingSeconds > 0
       "
     >
-      <LoaderCircle
-        v-if="isSubmitting"
-        class="size-4 animate-spin"
-        aria-hidden="true"
-      />
       {{
         isSubmitting
-          ? "正在提交邮件请求…"
+          ? $t("正在提交邮件请求…")
           : remainingSeconds > 0
-            ? `${remainingSeconds} 秒后可重新发送`
-            : "发送重置邮件"
+            ? $t("{value1} 秒后可重新发送", { value1: remainingSeconds })
+            : $t("发送重置邮件")
       }}
       <ArrowRight
         v-if="!isSubmitting && remainingSeconds === 0"
         class="size-4"
         aria-hidden="true"
       />
-    </button>
+    </el-button>
     <p class="text-xs leading-6 text-faint">
-      如果邮箱对应的账户可用，将收到一次性重置链接和验证码。未收到邮件时，请检查垃圾邮件或联系实例管理员。
+      {{
+        $t(
+          "如果邮箱对应的账户可用，将收到一次性重置链接和验证码。未收到邮件时，请检查垃圾邮件或联系实例管理员。",
+        )
+      }}
     </p>
     <button
       type="button"
@@ -179,7 +185,7 @@ const onSubmit = submit(async (values) => {
       :disabled="isSubmitting"
       @click="emit('useCode', email.trim())"
     >
-      我已有验证码，直接重置
+      {{ $t("我已有验证码，直接重置") }}
     </button>
   </form>
 </template>

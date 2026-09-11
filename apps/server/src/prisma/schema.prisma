@@ -203,8 +203,10 @@ model FileNode {
   takenAt    DateTime?
   exif       Json?
 
-  thumbnailKey String?
-  previewKey   String?
+  thumbnailKey    String?
+  previewKey      String?
+  hlsKey          String?
+  hlsSegmentCount Int     @default(0)
 
   isFavorite Boolean @default(false)
 
@@ -219,15 +221,41 @@ model FileNode {
   uploadSession   UploadSession?
   albums          AlbumAsset[]
   tags            AssetTag[]
-  albumCovers     Album[]          @relation("AlbumCover")
+  albumCovers     Album[]           @relation("AlbumCover")
+  recognition     AssetRecognition?
 
   @@index([storageProvider, storageKey])
+  @@index([ownerId, hash, size])
   @@index([ownerId, parentId])
   @@index([ownerId, deleted, createdAt, id])
   @@index([ownerId, deleted, isFavorite, createdAt, id])
   @@index([processingStatus])
   @@index([processingStatus, processingNextAttemptAt])
   @@index([processingStatus, processingLeaseUntil])
+}
+
+model AssetRecognition {
+  assetId String   @id
+  asset   FileNode @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  status        MediaProcessingStatus @default(PENDING)
+  description   String?
+  keywords      String[]              @default([])
+  ocrText       String?
+  searchText    String?
+  model         String?
+  sourceHash    String?
+  error         String?
+  attempts      Int                   @default(0)
+  leaseToken    String?
+  leaseUntil    DateTime?
+  nextAttemptAt DateTime?
+  indexedAt     DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([status, leaseUntil])
 }
 
 model Album {
@@ -310,6 +338,12 @@ model UploadSession {
 
   status UploadStatus @default(PENDING)
 
+  chunkSize       Int?
+  chunkCount      Int?
+  mergeToken      String?
+  mergeLeaseUntil DateTime?
+  parts           UploadPart[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -317,6 +351,20 @@ model UploadSession {
   file   FileNode? @relation(fields: [fileId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
+  @@index([userId, hash, size])
+  @@index([status, createdAt])
+}
+
+model UploadPart {
+  sessionId  String
+  session    UploadSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  index      Int
+  size       Int
+  hash       String        @db.VarChar(64)
+  storageKey String        @unique
+  createdAt  DateTime      @default(now())
+
+  @@id([sessionId, index])
 }
 
 model FileShare {
