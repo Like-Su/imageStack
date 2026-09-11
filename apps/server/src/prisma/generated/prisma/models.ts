@@ -13,6 +13,7 @@ export type * from './models/Role';
 export type * from './models/Permission';
 export type * from './models/RolePermission';
 export type * from './models/FileNode';
+export type * from './models/AssetRecognition';
 export type * from './models/Album';
 export type * from './models/AlbumAsset';
 export type * from './models/Tag';

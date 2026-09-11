@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { computed } from "vue";
 
 const props = defineProps<{ password: string }>();
@@ -15,36 +16,33 @@ const score = computed(() => {
 });
 
 const label = computed(
-  () => ["", "太弱", "一般", "较强", "非常强"][score.value],
+  () =>
+    [
+      "",
+      translate("太弱"),
+      translate("一般"),
+      translate("较强"),
+      translate("非常强"),
+    ][score.value],
 );
 </script>
 
 <template>
   <div class="mt-2">
-    <div
-      role="meter"
-      aria-label="密码强度"
-      :aria-valuenow="score"
-      :aria-valuetext="label || '尚未输入密码'"
-      aria-valuemin="0"
-      aria-valuemax="4"
-      class="flex gap-1"
-    >
-      <span
-        v-for="segment in 4"
-        :key="segment"
-        class="h-1 flex-1 rounded-full transition-colors"
-        :class="
-          segment > score
-            ? 'bg-panel3'
-            : score === 1
-              ? 'bg-err'
-              : score === 4
-                ? 'bg-ok'
-                : 'bg-warn'
-        "
-      ></span>
-    </div>
+    <el-progress
+      :percentage="score * 25"
+      :show-text="false"
+      :stroke-width="4"
+      :color="
+        score === 1
+          ? 'var(--app-err)'
+          : score === 4
+            ? 'var(--app-ok)'
+            : 'var(--app-warn)'
+      "
+      :aria-label="$t('密码强度')"
+      :aria-valuetext="label || $t('尚未输入密码')"
+    />
     <p
       class="mt-1 text-[11px]"
       :class="
@@ -57,7 +55,11 @@ const label = computed(
               : 'text-warn'
       "
     >
-      {{ password ? `密码强度：${label}` : "使用字母、数字与符号增强强度" }}
+      {{
+        password
+          ? $t("密码强度：{value1}", { value1: label })
+          : $t("使用字母、数字与符号增强强度")
+      }}
     </p>
   </div>
 </template>

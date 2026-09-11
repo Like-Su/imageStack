@@ -19,6 +19,8 @@ export class SearchQueryDto extends ListAssetsDto {
   @NotContains('\u0000')
   q?: string;
 
-  @IsIn(['keyword'], { message: 'M7 仅支持 keyword 搜索模式' })
+  @IsIn(['keyword'], {
+    message: '当前支持 keyword 模式，可检索文件名、标签及 AI 识图结果',
+  })
   mode: 'keyword' = 'keyword';
 }

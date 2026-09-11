@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { onScopeDispose, ref } from "vue";
 import { mediaApi, mediaStreamUrl } from "@/api/media";
 import { ApiError, getErrorMessage } from "@/api/request";
@@ -23,16 +24,20 @@ export function useAssetActions() {
     try {
       if (
         !(await workspace.confirm({
-          title: "移入回收站？",
-          message: `将选中的 ${ids.length} 项媒体移入回收站，可在回收站中恢复。`,
-          confirmLabel: "移入回收站",
+          title: translate("移入回收站？"),
+          message: translate(
+            "将选中的 {value1} 项媒体移入回收站，可在回收站中恢复。",
+            { value1: ids.length },
+          ),
+          confirmLabel: translate("移入回收站"),
           danger: true,
         }))
       )
         return false;
       const success = await workspace.perform(
         () => mediaApi.trash(ids),
-        (result) => `已将 ${result.count} 项媒体移入回收站`,
+        (result) =>
+          translate("已将 {value1} 项媒体移入回收站", { value1: result.count }),
       );
       if (success) closeDeleted(ids);
       return success;
@@ -48,7 +53,8 @@ export function useAssetActions() {
     try {
       const success = await workspace.perform(
         () => mediaApi.restore(ids),
-        (result) => `已恢复 ${result.count} 项媒体`,
+        (result) =>
+          translate("已恢复 {value1} 项媒体", { value1: result.count }),
       );
       if (success) closeDeleted(ids);
       return success;
@@ -64,9 +70,12 @@ export function useAssetActions() {
     try {
       if (
         !(await workspace.confirm({
-          title: "永久删除媒体？",
-          message: `将永久删除选中的 ${ids.length} 项媒体及其相册、标签关联。此操作不可恢复，请确认已有必要备份。`,
-          confirmLabel: "永久删除",
+          title: translate("永久删除媒体？"),
+          message: translate(
+            "将永久删除选中的 {value1} 项媒体及其相册、标签关联。此操作不可恢复，请确认已有必要备份。",
+            { value1: ids.length },
+          ),
+          confirmLabel: translate("永久删除"),
           danger: true,
         }))
       )
@@ -76,8 +85,11 @@ export function useAssetActions() {
       workspace.invalidate();
       workspace.notify(
         result.cleanupPending
-          ? `已删除 ${result.count} 项记录；${result.cleanupPending} 个存储对象清理失败，请管理员查看服务器日志。`
-          : `已永久删除 ${result.count} 项媒体`,
+          ? translate(
+              "已删除 {value1} 项记录；{value2} 个存储对象清理失败，请管理员查看服务器日志。",
+              { value1: result.count, value2: result.cleanupPending },
+            )
+          : translate("已永久删除 {value1} 项媒体", { value1: result.count }),
         result.cleanupPending ? "info" : "success",
       );
       return true;
@@ -121,7 +133,7 @@ export function useAssetActions() {
         }, 30_000);
       } else {
         workspace.notify(
-          "已交给浏览器流式下载，可在浏览器下载列表查看进度。",
+          translate("已交给浏览器流式下载，可在浏览器下载列表查看进度。"),
           "info",
         );
       }

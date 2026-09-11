@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import DOMPurify from "dompurify";
 import { authApi } from "@/api/auth";
@@ -26,7 +27,7 @@ export function useCaptcha() {
         USE_PROFILES: { svg: true, svgFilters: true },
       });
       if (!result.captchaId || !svg.includes("<svg"))
-        throw new Error("验证码加载失败，请点击重试");
+        throw new Error(translate("验证码加载失败，请点击重试"));
       captchaId.value = result.captchaId;
       image.value = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     } catch (caught) {

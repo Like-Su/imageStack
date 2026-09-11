@@ -128,6 +128,14 @@ export function buildAssetFilters(
       OR: [
         { name: { contains: literal, mode: 'insensitive' } },
         {
+          recognition: {
+            is: {
+              status: 'READY',
+              searchText: { contains: literal, mode: 'insensitive' },
+            },
+          },
+        },
+        {
           tags: {
             some: {
               tag: {

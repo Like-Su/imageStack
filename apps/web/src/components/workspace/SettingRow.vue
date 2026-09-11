@@ -16,14 +16,11 @@ defineEmits<{ change: [checked: boolean] }>();
       <h3 class="text-sm">{{ title }}</h3>
       <p class="mt-1 text-xs leading-6 text-soft">{{ description }}</p>
     </div>
-    <button
-      type="button"
-      class="mh-switch"
-      role="switch"
-      :aria-checked="Boolean(checked)"
+    <el-switch
+      :model-value="Boolean(checked)"
       :aria-label="title"
       :disabled="disabled"
-      @click="$emit('change', !checked)"
+      @change="$emit('change', Boolean($event))"
     />
   </div>
 </template>

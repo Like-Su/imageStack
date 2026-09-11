@@ -1,6 +1,29 @@
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
 
+export interface ImageRecognition {
+  status: ProcessingStatus;
+  description: string | null;
+  keywords: string[];
+  ocrText: string | null;
+  model: string | null;
+  error: string | null;
+  attempts: number;
+  indexedAt: string | null;
+  nextAttemptAt: string | null;
+}
+
+export interface AiIndexStatus {
+  configured: boolean;
+  configurationError: string | null;
+  model: string | null;
+  autoIndex: boolean;
+  total: number;
+  unindexed: number;
+  counts: Record<ProcessingStatus, number>;
+  batchSize: number;
+}
+
 export interface AssetTag {
   id: string;
   name: string;

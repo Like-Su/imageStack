@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { i18n, translate } from "@/i18n";
 import {
   computed,
   nextTick,
@@ -32,7 +33,6 @@ const props = defineProps<{ asset: AssetDetail }>();
 const emit = defineEmits<{ close: [] }>();
 const workspace = useWorkspaceStore();
 const { downloading, download } = useAssetActions();
-const dialog = ref<HTMLDialogElement | null>(null);
 const viewport = ref<HTMLDivElement | null>(null);
 const videoElement = ref<HTMLVideoElement | null>(null);
 const titleId = useId();
@@ -74,10 +74,6 @@ const canvasStyle = computed(() => ({
   width: `${displayWidth.value}px`,
   height: `${displayHeight.value}px`,
 }));
-const noticeStart = workspace.notices.at(-1)?.id ?? 0;
-const feedback = computed(() =>
-  workspace.notices.filter((notice) => notice.id > noticeStart).slice(-1),
-);
 let controller: AbortController | null = null;
 let hlsPlayer: Hls | null = null;
 let playerVersion = 0;
@@ -144,7 +140,9 @@ async function retrieve(
       failure.code === "MEDIA_PENDING" &&
       attempt < 40
     ) {
-      loadingMessage.value = "后台正在生成 HLS 视频流，可切回原视频或稍后再试…";
+      loadingMessage.value = translate(
+        "后台正在生成 HLS 视频流，可切回原视频或稍后再试…",
+      );
       retryTimer = window.setTimeout(
         () => {
           void retrieve(current, kind, assetId, attempt + 1);
@@ -157,7 +155,7 @@ async function retrieve(
     loading.value = false;
     error.value =
       failure instanceof ApiError && failure.code === "MEDIA_PENDING"
-        ? "HLS 视频流仍在处理中，请稍后重试；原视频仍可查看和下载。"
+        ? translate("HLS 视频流仍在处理中，请稍后重试；原视频仍可查看和下载。")
         : getErrorMessage(failure);
   }
 }
@@ -170,9 +168,9 @@ function loadMedia(kind: typeof mode.value = mode.value) {
   loadingMessage.value =
     kind === "original"
       ? isVideo.value
-        ? "正在连接原视频流…"
-        : "正在读取原图片…"
-      : "正在加载 HLS 播放列表与首段视频…";
+        ? translate("正在连接原视频流…")
+        : translate("正在读取原图片…")
+      : translate("正在加载 HLS 播放列表与首段视频…");
   dimensions.value = {
     width: props.asset.width || 1,
     height: props.asset.height || 1,
@@ -208,7 +206,9 @@ async function attachVideo(element: HTMLVideoElement | null, url: string) {
     )
       return;
     if (!HlsPlayer.isSupported()) {
-      error.value = "此浏览器不支持 HLS 播放，请查看原视频或更换浏览器。";
+      error.value = translate(
+        "此浏览器不支持 HLS 播放，请查看原视频或更换浏览器。",
+      );
       return;
     }
     const player = new HlsPlayer({
@@ -230,8 +230,9 @@ async function attachVideo(element: HTMLVideoElement | null, url: string) {
         player.recoverMediaError();
         return;
       }
-      error.value =
-        "视频流加载失败或播放凭证失效，请重新加载；也可查看或下载原视频。";
+      error.value = translate(
+        "视频流加载失败或播放凭证失效，请重新加载；也可查看或下载原视频。",
+      );
       mediaReady.value = false;
       hlsPlayer = null;
       player.destroy();
@@ -374,9 +375,15 @@ function cannotDisplay(event: Event) {
   mediaReady.value = false;
   error.value = isVideo.value
     ? mode.value === "original"
-      ? "当前浏览器无法播放此原视频的容器或编码。请切换 HLS 流播，或下载原视频用本地播放器打开。"
-      : "浏览器无法播放 HLS 视频流。请重试或下载原视频用本地播放器打开。"
-    : "当前浏览器无法显示此原图片。请下载原文件，使用支持该格式的浏览器或图片查看器打开。";
+      ? translate(
+          "当前浏览器无法播放此原视频的容器或编码。请切换 HLS 流播，或下载原视频用本地播放器打开。",
+        )
+      : translate(
+          "浏览器无法播放 HLS 视频流。请重试或下载原视频用本地播放器打开。",
+        )
+    : translate(
+        "当前浏览器无法显示此原图片。请下载原文件，使用支持该格式的浏览器或图片查看器打开。",
+      );
 }
 
 function keyboard(event: KeyboardEvent) {
@@ -413,13 +420,15 @@ watch(
   },
   { flush: "post" },
 );
-onMounted(() => {
-  dialog.value?.showModal();
+function observeViewport() {
   resizeViewport();
   if (typeof ResizeObserver !== "undefined") {
+    observer?.disconnect();
     observer = new ResizeObserver(resizeViewport);
     if (viewport.value) observer.observe(viewport.value);
   }
+}
+onMounted(() => {
   window.addEventListener("resize", resizeViewport);
   loadMedia(isVideo.value ? "compatible" : "original");
 });
@@ -427,238 +436,228 @@ onBeforeUnmount(() => {
   clearMedia();
   observer?.disconnect();
   window.removeEventListener("resize", resizeViewport);
-  dialog.value?.close();
 });
 </script>
 
 <template>
-  <Teleport to="body">
-    <dialog
-      ref="dialog"
-      class="original-viewer"
-      :aria-labelledby="titleId"
-      :aria-describedby="helpId"
-      @cancel.prevent="emit('close')"
-      @close="emit('close')"
-      @click.self="emit('close')"
-      @keydown="keyboard"
-    >
-      <section class="viewer-shell">
-        <header
-          class="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6"
-        >
-          <div class="min-w-0">
-            <h2
-              :id="titleId"
-              class="truncate text-sm font-semibold"
-              :title="asset.name"
-            >
-              {{ asset.name }}
-            </h2>
-            <p class="mt-1 text-[11px] text-white/50">
-              {{
-                mode === "compatible"
-                  ? "兼容预览 · MP4（非原文件）"
-                  : isVideo
-                    ? "原视频"
-                    : "原图片"
-              }}
-              · {{ formatBytes(asset.size) }}
-              <span v-if="isVideo">
-                · {{ formatDuration(asset.durationMs) }}</span
-              >
-            </p>
-          </div>
-          <button
-            class="viewer-button shrink-0"
-            type="button"
-            aria-label="关闭原文件预览"
-            title="关闭（Esc）"
-            autofocus
-            @click="emit('close')"
+  <el-dialog
+    :model-value="true"
+    :title="asset.name"
+    :show-close="false"
+    :close-on-click-modal="false"
+    fullscreen
+    append-to-body
+    class="original-viewer"
+    :aria-labelledby="titleId"
+    :aria-describedby="helpId"
+    @opened="observeViewport"
+    @close="emit('close')"
+    @click.self="emit('close')"
+    @keydown="keyboard"
+  >
+    <section class="viewer-shell">
+      <header
+        class="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6"
+      >
+        <div class="min-w-0">
+          <h2
+            :id="titleId"
+            class="truncate text-sm font-semibold"
+            :title="asset.name"
           >
-            <X class="size-5" />
-          </button>
-        </header>
-
-        <div
-          ref="viewport"
-          class="viewer-viewport"
-          :class="{
-            'is-image': !isVideo && mediaReady,
-            'is-dragging': dragging,
-          }"
-          @wheel="wheel"
-          @pointerdown="startDrag"
-          @pointermove="drag"
-          @pointerup="stopDrag"
-          @pointercancel="stopDrag"
-          @lostpointercapture="stopDrag"
-        >
-          <div
-            v-if="source && !error"
-            class="viewer-canvas"
-            :style="canvasStyle"
-          >
-            <video
-              v-if="isVideo"
-              ref="videoElement"
-              :aria-label="asset.name"
-              class="viewer-media"
-              :style="canvasStyle"
-              controls
-              crossorigin="anonymous"
-              playsinline
-              preload="auto"
-              @loadedmetadata="ready"
-              @error="cannotDisplay"
-            />
-            <img
-              v-else
-              :src="source"
-              :alt="asset.name"
-              class="viewer-media"
-              :style="canvasStyle"
-              draggable="false"
-              referrerpolicy="no-referrer"
-              @load="ready"
-              @error="cannotDisplay"
-            />
-          </div>
-          <div
-            v-if="loading || (!mediaReady && !error)"
-            class="viewer-message pointer-events-none"
-            role="status"
-          >
-            <LoaderCircle class="size-7 animate-spin text-accent" />
-            <p>{{ loadingMessage }}</p>
-          </div>
-          <div v-else-if="error" class="viewer-message" role="alert">
-            <Film v-if="isVideo" class="size-9 text-white/40" /><ImageOff
-              v-else
-              class="size-9 text-white/40"
-            />
-            <p class="max-w-lg leading-7">{{ error }}</p>
-            <button class="viewer-button" type="button" @click="loadMedia()">
-              <RotateCcw class="size-4" />重新加载
-            </button>
-          </div>
-        </div>
-
-        <footer class="shrink-0 border-t border-white/10 px-3 py-3 sm:px-6">
-          <div
-            class="flex flex-wrap items-center justify-center gap-2"
-            role="group"
-            aria-label="原文件预览操作"
-          >
-            <button
-              class="viewer-button"
-              type="button"
-              aria-label="缩小"
-              title="缩小（-）"
-              :disabled="!mediaReady || scale <= minimumScale"
-              @click="zoomTo(scale / 1.25)"
-            >
-              <ZoomOut class="size-4" />
-            </button>
-            <output
-              class="min-w-14 text-center font-mono text-xs text-white/70"
-              aria-label="缩放比例"
-              >{{
-                (scale * 100).toLocaleString("zh-CN", {
-                  maximumFractionDigits: 1,
-                })
-              }}%</output
-            >
-            <button
-              class="viewer-button"
-              type="button"
-              aria-label="放大"
-              title="放大（+）"
-              :disabled="!mediaReady || scale >= 8"
-              @click="zoomTo(scale * 1.25)"
-            >
-              <ZoomIn class="size-4" />
-            </button>
-            <button
-              class="viewer-button"
-              :class="{ 'is-active': fitted }"
-              type="button"
-              title="适应窗口（0）"
-              :disabled="!mediaReady"
-              @click="fit"
-            >
-              <Expand class="size-4" /><span class="hidden sm:inline"
-                >适应窗口</span
-              >
-            </button>
-            <button
-              class="viewer-button"
-              type="button"
-              title="原始尺寸（1）"
-              aria-label="原始尺寸 100%"
-              :disabled="!mediaReady"
-              @click="zoomTo(1)"
-            >
-              1:1
-            </button>
-            <button
-              v-if="isVideo"
-              class="viewer-button"
-              type="button"
-              @click="
-                loadMedia(mode === 'original' ? 'compatible' : 'original')
-              "
-            >
-              <Film class="size-4" />{{
-                mode === "original" ? "切换 HLS 流播" : "查看原视频"
-              }}
-            </button>
-            <button
-              class="viewer-button is-primary"
-              type="button"
-              :disabled="downloading || !workspace.can('asset:download')"
-              @click="downloadOriginal"
-            >
-              <LoaderCircle
-                v-if="downloading"
-                class="size-4 animate-spin"
-              /><Download v-else class="size-4" />{{
-                downloading
-                  ? "准备下载…"
-                  : isVideo
-                    ? "下载原视频"
-                    : "下载原图片"
-              }}
-            </button>
-          </div>
-          <p
-            :id="helpId"
-            class="mt-3 text-center text-[10px] leading-5 text-white/40"
-          >
+            {{ asset.name }}
+          </h2>
+          <p class="mt-1 text-[11px] text-white/50">
             {{
-              isVideo
-                ? "HLS 按需加载约 4 秒的视频分段，无需完整下载；原文件下载支持 HTTP Range。"
-                : "滚轮缩放 · 拖动平移 · 动图保留原始动画"
+              mode === "compatible"
+                ? $t("兼容预览 · MP4（非原文件）")
+                : isVideo
+                  ? $t("原视频")
+                  : $t("原图片")
             }}
-            · Esc 关闭
+            · {{ formatBytes(asset.size) }}
+            <span v-if="isVideo">
+              · {{ formatDuration(asset.durationMs) }}</span
+            >
           </p>
-          <p
-            v-for="notice in feedback"
-            :key="notice.id"
-            class="mt-2 text-center text-xs"
-            :class="notice.kind === 'error' ? 'text-err' : 'text-ok'"
-            role="status"
+        </div>
+        <button
+          class="viewer-button shrink-0"
+          type="button"
+          :aria-label="$t('关闭原文件预览')"
+          :title="$t('关闭（Esc）')"
+          autofocus
+          @click="emit('close')"
+        >
+          <X class="size-5" />
+        </button>
+      </header>
+
+      <div
+        ref="viewport"
+        class="viewer-viewport"
+        :class="{
+          'is-image': !isVideo && mediaReady,
+          'is-dragging': dragging,
+        }"
+        @wheel="wheel"
+        @pointerdown="startDrag"
+        @pointermove="drag"
+        @pointerup="stopDrag"
+        @pointercancel="stopDrag"
+        @lostpointercapture="stopDrag"
+      >
+        <div v-if="source && !error" class="viewer-canvas" :style="canvasStyle">
+          <video
+            v-if="isVideo"
+            ref="videoElement"
+            :aria-label="asset.name"
+            class="viewer-media"
+            :style="canvasStyle"
+            controls
+            crossorigin="anonymous"
+            playsinline
+            preload="auto"
+            @loadedmetadata="ready"
+            @error="cannotDisplay"
+          />
+          <img
+            v-else
+            :src="source"
+            :alt="asset.name"
+            class="viewer-media"
+            :style="canvasStyle"
+            draggable="false"
+            referrerpolicy="no-referrer"
+            @load="ready"
+            @error="cannotDisplay"
+          />
+        </div>
+        <div
+          v-if="loading || (!mediaReady && !error)"
+          class="viewer-message pointer-events-none"
+          role="status"
+        >
+          <LoaderCircle class="size-7 animate-spin text-accent" />
+          <p>{{ loadingMessage }}</p>
+        </div>
+        <div v-else-if="error" class="viewer-message" role="alert">
+          <Film v-if="isVideo" class="size-9 text-white/40" /><ImageOff
+            v-else
+            class="size-9 text-white/40"
+          />
+          <p class="max-w-lg leading-7">{{ error }}</p>
+          <button class="viewer-button" type="button" @click="loadMedia()">
+            <RotateCcw class="size-4" />{{ $t("重新加载") }}
+          </button>
+        </div>
+      </div>
+
+      <footer class="shrink-0 border-t border-white/10 px-3 py-3 sm:px-6">
+        <div
+          class="flex flex-wrap items-center justify-center gap-2"
+          role="group"
+          :aria-label="$t('原文件预览操作')"
+        >
+          <button
+            class="viewer-button"
+            type="button"
+            :aria-label="$t('缩小')"
+            :title="$t('缩小（-）')"
+            :disabled="!mediaReady || scale <= minimumScale"
+            @click="zoomTo(scale / 1.25)"
           >
-            {{ notice.message }}
-          </p>
-        </footer>
-      </section>
-    </dialog>
-  </Teleport>
+            <ZoomOut class="size-4" />
+          </button>
+          <output
+            class="min-w-14 text-center font-mono text-xs text-white/70"
+            :aria-label="$t('缩放比例')"
+            >{{
+              (scale * 100).toLocaleString(i18n.global.locale.value, {
+                maximumFractionDigits: 1,
+              })
+            }}%</output
+          >
+          <button
+            class="viewer-button"
+            type="button"
+            :aria-label="$t('放大')"
+            :title="$t('放大（+）')"
+            :disabled="!mediaReady || scale >= 8"
+            @click="zoomTo(scale * 1.25)"
+          >
+            <ZoomIn class="size-4" />
+          </button>
+          <button
+            class="viewer-button"
+            :class="{ 'is-active': fitted }"
+            type="button"
+            :title="$t('适应窗口（0）')"
+            :disabled="!mediaReady"
+            @click="fit"
+          >
+            <Expand class="size-4" /><span class="hidden sm:inline">{{
+              $t("适应窗口")
+            }}</span>
+          </button>
+          <button
+            class="viewer-button"
+            type="button"
+            :title="$t('原始尺寸（1）')"
+            :aria-label="$t('原始尺寸 100%')"
+            :disabled="!mediaReady"
+            @click="zoomTo(1)"
+          >
+            1:1
+          </button>
+          <button
+            v-if="isVideo"
+            class="viewer-button"
+            type="button"
+            @click="loadMedia(mode === 'original' ? 'compatible' : 'original')"
+          >
+            <Film class="size-4" />{{
+              mode === "original" ? $t("切换 HLS 流播") : $t("查看原视频")
+            }}
+          </button>
+          <button
+            class="viewer-button is-primary"
+            type="button"
+            :disabled="downloading || !workspace.can('asset:download')"
+            @click="downloadOriginal"
+          >
+            <LoaderCircle
+              v-if="downloading"
+              class="size-4 animate-spin"
+            /><Download v-else class="size-4" />{{
+              downloading
+                ? $t("准备下载…")
+                : isVideo
+                  ? $t("下载原视频")
+                  : $t("下载原图片")
+            }}
+          </button>
+        </div>
+        <p
+          :id="helpId"
+          class="mt-3 text-center text-[10px] leading-5 text-white/40"
+        >
+          {{
+            $t("{value1} · Esc 关闭", {
+              value1: isVideo
+                ? $t(
+                    "HLS 按需加载约 4 秒的视频分段，无需完整下载；原文件下载支持 HTTP Range。",
+                  )
+                : $t("滚轮缩放 · 拖动平移 · 动图保留原始动画"),
+            })
+          }}
+        </p>
+      </footer>
+    </section>
+  </el-dialog>
 </template>
 
-<style scoped>
+<style>
 .original-viewer {
   position: fixed;
   inset: 0;
@@ -673,13 +672,15 @@ onBeforeUnmount(() => {
   background: rgb(0 0 0 / 78%);
   color: #f4f4f5;
 }
-.original-viewer[open] {
+.original-viewer .el-dialog__body {
+  height: 100%;
   display: grid;
   place-items: center;
 }
-.original-viewer::backdrop {
-  background: rgb(0 0 0 / 70%);
-  backdrop-filter: blur(8px);
+.original-viewer .el-dialog__header {
+  height: 0;
+  padding: 0;
+  overflow: hidden;
 }
 .viewer-shell {
   display: flex;

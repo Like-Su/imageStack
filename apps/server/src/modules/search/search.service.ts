@@ -21,7 +21,7 @@ export class SearchService {
     const scope = createHash('sha256')
       .update(
         JSON.stringify({
-          resource: 'keyword-search',
+          resource: 'keyword-search-with-ai-index',
           keywords,
           type: query.type,
           favorite: query.favorite,

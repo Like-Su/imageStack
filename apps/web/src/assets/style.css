@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: "QingNiaoHuaGuangJianMeiHei", "Inter", "Noto Sans SC", system-ui, sans-serif;
-  --font-display: "Space Grotesk", "QingNiaoHuaGuangJianMeiHei", "Inter", system-ui, sans-serif;
+  --font-sans:
+    "QingNiaoHuaGuangJianMeiHei", "Inter", "Noto Sans SC", system-ui, sans-serif;
+  --font-display:
+    "Space Grotesk", "QingNiaoHuaGuangJianMeiHei", "Inter", system-ui,
+    sans-serif;
   --color-ink: var(--app-ink);
   --color-panel: var(--app-panel);
   --color-panel2: var(--app-panel2);
@@ -102,61 +105,6 @@ button:disabled {
   font-weight: 500;
 }
 
-.auth-input-wrapper {
-  display: flex;
-  min-width: 0;
-  height: 44px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  border: 1px solid var(--app-line);
-  border-radius: 12px;
-  background: var(--app-panel2);
-  transition: border-color 150ms, box-shadow 150ms;
-}
-
-.auth-input-wrapper:focus-within {
-  border-color: color-mix(in srgb, var(--app-accent) 60%, transparent);
-  box-shadow: 0 0 0 1px rgb(255 106 69 / 20%), 0 8px 30px -12px rgb(255 106 69 / 35%);
-}
-
-.auth-input-wrapper.is-invalid {
-  border-color: var(--app-err);
-}
-
-.auth-field-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  color: var(--app-faint);
-}
-
-.auth-input-wrapper:focus-within .auth-field-icon {
-  color: var(--app-accent);
-}
-
-.auth-input {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--app-ghost);
-  font-size: 14px;
-}
-
-.auth-input::placeholder {
-  color: var(--app-faint);
-  opacity: 1;
-}
-
-.auth-input:autofill {
-  box-shadow: 0 0 0 100px var(--app-panel2) inset;
-  -webkit-text-fill-color: var(--app-ghost);
-  caret-color: var(--app-ghost);
-}
-
 .auth-field-error {
   margin-top: 4px;
   color: var(--app-err);
@@ -179,7 +127,9 @@ button:disabled {
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 150ms, border-color 150ms;
+  transition:
+    background 150ms,
+    border-color 150ms;
 }
 
 .auth-button:hover:not(:disabled) {
@@ -239,7 +189,8 @@ button:disabled {
 }
 
 @keyframes auth-drift {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -248,7 +199,8 @@ button:disabled {
 }
 
 @keyframes auth-drift-reverse {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(-18px);
   }
   50% {

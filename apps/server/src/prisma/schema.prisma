@@ -221,7 +221,8 @@ model FileNode {
   uploadSession   UploadSession?
   albums          AlbumAsset[]
   tags            AssetTag[]
-  albumCovers     Album[]          @relation("AlbumCover")
+  albumCovers     Album[]           @relation("AlbumCover")
+  recognition     AssetRecognition?
 
   @@index([storageProvider, storageKey])
   @@index([ownerId, hash, size])
@@ -231,6 +232,30 @@ model FileNode {
   @@index([processingStatus])
   @@index([processingStatus, processingNextAttemptAt])
   @@index([processingStatus, processingLeaseUntil])
+}
+
+model AssetRecognition {
+  assetId String   @id
+  asset   FileNode @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  status        MediaProcessingStatus @default(PENDING)
+  description   String?
+  keywords      String[]              @default([])
+  ocrText       String?
+  searchText    String?
+  model         String?
+  sourceHash    String?
+  error         String?
+  attempts      Int                   @default(0)
+  leaseToken    String?
+  leaseUntil    DateTime?
+  nextAttemptAt DateTime?
+  indexedAt     DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([status, leaseUntil])
 }
 
 model Album {

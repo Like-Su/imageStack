@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { onBeforeUnmount, ref, watch } from "vue";
 import {
   ArrowRight,
@@ -22,7 +23,9 @@ async function activate() {
   const token = activationToken.value;
   if (!token) {
     status.value = "error";
-    errorMessage.value = "激活链接缺少 token，请打开邮件中的完整链接。";
+    errorMessage.value = translate(
+      "激活链接缺少 token，请打开邮件中的完整链接。",
+    );
     return;
   }
 
@@ -34,7 +37,7 @@ async function activate() {
   try {
     const activated = await authApi.activate(token, currentController.signal);
     if (currentController.signal.aborted) return;
-    if (!activated) throw new Error("账户激活未完成，请稍后重试");
+    if (!activated) throw new Error(translate("账户激活未完成，请稍后重试"));
     status.value = "success";
   } catch (error) {
     if (currentController.signal.aborted) return;
@@ -89,30 +92,29 @@ onBeforeUnmount(() => controller?.abort());
     <h1 id="activate-title" class="auth-heading">
       {{
         status === "loading"
-          ? "正在激活账户"
+          ? $t("正在激活账户")
           : status === "success"
-            ? "账户已激活"
-            : "暂时无法激活"
+            ? $t("账户已激活")
+            : $t("暂时无法激活")
       }}
     </h1>
     <p class="auth-description" role="status">
       {{
         status === "loading"
-          ? "正在核验邮件中的激活链接，请稍候…"
+          ? $t("正在核验邮件中的激活链接，请稍候…")
           : status === "success"
-            ? "你的账户已准备就绪，现在可以登录了。"
-            : "请确认链接完整且未过期，或联系实例管理员。"
+            ? $t("你的账户已准备就绪，现在可以登录了。")
+            : $t("请确认链接完整且未过期，或联系实例管理员。")
       }}
     </p>
     <AuthNotice v-if="errorMessage" class="mt-6" :message="errorMessage" />
-    <button
+    <el-button
       v-if="status === 'error' && activationToken"
-      type="button"
-      class="auth-button auth-button-secondary mt-6"
+      native-type="button"
+      class="mt-6 w-full !h-11 !rounded-xl"
       @click="activate"
+      >{{ $t("重试激活") }}</el-button
     >
-      重试激活
-    </button>
     <RouterLink
       v-if="status !== 'loading'"
       :to="{
@@ -120,8 +122,7 @@ onBeforeUnmount(() => controller?.abort());
         query: status === 'success' ? { status: 'activated' } : {},
       }"
       class="auth-button mt-6"
-    >
-      返回登录<ArrowRight class="size-4" aria-hidden="true" />
+      >{{ $t("返回登录") }}<ArrowRight class="size-4" aria-hidden="true" />
     </RouterLink>
   </section>
 </template>

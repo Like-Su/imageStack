@@ -67,9 +67,9 @@ export const systemCapabilities = {
       name: '关键词搜索',
       category: '搜索',
       builtin: true,
-      description: '按文件名、手动标签和条件筛选媒体。',
+      description: '按文件名、手动标签、AI 画面描述和识别文字筛选媒体。',
       detail:
-        'keyword 模式按文件名与标签匹配，多个关键词为 AND 关系；支持时间、收藏、相册、标签、大小和 GPS 分组过滤。不计算向量相似度。',
+        'keyword 模式匹配文件名、手动标签及已完成的 AI 描述、关键词和 OCR，多个关键词为 AND 关系；保留现有筛选与游标分页，不计算向量相似度。',
     },
     {
       id: 'gps',
@@ -84,10 +84,10 @@ export const systemCapabilities = {
       id: 'caption',
       name: 'AI 图像描述',
       category: 'AI',
-      builtin: false,
+      builtin: true,
       description: '根据图像内容自动生成描述和主题标签。',
       detail:
-        '尚未接入图像描述模型和推理服务，当前使用手动标签。此卡片不是可安装的在线插件。',
+        '通过 LangChain 接入 OpenAI 兼容视觉模型。需要配置模型、密钥及服务地址；新图片可自动识别，已有图片在搜索页手动补建。模型输出独立保存，不改动人工标签。识图请求可能产生第三方费用。',
     },
     {
       id: 'vector-search',
@@ -96,7 +96,7 @@ export const systemCapabilities = {
       builtin: false,
       description: '自然语言检索与图像 Embedding 匹配。',
       detail:
-        '尚未接入向量模型或向量数据库。AI 智能搜索页当前回退到真实关键词接口，不伪造检索分数。',
+        '尚未配置 Embedding 模型或向量数据库；当前先用视觉模型识图，再从描述、关键词和识别文字中检索，不伪造向量相似度。',
     },
     {
       id: 'face',
@@ -111,10 +111,10 @@ export const systemCapabilities = {
       id: 'ocr',
       name: 'OCR 文字识别',
       category: 'AI',
-      builtin: false,
+      builtin: true,
       description: '识别截图与照片中的文字。',
       detail:
-        '尚未接入 OCR 引擎，也没有文字识别结果存储和查询接口。请使用文件名或手动标签搜索。',
+        '视觉模型转录图片中清晰可见的文字，结果持久化并参与关键词检索；可在媒体详情查看。准确度受图片清晰度和所配置模型影响，不保证逐字准确。',
     },
     {
       id: 's3',

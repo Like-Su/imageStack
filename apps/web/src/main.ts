@@ -1,20 +1,25 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import "element-plus/dist/index.css";
 // 保持 字体一致性
 import "./assets/fonts.css";
 import "./assets/style.css";
 import "./assets/theme/theme.css";
+import "./assets/theme/element-plus.css";
 import App from "./App.vue";
 import router from "./router";
 import { configureRequestAuth } from "./api/request";
 import { useAuthStore } from "./stores/auth";
+import { i18n, initLocale } from "./i18n";
 
 import { initTheme } from "./composables/useTheme.ts";
 
 initTheme();
+initLocale();
 
 function bootstrap() {
   const app = createApp(App);
+  app.use(i18n);
 
   // 全局异常捕获
   app.config.errorHandler = (err, instance, info) => {

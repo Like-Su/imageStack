@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import { authApi } from "@/api/auth";
@@ -75,7 +76,11 @@ function validateTokens(tokens: AuthTokens) {
     !Number.isFinite(tokens.expiresIn) ||
     tokens.expiresIn <= 0
   )
-    throw new ApiError("服务器返回的登录信息不完整", 0, "INVALID_RESPONSE");
+    throw new ApiError(
+      translate("服务器返回的登录信息不完整"),
+      0,
+      "INVALID_RESPONSE",
+    );
 }
 
 function isSessionRejected(error: unknown) {
@@ -127,9 +132,14 @@ export const useAuthStore = defineStore("auth", () => {
     const tokens = await authApi.login(payload);
     validateTokens(tokens);
     const profile = await authApi.me(tokens.accessToken);
-    if (!profile) throw new ApiError("无法读取账户信息，请联系管理员", 403);
+    if (!profile)
+      throw new ApiError(translate("无法读取账户信息，请联系管理员"), 403);
     if (sessionVersion !== currentVersion)
-      throw new ApiError("登录状态已变化，请重新登录", 0, "AUTH_CHANGED");
+      throw new ApiError(
+        translate("登录状态已变化，请重新登录"),
+        0,
+        "AUTH_CHANGED",
+      );
     sessionVersion += 1;
     user.value = profile;
     saveTokens(tokens, remember);
@@ -182,7 +192,8 @@ export const useAuthStore = defineStore("auth", () => {
           return;
         const profile = await authApi.me();
         if (currentVersion !== sessionVersion) return;
-        if (!profile) throw new ApiError("账户不可用，请重新登录", 401);
+        if (!profile)
+          throw new ApiError(translate("账户不可用，请重新登录"), 401);
         user.value = profile;
         persistSession(session.value, profile);
       } catch (error) {
@@ -206,7 +217,8 @@ export const useAuthStore = defineStore("auth", () => {
         const result = allDevices
           ? await authApi.logoutAll()
           : await authApi.logout(session.value.refreshToken);
-        if (!result) throw new ApiError("服务器未完成注销，请稍后重试");
+        if (!result)
+          throw new ApiError(translate("服务器未完成注销，请稍后重试"));
       }
     } finally {
       if (sessionVersion === currentVersion) clearSession();

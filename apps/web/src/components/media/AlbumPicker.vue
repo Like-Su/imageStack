@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { ref } from "vue";
-import { FolderPlus, LoaderCircle } from "lucide-vue-next";
+import { FolderPlus } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useRemoteData } from "@/composables/useRemoteData";
@@ -27,7 +28,7 @@ async function submit() {
   if (busy.value) return;
   formError.value = "";
   if (creating.value ? !newName.value.trim() : !selected.value) {
-    formError.value = "请先选择相册或输入新相册名称";
+    formError.value = translate("请先选择相册或输入新相册名称");
     return;
   }
   busy.value = true;
@@ -41,8 +42,8 @@ async function submit() {
     workspace.invalidate();
     workspace.notify(
       result.count
-        ? `已添加 ${result.count} 项媒体到相册`
-        : "所选媒体已在此相册中",
+        ? translate("已添加 {value1} 项媒体到相册", { value1: result.count })
+        : translate("所选媒体已在此相册中"),
     );
     emit("saved");
     emit("close");
@@ -58,8 +59,12 @@ async function submit() {
 <template>
   <AppModal
     open
-    title="添加到相册"
-    :description="`已选择 ${assetIds.length} 项媒体，不会移动或复制原文件。`"
+    :title="$t('添加到相册')"
+    :description="
+      $t('已选择 {value1} 项媒体，不会移动或复制原文件。', {
+        value1: assetIds.length,
+      })
+    "
     :busy="busy"
     @update:open="emit('close')"
   >
@@ -72,23 +77,31 @@ async function submit() {
       />
       <template v-else>
         <label v-if="!creating" class="mh-label"
-          >选择相册<select v-model="selected" class="mh-input" :disabled="busy">
-            <option value="">
-              {{ albums?.length ? "请选择相册" : "还没有相册，请先新建" }}
-            </option>
-            <option v-for="album in albums" :key="album.id" :value="album.id">
-              {{ album.name }} · {{ album.count }} 项
-            </option>
-          </select></label
-        >
+          >{{ $t("选择相册")
+          }}<el-select v-model="selected" class="min-w-36" :disabled="busy">
+            <el-option
+              :label="
+                albums?.length ? $t('请选择相册') : $t('还没有相册，请先新建')
+              "
+              value=""
+            >
+            </el-option>
+            <el-option
+              :label="album.name + '·' + album.count + $t('项')"
+              v-for="album in albums"
+              :key="album.id"
+              :value="album.id"
+            >
+            </el-option> </el-select
+        ></label>
         <label v-else class="mh-label"
-          >新相册名称<input
+          >{{ $t("新相册名称")
+          }}<el-input
             v-model="newName"
-            class="mh-input"
             maxlength="200"
             required
             :disabled="busy"
-            placeholder="例如：旅行的记忆"
+            :placeholder="$t('例如：旅行的记忆')"
         /></label>
         <button
           type="button"
@@ -97,7 +110,7 @@ async function submit() {
           @click="creating = !creating"
         >
           <FolderPlus class="size-3.5" />{{
-            creating ? "选择已有相册" : "新建相册"
+            creating ? $t("选择已有相册") : $t("新建相册")
           }}
         </button>
       </template>
@@ -105,20 +118,18 @@ async function submit() {
         {{ formError }}
       </p>
       <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          class="mh-button"
+        <el-button
+          native-type="button"
           :disabled="busy"
           @click="emit('close')"
-        >
-          取消</button
-        ><button
-          type="submit"
-          class="mh-button mh-button-primary"
+          >{{ $t("取消") }}</el-button
+        ><el-button
+          type="primary"
+          :loading="busy"
+          native-type="submit"
           :disabled="busy || loading"
+          >{{ $t("添加到相册") }}</el-button
         >
-          <LoaderCircle v-if="busy" class="animate-spin" />添加到相册
-        </button>
       </div>
     </form>
   </AppModal>

@@ -1,15 +1,13 @@
+import { translate } from "@/i18n";
 import { computed, ref, shallowRef } from "vue";
 import { defineStore } from "pinia";
+import { ElMessage } from "element-plus";
 import { mediaApi } from "@/api/media";
 import { ApiError, getErrorMessage } from "@/api/request";
 import { useAuthStore } from "./auth";
 import type { AssetSummary, LibraryOverview } from "@/types/media";
 
-interface Notice {
-  id: number;
-  message: string;
-  kind: "success" | "error" | "info";
-}
+type NoticeKind = "success" | "error" | "info";
 interface Confirmation {
   title: string;
   message: string;
@@ -23,7 +21,6 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   const overviewError = ref("");
   const revision = ref(0);
   const selectedAsset = shallowRef<AssetSummary | null>(null);
-  const notices = ref<Notice[]>([]);
   const confirmation = shallowRef<Confirmation | null>(null);
   const favoriteBusy = ref(new Set<string>());
   const pendingTasks = computed(() =>
@@ -32,9 +29,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       : 0,
   );
   let overviewController: AbortController | null = null;
-  let noticeId = 0;
   let confirmationResolve: ((answer: boolean) => void) | null = null;
-  const timers = new Map<number, number>();
 
   function can(permission: string) {
     return (
@@ -43,23 +38,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     );
   }
 
-  function dismissNotice(id: number) {
-    window.clearTimeout(timers.get(id));
-    timers.delete(id);
-    notices.value = notices.value.filter((notice) => notice.id !== id);
-  }
-
-  function notify(message: string, kind: Notice["kind"] = "success") {
-    const id = ++noticeId;
-    notices.value.push({ id, message, kind });
-    if (notices.value.length > 4) dismissNotice(notices.value[0]!.id);
-    timers.set(
-      id,
-      window.setTimeout(
-        () => dismissNotice(id),
-        kind === "error" ? 9000 : 4500,
-      ),
-    );
+  function notify(message: string, kind: NoticeKind = "success") {
+    ElMessage({
+      message,
+      type: kind,
+      showClose: true,
+      duration: kind === "error" ? 9000 : 4500,
+    });
   }
 
   async function loadOverview() {
@@ -127,7 +112,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     try {
       await perform(
         () => mediaApi.favorite(asset.id, !asset.isFavorite),
-        asset.isFavorite ? "已取消收藏" : "已加入收藏",
+        asset.isFavorite ? translate("已取消收藏") : translate("已加入收藏"),
       );
     } finally {
       favoriteBusy.value.delete(asset.id);
@@ -141,9 +126,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     selectedAsset.value = null;
     favoriteBusy.value.clear();
     answerConfirmation(false);
-    for (const timer of timers.values()) window.clearTimeout(timer);
-    timers.clear();
-    notices.value = [];
+    ElMessage.closeAll();
   }
 
   return {
@@ -151,13 +134,11 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     overviewError,
     revision,
     selectedAsset,
-    notices,
     confirmation,
     favoriteBusy,
     pendingTasks,
     can,
     notify,
-    dismissNotice,
     loadOverview,
     invalidate,
     confirm,

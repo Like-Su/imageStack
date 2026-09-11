@@ -33,20 +33,22 @@ const labels = {
   <aside
     v-if="uploads.open"
     class="fixed right-3 bottom-3 z-40 w-[360px] max-w-[calc(100vw-24px)] overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_16px_60px_rgba(0,0,0,.45)]"
-    aria-label="上传队列"
+    :aria-label="$t('上传队列')"
   >
     <header class="flex items-center gap-2 border-b border-line px-4 py-3">
       <Upload class="size-4 text-accent" aria-hidden="true" />
       <h2 class="flex-1 text-sm font-semibold">
-        上传文件
-        <span class="ml-1 text-xs font-normal text-soft"
+        {{ $t("上传文件")
+        }}<span class="ml-1 text-xs font-normal text-soft"
           >{{ uploads.completed }} / {{ uploads.entries.length }}</span
         >
       </h2>
       <button
         class="text-faint hover:text-ghost"
         type="button"
-        :aria-label="uploads.collapsed ? '展开上传队列' : '折叠上传队列'"
+        :aria-label="
+          uploads.collapsed ? $t('展开上传队列') : $t('折叠上传队列')
+        "
         @click="uploads.collapsed = !uploads.collapsed"
       >
         <component
@@ -57,7 +59,7 @@ const labels = {
       <button
         class="ml-2 text-faint hover:text-ghost"
         type="button"
-        aria-label="隐藏上传队列，上传继续"
+        :aria-label="$t('隐藏上传队列，上传继续')"
         @click="uploads.open = false"
       >
         <X class="size-4" />
@@ -69,7 +71,7 @@ const labels = {
           v-if="!uploads.entries.length"
           class="py-6 text-center text-xs text-soft"
         >
-          选择图片或视频，开始建立你的媒体库。
+          {{ $t("选择图片或视频，开始建立你的媒体库。") }}
         </p>
         <div
           v-for="entry in uploads.entries"
@@ -98,13 +100,13 @@ const labels = {
                 {{
                   entry.state === "running"
                     ? entry.phase === "hashing"
-                      ? `计算指纹 ${entry.hashProgress}%`
+                      ? $t("计算指纹 {value1}%", { value1: entry.hashProgress })
                       : entry.phase === "verifying"
-                        ? "合并校验中"
-                        : `${entry.resumed ? "续传 " : ""}${Math.floor((entry.uploadedBytes / entry.size) * 100)}%`
+                        ? $t("合并校验中")
+                        : `${entry.resumed ? $t("续传 ") : ""}${Math.floor((entry.uploadedBytes / entry.size) * 100)}%`
                     : entry.instant && entry.state === "done"
-                      ? "秒传完成"
-                      : labels[entry.state]
+                      ? $t("秒传完成")
+                      : $t(labels[entry.state])
                 }}
               </span>
             </div>
@@ -134,7 +136,7 @@ const labels = {
             v-if="['error', 'paused'].includes(entry.state) && entry.file"
             class="self-start text-soft hover:text-accent"
             type="button"
-            :aria-label="`继续上传 ${entry.name}`"
+            :aria-label="$t('继续上传 {value1}', { value1: entry.name })"
             @click="uploads.retry(entry)"
           >
             <RotateCcw class="size-3.5" />
@@ -143,10 +145,10 @@ const labels = {
             v-if="entry.state === 'running'"
             class="self-start text-[11px] text-soft hover:text-accent"
             type="button"
-            :aria-label="`暂停上传 ${entry.name}`"
+            :aria-label="$t('暂停上传 {value1}', { value1: entry.name })"
             @click="uploads.pause(entry)"
           >
-            暂停
+            {{ $t("暂停") }}
           </button>
           <button
             v-if="
@@ -155,7 +157,7 @@ const labels = {
             "
             class="self-start text-soft hover:text-err"
             type="button"
-            :aria-label="`取消上传 ${entry.name}`"
+            :aria-label="$t('取消上传 {value1}', { value1: entry.name })"
             @click="uploads.cancel(entry)"
           >
             <X class="size-3.5" />
@@ -164,12 +166,19 @@ const labels = {
       </div>
       <footer class="border-t border-line bg-panel2/50 p-4">
         <p class="text-[10px] leading-5 text-faint">
-          {{ UPLOAD_IMAGE_LABEL }}；{{ UPLOAD_VIDEO_LABEL }}<br />
-          {{ UPLOAD_LIMITS_LABEL }}，单帧 ≤ 2000 万像素、动图 ≤ 1000 帧。<br />
-          动图保留动画，SVG 仅接受安全静态图形。超过 5 MiB
-          自动分片，支持暂停与断点续传。<br />
-          刷新后 24 小时内重选同一文件可续传；已有文件按内容指纹秒传复用。
-          视频后台生成封面及 HLS 按段播放流。
+          {{ $t(UPLOAD_IMAGE_LABEL) }}；{{ UPLOAD_VIDEO_LABEL }}<br />{{
+            $t("{value1}，单帧 ≤ 2000 万像素、动图 ≤ 1000 帧。", {
+              value1: $t(UPLOAD_LIMITS_LABEL),
+            })
+          }}<br />{{
+            $t(
+              "动图保留动画，SVG 仅接受安全静态图形。超过 5 MiB 自动分片，支持暂停与断点续传。",
+            )
+          }}<br />{{
+            $t(
+              "刷新后 24 小时内重选同一文件可续传；已有文件按内容指纹秒传复用。 视频后台生成封面及 HLS 按段播放流。",
+            )
+          }}
         </p>
         <div class="mt-3 flex items-center justify-between gap-2 text-xs">
           <button
@@ -177,20 +186,20 @@ const labels = {
             class="text-soft hover:text-ghost"
             @click="uploads.clearFinished"
           >
-            清理已完成
+            {{ $t("清理已完成") }}
           </button>
           <RouterLink
             class="text-ai"
             :to="{ name: 'tasks' }"
             @click="uploads.open = false"
-            >查看处理任务</RouterLink
+            >{{ $t("查看处理任务") }}</RouterLink
           >
           <button
             type="button"
             class="text-accent"
             @click="uploads.chooseFiles"
           >
-            继续上传
+            {{ $t("继续上传") }}
           </button>
         </div>
       </footer>

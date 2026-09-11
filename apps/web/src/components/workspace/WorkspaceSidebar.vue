@@ -31,7 +31,7 @@ const activeRatio = computed(() =>
       <RouterLink
         :to="{ name: 'home' }"
         class="flex items-center gap-2.5"
-        aria-label="Media Hub 图库"
+        :aria-label="$t('Media Hub 图库')"
         @click="emit('navigate')"
       >
         <span
@@ -50,7 +50,7 @@ const activeRatio = computed(() =>
         v-if="mobile"
         type="button"
         class="ml-auto text-soft"
-        aria-label="关闭导航"
+        :aria-label="$t('关闭导航')"
         @click="emit('navigate')"
       >
         <X class="size-4" />
@@ -58,11 +58,11 @@ const activeRatio = computed(() =>
     </div>
     <nav
       class="flex-1 space-y-5 overflow-y-auto px-3 py-4"
-      aria-label="媒体库导航"
+      :aria-label="$t('媒体库导航')"
     >
       <div v-for="group in navigation" :key="group.label">
         <p class="mb-2 px-3 text-[10px] font-medium tracking-wider text-faint">
-          {{ group.label }}
+          {{ $t(group.label) }}
         </p>
         <div class="space-y-1">
           <RouterLink
@@ -94,7 +94,7 @@ const activeRatio = computed(() =>
               "
               aria-hidden="true"
             />
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
             <span
               v-if="'count' in item && workspace.overview"
               class="ml-auto text-[10px] tabular-nums text-faint"
@@ -113,7 +113,7 @@ const activeRatio = computed(() =>
       <div class="rounded-xl bg-panel2 p-3">
         <div class="flex items-center justify-between text-[11px] text-soft">
           <span class="flex items-center gap-1.5"
-            ><HardDrive class="size-3.5" />原图存储</span
+            ><HardDrive class="size-3.5" />{{ $t("原图存储") }}</span
           ><span class="text-ghost">{{
             workspace.overview ? formatBytes(totalBytes) : "—"
           }}</span>
@@ -129,7 +129,9 @@ const activeRatio = computed(() =>
           <div v-if="totalBytes" class="flex-1 bg-faint" />
         </div>
         <p class="mt-2 text-[10px] leading-5 text-faint">
-          当前账户 · 图库与回收站<br />不含缩略图，不代表磁盘总容量
+          {{ $t("当前账户 · 图库与回收站") }}<br />{{
+            $t("不含缩略图，不代表磁盘总容量")
+          }}
         </p>
         <button
           v-if="workspace.overviewError"
@@ -138,7 +140,7 @@ const activeRatio = computed(() =>
           :title="workspace.overviewError"
           @click="workspace.loadOverview"
         >
-          统计获取失败，点击重试
+          {{ $t("统计获取失败，点击重试") }}
         </button>
       </div>
     </div>

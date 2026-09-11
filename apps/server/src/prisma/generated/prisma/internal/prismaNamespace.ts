@@ -433,6 +433,7 @@ export const ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   FileNode: 'FileNode',
+  AssetRecognition: 'AssetRecognition',
   Album: 'Album',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
@@ -469,6 +470,7 @@ export type TypeMap<
       | 'permission'
       | 'rolePermission'
       | 'fileNode'
+      | 'assetRecognition'
       | 'album'
       | 'albumAsset'
       | 'tag'
@@ -932,6 +934,82 @@ export type TypeMap<
           args: Prisma.FileNodeCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.FileNodeCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    AssetRecognition: {
+      payload: Prisma.$AssetRecognitionPayload<ExtArgs>;
+      fields: Prisma.AssetRecognitionFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AssetRecognitionFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AssetRecognitionFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        findFirst: {
+          args: Prisma.AssetRecognitionFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AssetRecognitionFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        findMany: {
+          args: Prisma.AssetRecognitionFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>[];
+        };
+        create: {
+          args: Prisma.AssetRecognitionCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        createMany: {
+          args: Prisma.AssetRecognitionCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AssetRecognitionCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>[];
+        };
+        delete: {
+          args: Prisma.AssetRecognitionDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        update: {
+          args: Prisma.AssetRecognitionUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AssetRecognitionDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AssetRecognitionUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AssetRecognitionUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>[];
+        };
+        upsert: {
+          args: Prisma.AssetRecognitionUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRecognitionPayload>;
+        };
+        aggregate: {
+          args: Prisma.AssetRecognitionAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAssetRecognition>;
+        };
+        groupBy: {
+          args: Prisma.AssetRecognitionGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AssetRecognitionGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AssetRecognitionCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AssetRecognitionCountAggregateOutputType>
             | number;
         };
       };
@@ -1688,6 +1766,28 @@ export const FileNodeScalarFieldEnum = {
 export type FileNodeScalarFieldEnum =
   (typeof FileNodeScalarFieldEnum)[keyof typeof FileNodeScalarFieldEnum];
 
+export const AssetRecognitionScalarFieldEnum = {
+  assetId: 'assetId',
+  status: 'status',
+  description: 'description',
+  keywords: 'keywords',
+  ocrText: 'ocrText',
+  searchText: 'searchText',
+  model: 'model',
+  sourceHash: 'sourceHash',
+  error: 'error',
+  attempts: 'attempts',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  nextAttemptAt: 'nextAttemptAt',
+  indexedAt: 'indexedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AssetRecognitionScalarFieldEnum =
+  (typeof AssetRecognitionScalarFieldEnum)[keyof typeof AssetRecognitionScalarFieldEnum];
+
 export const AlbumScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2213,6 +2313,7 @@ export type GlobalOmitConfig = {
   permission?: Prisma.PermissionOmit;
   rolePermission?: Prisma.RolePermissionOmit;
   fileNode?: Prisma.FileNodeOmit;
+  assetRecognition?: Prisma.AssetRecognitionOmit;
   album?: Prisma.AlbumOmit;
   albumAsset?: Prisma.AlbumAssetOmit;
   tag?: Prisma.TagOmit;

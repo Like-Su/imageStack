@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { ref } from "vue";
-import { LoaderCircle } from "lucide-vue-next";
+
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -32,8 +33,9 @@ async function submit() {
     names.length > 50 ||
     names.some((name) => name.length > 100 || name.includes("\0"))
   ) {
-    error.value =
-      "请填写 1～50 个标签，每个标签（含人物前缀）不超过 100 字符。";
+    error.value = translate(
+      "请填写 1～50 个标签，每个标签（含人物前缀）不超过 100 字符。",
+    );
     return;
   }
   busy.value = true;
@@ -45,12 +47,18 @@ async function submit() {
       completed.value += 1;
     }
     workspace.notify(
-      `已为 ${completed.value} 项媒体添加${people.value ? "人物" : "标签"}`,
+      translate("已为 {value1} 项媒体添加{value2}", {
+        value1: completed.value,
+        value2: people.value ? translate("人物") : translate("标签"),
+      }),
     );
     emit("saved");
     emit("close");
   } catch (cause) {
-    error.value = `已成功更新 ${completed.value} 项；${getErrorMessage(cause)}。可重试，已有标签不会重复添加。`;
+    error.value = translate(
+      "已成功更新 {value1} 项；{value2}。可重试，已有标签不会重复添加。",
+      { value1: completed.value, value2: getErrorMessage(cause) },
+    );
   } finally {
     workspace.invalidate();
     busy.value = false;
@@ -61,14 +69,18 @@ async function submit() {
 <template>
   <AppModal
     open
-    title="添加标签 / 人物"
+    :title="$t('添加标签 / 人物')"
     :busy="busy"
     @update:open="emit('close')"
   >
     <form class="space-y-4 p-5" @submit.prevent="submit">
       <p class="text-xs text-soft">
-        将标签保存到选中的
-        {{ assetIds.length }} 项媒体。人物以专用标签手动归类，不进行人脸识别。
+        {{
+          $t(
+            "将标签保存到选中的 {value1} 项媒体。人物以专用标签手动归类，不进行人脸识别。",
+            { value1: assetIds.length },
+          )
+        }}
       </p>
       <label class="flex items-center gap-2 text-xs text-soft"
         ><input
@@ -76,39 +88,37 @@ async function submit() {
           type="checkbox"
           class="mh-checkbox"
           :disabled="busy"
-        />添加为人物姓名</label
+        />{{ $t("添加为人物姓名") }}</label
       >
       <label class="mh-label"
-        >{{ people ? "人物姓名" : "标签名称"
-        }}<textarea
+        >{{ people ? $t("人物姓名") : $t("标签名称")
+        }}<el-input
+          type="textarea"
+          :rows="4"
           v-model="text"
-          class="mh-input min-h-24 resize-y"
           maxlength="5000"
           required
           :disabled="busy"
-          placeholder="多个名称用逗号或换行分隔"
+          :placeholder="$t('多个名称用逗号或换行分隔')"
         />
       </label>
       <p v-if="error" class="text-xs leading-6 text-err" role="alert">
         {{ error }}
       </p>
       <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          class="mh-button"
+        <el-button
+          native-type="button"
           :disabled="busy"
           @click="emit('close')"
-        >
-          取消</button
-        ><button
-          type="submit"
-          class="mh-button mh-button-primary"
+          >{{ $t("取消") }}</el-button
+        ><el-button
+          type="primary"
+          :loading="busy"
+          native-type="submit"
           :disabled="busy"
         >
-          <LoaderCircle v-if="busy" class="animate-spin" />{{
-            busy ? `${completed} / ${assetIds.length}` : "保存标签"
-          }}
-        </button>
+          {{ busy ? `${completed} / ${assetIds.length}` : $t("保存标签") }}
+        </el-button>
       </div>
     </form>
   </AppModal>

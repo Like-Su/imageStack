@@ -541,6 +541,41 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
 };
 
+export type EnumMediaProcessingStatusFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus;
+};
+
+export type EnumMediaProcessingStatusWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
+};
+
 export type EnumUploadStatusFilter<$PrismaModel = never> = {
   equals?:
     $Enums.UploadStatus | Prisma.EnumUploadStatusFieldRefInput<$PrismaModel>;
@@ -1098,6 +1133,41 @@ export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntNullableFilter<$PrismaModel>;
   _min?: Prisma.NestedIntNullableFilter<$PrismaModel>;
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+};
+
+export type NestedEnumMediaProcessingStatusFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus;
+};
+
+export type NestedEnumMediaProcessingStatusWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.MediaProcessingStatus
+    | Prisma.EnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.MediaProcessingStatus[]
+    | Prisma.ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumMediaProcessingStatusWithAggregatesFilter<$PrismaModel>
+    | $Enums.MediaProcessingStatus;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
 };
 
 export type NestedEnumUploadStatusFilter<$PrismaModel = never> = {

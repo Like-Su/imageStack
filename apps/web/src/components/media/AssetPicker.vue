@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Check, LoaderCircle, Search } from "lucide-vue-next";
+import { Check, Search } from "lucide-vue-next";
 import { useAssetFeed } from "@/composables/useAssetFeed";
 import { useWorkspaceStore } from "@/stores/workspace";
 import AppModal from "@/components/workspace/AppModal.vue";
@@ -39,7 +39,7 @@ function toggle(id: string) {
   <AppModal
     open
     :title="title"
-    description="一次最多选择 100 项；只添加关联，不复制原文件。"
+    :description="$t('一次最多选择 100 项；只添加关联，不复制原文件。')"
     :busy="busy"
     @update:open="emit('close')"
   >
@@ -49,29 +49,29 @@ function toggle(id: string) {
         class="mb-4 flex gap-2"
         @submit.prevent="submitted = searchText.trim()"
       >
-        <input
+        <el-input
           v-model="searchText"
-          class="mh-input"
           type="search"
           maxlength="200"
-          placeholder="搜索文件名或标签"
-          aria-label="筛选可选媒体"
+          :placeholder="$t('搜索文件名或标签')"
+          :aria-label="$t('筛选可选媒体')"
           :disabled="busy"
-        /><button
-          type="submit"
-          class="mh-icon-button"
-          aria-label="搜索"
+        /><el-button
+          text
+          circle
+          native-type="submit"
+          :aria-label="$t('搜索')"
           :disabled="busy"
         >
           <Search />
-        </button>
+        </el-button>
       </form>
       <DataState
         v-if="loading || loadError || !items.length"
         :loading="loading"
         :error="loadError"
-        title="没有找到媒体"
-        description="先在图库上传图片，或换一个关键词。"
+        :title="$t('没有找到媒体')"
+        :description="$t('先在图库上传图片，或换一个关键词。')"
         @retry="feed.reload"
       />
       <div v-else class="grid max-h-80 grid-cols-3 gap-2 overflow-y-auto p-1">
@@ -86,7 +86,7 @@ function toggle(id: string) {
               : 'border-line'
           "
           :disabled="busy || (selected.size >= 100 && !selected.has(asset.id))"
-          :aria-label="`选择 ${asset.name}`"
+          :aria-label="$t('选择 {value1}', { value1: asset.name })"
           :aria-pressed="selected.has(asset.id)"
           @click="toggle(asset.id)"
         >
@@ -105,28 +105,30 @@ function toggle(id: string) {
         </button>
       </div>
       <p v-if="moreError" class="mt-3 text-xs text-err">{{ moreError }}</p>
-      <button
+      <el-button
+        :loading="loadingMore"
         v-if="hasMore"
-        type="button"
-        class="mh-button mt-3 w-full"
+        native-type="button"
+        class="mt-3 w-full"
         :disabled="loadingMore || busy"
         @click="feed.loadMore"
+        >{{ $t("加载更多") }}</el-button
       >
-        <LoaderCircle v-if="loadingMore" class="animate-spin" />加载更多
-      </button>
       <p v-if="error" class="mt-3 text-xs leading-6 text-err" role="alert">
         {{ error }}
       </p>
       <div class="mt-5 flex items-center justify-between gap-3">
-        <span class="text-xs text-soft">已选择 {{ selected.size }} 项</span
-        ><button
-          type="button"
-          class="mh-button mh-button-primary"
+        <span class="text-xs text-soft">{{
+          $t("已选择 {value1} 项", { value1: selected.size })
+        }}</span
+        ><el-button
+          type="primary"
+          :loading="busy"
+          native-type="button"
           :disabled="busy || !selected.size"
           @click="emit('submit', Array.from(selected))"
+          >{{ $t("添加所选媒体") }}</el-button
         >
-          <LoaderCircle v-if="busy" class="animate-spin" />添加所选媒体
-        </button>
       </div>
     </div>
   </AppModal>

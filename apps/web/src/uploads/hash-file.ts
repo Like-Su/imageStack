@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { UPLOAD_CHUNK_BYTES } from "@/config/workspace";
 
 export interface FileDigest {
@@ -12,7 +13,7 @@ export function hashFile(
 ): Promise<FileDigest> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
-      reject(new DOMException("上传已暂停", "AbortError"));
+      reject(new DOMException(translate("上传已暂停"), "AbortError"));
       return;
     }
     const worker = new Worker(
@@ -27,7 +28,7 @@ export function hashFile(
     };
     const abort = () => {
       cleanup();
-      reject(new DOMException("上传已暂停", "AbortError"));
+      reject(new DOMException(translate("上传已暂停"), "AbortError"));
     };
     signal.addEventListener("abort", abort, { once: true });
     worker.onmessage = (
@@ -41,13 +42,14 @@ export function hashFile(
       if (result.type === "progress") onProgress(result.loaded);
       else {
         cleanup();
-        if (result.type === "error") reject(new Error(result.message));
+        if (result.type === "error")
+          reject(new Error(translate(result.message)));
         else resolve({ hash: result.hash, chunkHashes: result.chunkHashes });
       }
     };
     worker.onerror = () => {
       cleanup();
-      reject(new Error("文件指纹计算失败，请重试"));
+      reject(new Error(translate("文件指纹计算失败，请重试")));
     };
     worker.postMessage({ file, chunkSize: UPLOAD_CHUNK_BYTES });
   });

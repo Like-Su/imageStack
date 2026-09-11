@@ -60,6 +60,7 @@ export const ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   FileNode: 'FileNode',
+  AssetRecognition: 'AssetRecognition',
   Album: 'Album',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
@@ -190,6 +191,28 @@ export const FileNodeScalarFieldEnum = {
 
 export type FileNodeScalarFieldEnum =
   (typeof FileNodeScalarFieldEnum)[keyof typeof FileNodeScalarFieldEnum];
+
+export const AssetRecognitionScalarFieldEnum = {
+  assetId: 'assetId',
+  status: 'status',
+  description: 'description',
+  keywords: 'keywords',
+  ocrText: 'ocrText',
+  searchText: 'searchText',
+  model: 'model',
+  sourceHash: 'sourceHash',
+  error: 'error',
+  attempts: 'attempts',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  nextAttemptAt: 'nextAttemptAt',
+  indexedAt: 'indexedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AssetRecognitionScalarFieldEnum =
+  (typeof AssetRecognitionScalarFieldEnum)[keyof typeof AssetRecognitionScalarFieldEnum];
 
 export const AlbumScalarFieldEnum = {
   id: 'id',

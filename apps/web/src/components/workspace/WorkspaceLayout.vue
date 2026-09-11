@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate } from "@/i18n";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   RouterLink,
@@ -81,7 +82,7 @@ function dragEnter(event: DragEvent) {
 
 function dragLeave() {
   dragDepth = Math.max(0, dragDepth - 1);
-  if (!dragDepth) dragging.value = false;
+  if (dragDepth === 0) dragging.value = false;
 }
 function drop(event: DragEvent) {
   event.preventDefault();
@@ -112,10 +113,11 @@ watch(
 onBeforeRouteLeave(async (to) => {
   if (!to.meta.requiresAuth && auth.isAuthenticated && uploads.active) {
     return workspace.confirm({
-      title: "离开媒体库？",
-      message:
+      title: translate("离开媒体库？"),
+      message: translate(
         "仍有上传未完成。离开会停止本机上传请求，服务器可能已经接收部分文件；返回后请先查看图库。",
-      confirmLabel: "离开",
+      ),
+      confirmLabel: translate("离开"),
     });
   }
   return true;
@@ -154,13 +156,13 @@ onBeforeUnmount(() => {
     <a
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-lg focus:bg-accent focus:p-3 focus:text-ink"
       href="#workspace-content"
-      >跳到主内容</a
+      >{{ $t("跳到主内容") }}</a
     >
     <aside class="hidden md:flex"><WorkspaceSidebar /></aside>
     <dialog
       ref="mobileNavigation"
       class="mh-sidebar-dialog"
-      aria-label="媒体库导航"
+      :aria-label="$t('媒体库导航')"
       @click.self="mobileNavigation?.close()"
     >
       <WorkspaceSidebar mobile @navigate="mobileNavigation?.close()" />
@@ -172,7 +174,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="text-soft md:hidden"
-          aria-label="打开导航"
+          :aria-label="$t('打开导航')"
           @click="mobileNavigation?.showModal()"
         >
           <Menu class="size-5" />
@@ -189,21 +191,21 @@ onBeforeUnmount(() => {
             type="search"
             maxlength="200"
             class="h-full min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-faint"
-            aria-label="搜索文件名或标签"
-            placeholder="搜索你的媒体，用关键词找到灵感…"
+            :aria-label="$t('搜索文件名或标签')"
+            :placeholder="$t('搜索你的媒体，用关键词找到灵感…')"
             :disabled="!workspace.can('asset:search')"
           />
           <kbd
             class="hidden items-center gap-0.5 rounded border border-line px-1.5 py-0.5 text-[10px] text-faint sm:flex"
             ><Command class="size-2.5" /> K</kbd
           >
-          <button type="submit" class="sr-only">搜索</button>
+          <button type="submit" class="sr-only">{{ $t("搜索") }}</button>
         </form>
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <RouterLink
             :to="{ name: 'tasks' }"
             class="relative hidden text-soft hover:text-ghost sm:block"
-            aria-label="查看后台任务"
+            :aria-label="$t('查看后台任务')"
             ><ListTodo class="size-5" /><span
               v-if="workspace.pendingTasks"
               class="absolute -top-2 -right-2 min-w-3.5 rounded-full bg-accent px-1 text-center text-[9px] text-ink"
@@ -212,31 +214,34 @@ onBeforeUnmount(() => {
               }}</span
             ></RouterLink
           >
-          <button
+          <el-button
+            text
+            circle
             v-if="uploads.entries.length"
-            type="button"
-            class="mh-icon-button"
-            aria-label="显示上传队列"
+            native-type="button"
+            :aria-label="$t('显示上传队列')"
             @click="uploads.open = !uploads.open"
           >
             <Upload /><span v-if="uploads.active" class="text-[10px]">{{
               uploads.active
             }}</span>
-          </button>
-          <button
-            class="mh-button mh-button-primary"
-            type="button"
+          </el-button>
+          <el-button
+            type="primary"
+            native-type="button"
             :disabled="!workspace.can('upload:create')"
             @click="uploads.chooseFiles"
           >
-            <Upload /><span class="hidden sm:inline">上传文件</span>
-          </button>
+            <Upload /><span class="hidden sm:inline">{{ $t("上传文件") }}</span>
+          </el-button>
           <RouterLink
             :to="{ name: 'settings', hash: '#account' }"
             class="grid size-8 shrink-0 place-items-center rounded-full border border-line bg-gradient-to-br from-accent/25 to-ai/20 text-xs font-semibold"
-            :aria-label="`账户与设置：${auth.user?.username ?? ''}`"
+            :aria-label="
+              $t('账户与设置：{value1}', { value1: auth.user?.username ?? '' })
+            "
             >{{
-              auth.user?.username?.slice(0, 1).toUpperCase() || "我"
+              auth.user?.username?.slice(0, 1).toUpperCase() || $t("我")
             }}</RouterLink
           >
         </div>
@@ -247,9 +252,11 @@ onBeforeUnmount(() => {
         class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
         tabindex="-1"
       >
-        <RouterView v-slot="{ Component }"
-          ><component :is="Component" :key="String(route.name)"
-        /></RouterView>
+        <RouterView v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" :key="String(route.name)" />
+          </keep-alive>
+        </RouterView>
       </main>
     </div>
     <input
@@ -258,7 +265,7 @@ onBeforeUnmount(() => {
       class="hidden"
       :accept="UPLOAD_ACCEPT"
       multiple
-      aria-label="选择上传图片或视频"
+      :aria-label="$t('选择上传图片或视频')"
       @change="pickFiles"
     />
     <div
@@ -266,10 +273,10 @@ onBeforeUnmount(() => {
       class="pointer-events-none fixed inset-3 z-[60] flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-accent bg-ink/95"
     >
       <Upload class="size-12 text-accent" />
-      <p class="text-xl font-semibold">松开鼠标，上传到图库</p>
+      <p class="text-xl font-semibold">{{ $t("松开鼠标，上传到图库") }}</p>
       <p class="max-w-xl px-6 text-center text-sm leading-7 text-soft">
-        {{ UPLOAD_IMAGE_LABEL }}<br />{{ UPLOAD_VIDEO_LABEL }} ·
-        {{ UPLOAD_LIMITS_LABEL }}
+        {{ $t(UPLOAD_IMAGE_LABEL) }}<br />{{ UPLOAD_VIDEO_LABEL }} ·
+        {{ $t(UPLOAD_LIMITS_LABEL) }}
       </p>
     </div>
     <AssetDetailDrawer />

@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { request } from "./request";
 import { API_BASE_URL } from "@/config/api";
 import type {
@@ -7,8 +8,10 @@ import type {
   AssetQuery,
   AssetSummary,
   AssetTag,
+  AiIndexStatus,
   CursorPage,
   LibraryOverview,
+  ImageRecognition,
   MediaStreamTicket,
   PlacesResult,
   SearchResult,
@@ -28,7 +31,8 @@ function queryString(query: object = {}) {
 
 const identifier = encodeURIComponent;
 export function mediaStreamUrl(path: string) {
-  if (!path.startsWith("/assets/")) throw new Error("媒体播放地址无效");
+  if (!path.startsWith("/assets/"))
+    throw new Error(translate("媒体播放地址无效"));
   return `${API_BASE_URL}${path}`;
 }
 const originalFile = (assetId: string, signal?: AbortSignal) =>
@@ -100,6 +104,17 @@ export const mediaApi = {
       `/search${queryString({ ...query, q: text, mode: "keyword" })}`,
       { signal },
     ),
+  aiStatus: (signal?: AbortSignal) =>
+    request<AiIndexStatus>("/ai/status", { signal }),
+  recognition: (assetId: string, signal?: AbortSignal) =>
+    request<ImageRecognition | null>(`/ai/assets/${identifier(assetId)}`, {
+      signal,
+    }),
+  indexImages: (ids?: string[]) =>
+    request<{ queued: number }>("/ai/index", {
+      method: "POST",
+      body: ids ? { ids } : {},
+    }),
   places: (signal?: AbortSignal) =>
     request<PlacesResult>("/assets/places", { signal }),
   albums: (signal?: AbortSignal) => request<Album[]>("/albums", { signal }),

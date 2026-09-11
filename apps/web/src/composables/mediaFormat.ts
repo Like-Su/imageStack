@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+
 export function formatBytes(value: string | number | null | undefined) {
   if (value === null || value === undefined) return "—";
   const bytes = Number(value);
@@ -8,14 +10,14 @@ export function formatBytes(value: string | number | null | undefined) {
     Math.floor(Math.log(bytes) / Math.log(1024)),
     units.length - 1,
   );
-  return `${(bytes / 1024 ** unit).toLocaleString("zh-CN", { maximumFractionDigits: unit === 0 ? 0 : 1 })} ${units[unit]}`;
+  return `${(bytes / 1024 ** unit).toLocaleString(i18n.global.locale.value, { maximumFractionDigits: unit === 0 ? 0 : 1 })} ${units[unit]}`;
 }
 
 export function formatDate(value: string | null | undefined, withTime = false) {
   if (!value) return "—";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "—";
-  return date.toLocaleString("zh-CN", {
+  return date.toLocaleString(i18n.global.locale.value, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

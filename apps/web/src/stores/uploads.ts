@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import { mediaApi } from "@/api/media";
@@ -59,19 +60,22 @@ export const useUploadsStore = defineStore("uploads", () => {
     if (!workspace.can("upload:create")) return;
     const available = Math.max(0, 100 - entries.value.length);
     if (files.length > available)
-      workspace.notify("上传队列最多保留 100 项，请先清理已完成项目。", "info");
+      workspace.notify(
+        translate("上传队列最多保留 100 项，请先清理已完成项目。"),
+        "info",
+      );
     for (const file of files.slice(0, available)) {
       const kind = uploadMediaKind(file.name);
       const maxBytes =
         kind === "video" ? UPLOAD_VIDEO_MAX_BYTES : UPLOAD_IMAGE_MAX_BYTES;
       const error = !kind
-        ? "请选择受支持的图片或 MP4 / MOV / MKV 视频"
+        ? translate("请选择受支持的图片或 MP4 / MOV / MKV 视频")
         : file.size < 1 || file.size > maxBytes
           ? kind === "video"
-            ? "视频需大于 0 B 且不超过 512 MiB"
-            : "图片需大于 0 B 且不超过 10 MiB"
+            ? translate("视频需大于 0 B 且不超过 512 MiB")
+            : translate("图片需大于 0 B 且不超过 10 MiB")
           : file.name.length > 255 || /[\\/\u0000-\u001f\u007f]/.test(file.name)
-            ? "文件名过长或含有不支持的字符"
+            ? translate("文件名过长或含有不支持的字符")
             : "";
       entries.value.push({
         id: ++nextId,
@@ -123,7 +127,9 @@ export const useUploadsStore = defineStore("uploads", () => {
         if (session?.status === "COMPLETED") {
           if (!session.file)
             throw new Error(
-              "服务器已完成此会话，但对应文件已不可用，请重新选择文件。",
+              translate(
+                "服务器已完成此会话，但对应文件已不可用，请重新选择文件。",
+              ),
             );
           finish(entry, session.file);
           return;
@@ -137,7 +143,7 @@ export const useUploadsStore = defineStore("uploads", () => {
           session = undefined;
         }
       }
-      if (!entry.file) throw new Error("请重新选择文件");
+      if (!entry.file) throw new Error(translate("请重新选择文件"));
       if (!entry.digest) {
         entry.phase = "hashing";
         entry.digest = await hashFile(
@@ -223,7 +229,9 @@ export const useUploadsStore = defineStore("uploads", () => {
     while (session.merging && !session.expired) {
       if (Date.now() >= deadline)
         throw new Error(
-          "服务器仍在校验合并，可稍后继续；已上传的分片不会重复发送。",
+          translate(
+            "服务器仍在校验合并，可稍后继续；已上传的分片不会重复发送。",
+          ),
         );
       await uploadDelay(3000, signal);
       session = await mediaApi.uploadSession(session.id, signal);

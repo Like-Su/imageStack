@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 import { blake3 } from "hash-wasm";
 import { mediaApi } from "@/api/media";
 import { ApiError } from "@/api/request";
@@ -11,12 +12,12 @@ import type { FileDigest } from "./hash-file";
 export function uploadDelay(milliseconds: number, signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal.aborted) {
-      reject(new DOMException("上传已暂停", "AbortError"));
+      reject(new DOMException(translate("上传已暂停"), "AbortError"));
       return;
     }
     const abort = () => {
       clearTimeout(timer);
-      reject(new DOMException("上传已暂停", "AbortError"));
+      reject(new DOMException(translate("上传已暂停"), "AbortError"));
     };
     const timer = window.setTimeout(() => {
       signal.removeEventListener("abort", abort);
@@ -62,7 +63,7 @@ export async function uploadParts(
     !chunkCount ||
     chunkCount !== Math.ceil(file.size / chunkSize)
   )
-    throw new Error("服务端返回的分片配置无效");
+    throw new Error(translate("服务端返回的分片配置无效"));
   const uploaded = new Set(session.uploadedParts);
   const pending = Array.from(
     { length: chunkCount },
@@ -86,7 +87,7 @@ export async function uploadParts(
           chunkSize === UPLOAD_CHUNK_BYTES
             ? digest.chunkHashes[index]
             : await blake3(new Uint8Array(await chunk.arrayBuffer()));
-        if (!hash) throw new Error("分片指纹缺失，请重新选择文件");
+        if (!hash) throw new Error(translate("分片指纹缺失，请重新选择文件"));
         await retryPart(
           () =>
             mediaApi.uploadPart(
