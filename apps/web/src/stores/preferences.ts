@@ -5,6 +5,7 @@ import { useAuthStore } from "./auth";
 
 interface Preferences {
   viewMode: "grid" | "list";
+  sidebarCollapsed: boolean;
   showNames: boolean;
   denseGrid: boolean;
   autoRefresh: boolean;
@@ -13,6 +14,7 @@ interface Preferences {
 
 const defaults = (): Preferences => ({
   viewMode: "grid",
+  sidebarCollapsed: false,
   showNames: false,
   denseGrid: false,
   autoRefresh: true,
@@ -39,6 +41,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
           if (record.viewMode === "grid" || record.viewMode === "list")
             next.viewMode = record.viewMode;
           for (const key of [
+            "sidebarCollapsed",
             "showNames",
             "denseGrid",
             "autoRefresh",

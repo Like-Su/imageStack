@@ -10,6 +10,9 @@ import {
   Puzzle,
   Trash2,
   Settings,
+  ShieldCheck,
+  UserCog,
+  KeyRound,
 } from "lucide-vue-next";
 
 export const PERSON_TAG_PREFIX = "人物:";
@@ -82,6 +85,15 @@ export const navigation = [
       { name: "plugins", label: "插件与扩展", icon: Puzzle },
       { name: "trash", label: "回收站", icon: Trash2, count: "trash" },
       { name: "settings", label: "设置", icon: Settings },
+    ],
+  },
+  {
+    label: "访问管理",
+    adminOnly: true,
+    items: [
+      { name: "admin-users", label: "用户管理", icon: UserCog },
+      { name: "admin-roles", label: "角色管理", icon: ShieldCheck },
+      { name: "admin-permissions", label: "权限管理", icon: KeyRound },
     ],
   },
 ] as const;

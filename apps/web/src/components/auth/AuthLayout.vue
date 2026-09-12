@@ -3,33 +3,7 @@ import { Puzzle, ShieldCheck, Sparkles } from "lucide-vue-next";
 import { RouterView } from "vue-router";
 import AuthBrand from "./AuthBrand.vue";
 import LocaleSwitcher from "@/components/LocaleSwitcher.vue";
-
-const columns = [
-  {
-    animation: "auth-drift 28s linear infinite",
-    photos: [
-      [21, 500],
-      [33, 300],
-      [45, 460],
-    ],
-  },
-  {
-    animation: "auth-drift-reverse 32s linear infinite",
-    photos: [
-      [57, 340],
-      [69, 500],
-      [81, 380],
-    ],
-  },
-  {
-    animation: "auth-drift 24s linear infinite",
-    photos: [
-      [93, 440],
-      [105, 300],
-      [117, 480],
-    ],
-  },
-];
+import authShowcaseUrl from "@/assets/auth-showcase.svg?url&no-inline";
 </script>
 
 <template>
@@ -40,34 +14,21 @@ const columns = [
       class="relative hidden overflow-hidden lg:block"
       :aria-label="$t('Media Hub 产品介绍')"
     >
-      <div
-        class="absolute inset-0 grid grid-cols-3 gap-2 p-2 opacity-40"
+      <img
+        :src="authShowcaseUrl"
+        width="1200"
+        height="1440"
+        alt=""
+        class="auth-showcase absolute inset-0 size-full object-cover object-top opacity-70"
+        loading="lazy"
+        decoding="async"
         aria-hidden="true"
-      >
-        <div
-          v-for="column in columns"
-          :key="column.animation"
-          class="auth-showcase-column space-y-2"
-          :style="{ animation: column.animation }"
-        >
-          <img
-            v-for="[seed, height] in column.photos"
-            :key="seed"
-            :src="`https://picsum.photos/seed/mh${seed}/400/${height}`"
-            :height="height"
-            width="400"
-            alt=""
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            class="w-full rounded-xl bg-panel3 object-cover"
-          />
-        </div>
-      </div>
+      />
       <div
-        class="absolute inset-0 bg-linear-to-t from-ink via-ink/85 to-ink/55"
+        class="absolute inset-0 bg-linear-to-t from-ink via-ink/70 to-ink/15"
       ></div>
       <div
-        class="absolute inset-0 bg-linear-to-r from-transparent to-ink"
+        class="absolute inset-0 bg-linear-to-r from-transparent from-45% to-ink"
       ></div>
       <div
         class="relative z-10 flex h-full flex-col justify-between gap-12 p-12"

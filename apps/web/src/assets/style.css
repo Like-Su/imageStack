@@ -188,29 +188,8 @@ button:disabled {
   }
 }
 
-@keyframes auth-drift {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-24px);
-  }
-}
-
-@keyframes auth-drift-reverse {
-  0%,
-  100% {
-    transform: translateY(-18px);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .auth-in,
-  .auth-showcase-column,
   .animate-spin {
     animation: none !important;
   }

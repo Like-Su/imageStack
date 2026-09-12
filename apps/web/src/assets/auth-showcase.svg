@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1440" viewBox="0 0 1200 1440" fill="none">
+  <defs>
+    <linearGradient id="alpine-sky" x2="0" y2="1">
+      <stop stop-color="#46687c"/>
+      <stop offset="1" stop-color="#b2c8bd"/>
+    </linearGradient>
+    <linearGradient id="ocean-water" x2="0" y2="1">
+      <stop stop-color="#a9c6bf"/>
+      <stop offset="1" stop-color="#254f65"/>
+    </linearGradient>
+    <linearGradient id="forest-mist" x2="0" y2="1">
+      <stop stop-color="#a7beb0"/>
+      <stop offset="1" stop-color="#25484a"/>
+    </linearGradient>
+    <linearGradient id="desert-sky" x2="0" y2="1">
+      <stop stop-color="#627d87"/>
+      <stop offset="1" stop-color="#d9b695"/>
+    </linearGradient>
+    <linearGradient id="warm-stone" x2="1" y2="1">
+      <stop stop-color="#dfb38c"/>
+      <stop offset="1" stop-color="#8f6150"/>
+    </linearGradient>
+    <linearGradient id="night-sky" x2="0" y2="1">
+      <stop stop-color="#203649"/>
+      <stop offset="1" stop-color="#66898e"/>
+    </linearGradient>
+    <clipPath id="alpine-frame"><rect width="376" height="512" rx="18"/></clipPath>
+    <clipPath id="ocean-frame"><rect width="376" height="336" rx="18"/></clipPath>
+    <clipPath id="city-frame"><rect width="376" height="620" rx="18"/></clipPath>
+    <clipPath id="forest-frame"><rect width="376" height="540" rx="18"/></clipPath>
+    <clipPath id="desert-frame"><rect width="376" height="640" rx="18"/></clipPath>
+    <clipPath id="garden-frame"><rect width="376" height="480" rx="18"/></clipPath>
+    <clipPath id="arch-frame"><rect width="376" height="456" rx="18"/></clipPath>
+    <clipPath id="lake-frame"><rect width="376" height="392" rx="18"/></clipPath>
+    <clipPath id="coast-frame"><rect width="376" height="624" rx="18"/></clipPath>
+    <path id="pine-tree" d="M34 0 8 60H22L0 112H22L0 164H29V184H39V164H68L46 112H68L46 60H60Z"/>
+  </defs>
+
+  <g transform="translate(16 -48)">
+    <g clip-path="url(#alpine-frame)">
+      <path fill="url(#alpine-sky)" d="M0 0H376V512H0Z"/>
+      <circle cx="290" cy="116" r="42" fill="#e5dbb4" opacity=".8"/>
+      <path fill="#829da0" d="M-20 314 74 174 144 272 230 128 398 320V512H-20Z"/>
+      <path fill="#d0d9cc" d="m230 128-50 84 34-13 18 20 16-39 25 8Z"/>
+      <path fill="#dbe1d2" d="m74 174-34 53 28-9 18 24 17-26Z"/>
+      <path fill="#456970" d="M-20 408 120 224 258 384 312 304 404 420V512H-20Z"/>
+      <path fill="#b5c7c0" d="m120 224-38 49 32-6 21 36 21-24Z"/>
+      <path fill="#284d59" d="M0 420Q94 354 188 429T376 418V512H0Z"/>
+      <path stroke="#739497" stroke-width="3" d="M24 464Q154 437 316 466M106 489H348"/>
+    </g>
+  </g>
+
+  <g transform="translate(16 484)">
+    <g clip-path="url(#ocean-frame)">
+      <path fill="url(#ocean-water)" d="M0 0H376V336H0Z"/>
+      <path fill="#d4c3a2" d="M-30-10H178Q142 52 94 81T66 174Q75 225 12 290H-30Z"/>
+      <path stroke="#e3e1ce" stroke-width="9" opacity=".7" d="M190-10Q158 70 105 92T83 180Q93 239 16 322"/>
+      <path stroke="#c0d5cf" stroke-width="3" opacity=".65" d="M244-10Q189 86 158 136T152 255M310 16Q245 92 223 174T204 340M363 91Q291 189 280 310"/>
+      <path fill="#537974" d="m276 240 20-30 33 10 12 29-32 14Z"/>
+      <path stroke="#c1cfc2" stroke-width="3" d="m263 249 22 24 43 1"/>
+    </g>
+  </g>
+
+  <g transform="translate(16 840)">
+    <g clip-path="url(#city-frame)">
+      <path fill="url(#alpine-sky)" d="M0 0H376V620H0Z"/>
+      <path fill="#597d87" d="M112 222H190V620H112ZM248 138H338V620H248Z"/>
+      <path fill="#314d5d" d="M0 110 102 152V620H0ZM192 250 270 196V620H192Z"/>
+      <path fill="#b79c7e" d="M376 35 295 91V620H376Z"/>
+      <path stroke="#92b0b0" stroke-width="6" opacity=".65" d="M24 157V576M52 168V591M80 179V607M133 245V596M158 245V596M211 267V609M237 249V609"/>
+      <path stroke="#dfc6a2" stroke-width="6" opacity=".65" d="m318 115 40-26m-40 63 40-26m-40 63 40-26m-40 63 40-26m-40 63 40-26m-40 63 40-26m-40 63 40-26"/>
+      <path fill="#233f4c" d="M0 571 185 511 376 557V620H0Z"/>
+      <path stroke="#cfb28c" stroke-width="4" d="m139 620 52-77 60 77"/>
+    </g>
+  </g>
+
+  <g transform="translate(412 -196)">
+    <g clip-path="url(#forest-frame)">
+      <path fill="url(#forest-mist)" d="M0 0H376V540H0Z"/>
+      <path fill="#729589" d="M0 252Q97 170 206 248T376 198V540H0Z"/>
+      <g fill="#537b70">
+        <use href="#pine-tree" transform="translate(12 164) scale(1.5)"/>
+        <use href="#pine-tree" transform="translate(136 202) scale(1.2)"/>
+        <use href="#pine-tree" transform="translate(242 128) scale(1.7)"/>
+      </g>
+      <path fill="#3d685f" d="M0 400Q130 335 243 387T376 367V540H0Z"/>
+      <g fill="#254e49">
+        <use href="#pine-tree" transform="translate(-32 250) scale(1.8)"/>
+        <use href="#pine-tree" transform="translate(99 308) scale(1.4)"/>
+        <use href="#pine-tree" transform="translate(246 268) scale(1.6)"/>
+      </g>
+      <path stroke="#8aa897" stroke-width="4" opacity=".45" d="M0 465Q96 423 210 461T376 452"/>
+    </g>
+  </g>
+
+  <g transform="translate(412 364)">
+    <g clip-path="url(#desert-frame)">
+      <path fill="url(#desert-sky)" d="M0 0H376V640H0Z"/>
+      <circle cx="110" cy="149" r="57" fill="#e8cfaa" opacity=".85"/>
+      <path fill="#cfad89" d="M0 351Q136 259 376 294V640H0Z"/>
+      <path fill="#ac7d62" d="M-20 426Q84 384 178 301Q170 394 405 472V640H-20Z"/>
+      <path fill="#d8b18a" d="M178 301Q167 383 248 423Q120 390-20 473V426Q84 384 178 301Z"/>
+      <path fill="#865e50" d="M-20 616Q138 439 405 493V640H-20Z"/>
+      <path stroke="#d5ae86" stroke-width="2" opacity=".45" d="M77 508Q171 459 302 464M34 540Q172 470 342 480M12 570Q145 501 260 502"/>
+    </g>
+  </g>
+
+  <g transform="translate(412 1024)">
+    <g clip-path="url(#garden-frame)">
+      <path fill="#b7b7a0" d="M0 0H376V480H0Z"/>
+      <path fill="#708f79" d="M40 0H376V480H162Q207 296 40 0Z"/>
+      <path stroke="#d2c6a2" stroke-width="7" d="M72 480Q221 277 294-30"/>
+      <path fill="#365d51" d="M154 354Q22 334 26 227Q134 217 154 354ZM217 217Q87 197 104 91Q213 118 217 217ZM269 74Q185 11 225-55Q299-22 269 74Z"/>
+      <path fill="#51775e" d="M140 381Q208 262 331 313Q290 424 140 381ZM214 215Q259 111 376 149Q339 264 214 215Z"/>
+      <path stroke="#98ad8c" stroke-width="3" d="m42 251 99 83m-19-214 80 77m-42 174 145-48m-71-119 119-41"/>
+    </g>
+  </g>
+
+  <g transform="translate(808 -4)">
+    <g clip-path="url(#arch-frame)">
+      <path fill="url(#warm-stone)" d="M0 0H376V456H0Z"/>
+      <path fill="#765849" d="M62 456V167a126 126 0 0 1 252 0V456Z"/>
+      <path fill="#a38267" d="M95 456V170a93 93 0 0 1 186 0V456Z"/>
+      <path fill="url(#alpine-sky)" d="M127 456V179a61 61 0 0 1 122 0V456Z"/>
+      <path fill="#465f5f" d="M127 312 173 265 204 295 249 245V456H127Z"/>
+      <path fill="#d5ae87" d="M0 399H376V456H0Z"/>
+      <path stroke="#936d55" stroke-width="5" d="M0 420H376M0 443H376"/>
+      <path stroke="#e8c7a0" stroke-width="4" opacity=".6" d="M34 379V166a154 154 0 0 1 308 0V379"/>
+      <path fill="#c89b74" d="M0 0H48V456H0Z" opacity=".6"/>
+    </g>
+  </g>
+
+  <g transform="translate(808 472)">
+    <g clip-path="url(#lake-frame)">
+      <path fill="url(#night-sky)" d="M0 0H376V392H0Z"/>
+      <circle cx="281" cy="88" r="32" fill="#d9d7b5"/>
+      <g fill="#d8ddd0" opacity=".7">
+        <circle cx="57" cy="66" r="2"/><circle cx="128" cy="112" r="2"/>
+        <circle cx="186" cy="39" r="2"/><circle cx="340" cy="158" r="2"/>
+      </g>
+      <path fill="#314d5c" d="M-20 274 85 132 183 251 266 179 404 288V392H-20Z"/>
+      <path fill="#69878a" d="m85 132-26 36 26-7 15 23 14-15Z"/>
+      <path fill="#234651" d="M0 275H376V392H0Z"/>
+      <path stroke="#99b3ad" stroke-width="3" opacity=".5" d="M249 296H309M233 314H323M241 333H302M212 354H332M227 377H309"/>
+    </g>
+  </g>
+
+  <g transform="translate(808 884)">
+    <g clip-path="url(#coast-frame)">
+      <path fill="url(#ocean-water)" d="M0 0H376V624H0Z"/>
+      <path fill="#758b78" d="M0 0H178L153 140 189 242 144 361 111 423 57 407 0 503Z"/>
+      <path fill="#b2a486" d="m153 140 36 102-45 119-33 62-54-16L0 503V400l78-45 44-137Z"/>
+      <path fill="#536c62" d="M0 0H113L82 139 125 211 70 314 0 345Z"/>
+      <path stroke="#d2d6c2" stroke-width="8" opacity=".8" d="m188 124-15 20 35 101-44 126-42 72-57-15L0 525"/>
+      <path stroke="#9abcb6" stroke-width="3" opacity=".65" d="M273 52Q230 170 270 265T225 492M344 125Q310 261 331 359T278 602"/>
+      <path fill="#8e947a" d="m119 523 32-33 37 19-8 48-38 13Z"/>
+      <path stroke="#c7d0ba" stroke-width="4" d="m108 531 22 48 48-3 23-36"/>
+    </g>
+  </g>
+</svg>

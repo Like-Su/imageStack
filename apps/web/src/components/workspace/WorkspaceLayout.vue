@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import type { InputInstance } from "element-plus";
 import {
   RouterLink,
   RouterView,
@@ -8,7 +9,15 @@ import {
   useRoute,
   useRouter,
 } from "vue-router";
-import { Menu, Sparkles, ListTodo, Upload, Command } from "lucide-vue-next";
+import {
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sparkles,
+  ListTodo,
+  Upload,
+  Command,
+} from "lucide-vue-next";
 import "@/assets/workspace.css";
 import {
   UPLOAD_ACCEPT,
@@ -31,13 +40,36 @@ const uploads = useUploadsStore();
 const preferences = usePreferencesStore();
 const route = useRoute();
 const router = useRouter();
-const searchInput = ref<HTMLInputElement | null>(null);
-const mobileNavigation = ref<HTMLDialogElement | null>(null);
-const viewport = ref<HTMLElement | null>(null);
+const searchInput = ref<InputInstance>();
+const mobileNavigation = ref(false);
+const desktopQuery = window.matchMedia("(min-width: 48rem)");
+const desktopNavigation = ref(desktopQuery.matches);
+const navigationLabel = computed(() =>
+  translate(
+    desktopNavigation.value
+      ? preferences.values.sidebarCollapsed
+        ? "展开侧边栏"
+        : "折叠侧边栏"
+      : mobileNavigation.value
+        ? "关闭导航"
+        : "打开导航",
+  ),
+);
 const searchText = ref(typeof route.query.q === "string" ? route.query.q : "");
 const dragging = ref(false);
 let dragDepth = 0;
 let polling: number | undefined;
+
+function syncNavigation() {
+  desktopNavigation.value = desktopQuery.matches;
+  if (desktopNavigation.value) mobileNavigation.value = false;
+}
+
+function toggleNavigation() {
+  if (desktopNavigation.value)
+    preferences.values.sidebarCollapsed = !preferences.values.sidebarCollapsed;
+  else mobileNavigation.value = !mobileNavigation.value;
+}
 
 function search() {
   if (!workspace.can("asset:search")) return;
@@ -55,7 +87,11 @@ function keyboard(event: KeyboardEvent) {
   if (
     (event.ctrlKey || event.metaKey) &&
     event.key.toLowerCase() === "k" &&
-    !document.querySelector("dialog[open]")
+    !Array.from(
+      document.querySelectorAll(
+        "dialog[open], [role='dialog'][aria-modal='true']",
+      ),
+    ).some((dialog) => dialog.getClientRects().length)
   ) {
     event.preventDefault();
     searchInput.value?.focus();
@@ -95,10 +131,10 @@ function drop(event: DragEvent) {
 watch(
   () => route.fullPath,
   () => {
-    mobileNavigation.value?.close();
+    mobileNavigation.value = false;
     workspace.selectedAsset = null;
     workspace.answerConfirmation(false);
-    viewport.value?.scrollTo({ top: 0 });
+    document.getElementById("workspace-content")?.scrollTo({ top: 0 });
     searchText.value = typeof route.query.q === "string" ? route.query.q : "";
   },
 );
@@ -134,20 +170,22 @@ onMounted(() => {
   }, 30_000);
   window.addEventListener("keydown", keyboard);
   window.addEventListener("beforeunload", beforeUnload);
+  desktopQuery.addEventListener("change", syncNavigation);
 });
 onBeforeUnmount(() => {
   window.clearInterval(polling);
   window.removeEventListener("keydown", keyboard);
   window.removeEventListener("beforeunload", beforeUnload);
-  mobileNavigation.value?.close();
+  desktopQuery.removeEventListener("change", syncNavigation);
   uploads.reset();
   workspace.reset();
 });
 </script>
 
 <template>
-  <div
+  <el-container
     class="workspace-root"
+    direction="horizontal"
     @dragenter="dragEnter"
     @dragover.prevent
     @dragleave="dragLeave"
@@ -158,47 +196,84 @@ onBeforeUnmount(() => {
       href="#workspace-content"
       >{{ $t("跳到主内容") }}</a
     >
-    <aside class="hidden md:flex"><WorkspaceSidebar /></aside>
-    <dialog
-      ref="mobileNavigation"
-      class="mh-sidebar-dialog"
-      :aria-label="$t('媒体库导航')"
-      @click.self="mobileNavigation?.close()"
+    <el-aside
+      id="workspace-sidebar"
+      class="hidden md:block"
+      :width="preferences.values.sidebarCollapsed ? '64px' : '248px'"
     >
-      <WorkspaceSidebar mobile @navigate="mobileNavigation?.close()" />
-    </dialog>
-    <div class="flex min-w-0 flex-1 flex-col">
-      <header
-        class="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-panel/70 px-4 sm:px-6"
+      <WorkspaceSidebar :collapsed="preferences.values.sidebarCollapsed" />
+    </el-aside>
+    <el-drawer
+      id="workspace-mobile-navigation"
+      v-model="mobileNavigation"
+      :title="$t('媒体库导航')"
+      direction="ltr"
+      size="min(248px, 100vw)"
+      :with-header="false"
+      body-class="!p-0"
+      append-to-body
+      destroy-on-close
+    >
+      <WorkspaceSidebar mobile @navigate="mobileNavigation = false" />
+    </el-drawer>
+    <el-container direction="vertical" class="min-w-0">
+      <el-header
+        height="64px"
+        class="flex items-center gap-3 border-b border-line bg-panel/70 !px-4 sm:!px-6"
       >
-        <button
-          type="button"
-          class="text-soft md:hidden"
-          :aria-label="$t('打开导航')"
-          @click="mobileNavigation?.showModal()"
+        <el-button
+          text
+          circle
+          native-type="button"
+          :title="navigationLabel"
+          :aria-label="navigationLabel"
+          :aria-expanded="
+            desktopNavigation
+              ? !preferences.values.sidebarCollapsed
+              : mobileNavigation
+          "
+          :aria-controls="
+            desktopNavigation
+              ? 'workspace-sidebar'
+              : 'workspace-mobile-navigation'
+          "
+          @click="toggleNavigation"
         >
-          <Menu class="size-5" />
-        </button>
+          <component
+            :is="
+              desktopNavigation
+                ? preferences.values.sidebarCollapsed
+                  ? PanelLeftOpen
+                  : PanelLeftClose
+                : Menu
+            "
+          />
+        </el-button>
         <form
-          class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-panel2 px-3 focus-within:border-ai/50 lg:max-w-2xl"
+          class="min-w-0 flex-1 lg:max-w-2xl"
           role="search"
           @submit.prevent="search"
         >
-          <Sparkles class="size-4 shrink-0 text-ai" aria-hidden="true" />
-          <input
+          <el-input
             ref="searchInput"
             v-model="searchText"
             type="search"
-            maxlength="200"
-            class="h-full min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-faint"
+            :maxlength="200"
+            class="workspace-search"
             :aria-label="$t('搜索文件名或标签')"
             :placeholder="$t('搜索你的媒体，用关键词找到灵感…')"
             :disabled="!workspace.can('asset:search')"
-          />
-          <kbd
-            class="hidden items-center gap-0.5 rounded border border-line px-1.5 py-0.5 text-[10px] text-faint sm:flex"
-            ><Command class="size-2.5" /> K</kbd
           >
+            <template #prefix
+              ><Sparkles class="size-4 text-ai" aria-hidden="true"
+            /></template>
+            <template #suffix>
+              <kbd
+                class="hidden items-center gap-0.5 text-[10px] text-faint sm:flex"
+                ><Command class="size-2.5" /> K</kbd
+              >
+            </template>
+          </el-input>
           <button type="submit" class="sr-only">{{ $t("搜索") }}</button>
         </form>
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
@@ -206,14 +281,14 @@ onBeforeUnmount(() => {
             :to="{ name: 'tasks' }"
             class="relative hidden text-soft hover:text-ghost sm:block"
             :aria-label="$t('查看后台任务')"
-            ><ListTodo class="size-5" /><span
-              v-if="workspace.pendingTasks"
-              class="absolute -top-2 -right-2 min-w-3.5 rounded-full bg-accent px-1 text-center text-[9px] text-ink"
-              >{{
-                workspace.pendingTasks > 99 ? "99+" : workspace.pendingTasks
-              }}</span
-            ></RouterLink
-          >
+            ><el-badge
+              :value="workspace.pendingTasks"
+              :hidden="!workspace.pendingTasks"
+              :max="99"
+              type="primary"
+            >
+              <ListTodo class="size-5" /> </el-badge
+          ></RouterLink>
           <el-button
             text
             circle
@@ -236,20 +311,23 @@ onBeforeUnmount(() => {
           </el-button>
           <RouterLink
             :to="{ name: 'settings', hash: '#account' }"
-            class="grid size-8 shrink-0 place-items-center rounded-full border border-line bg-gradient-to-br from-accent/25 to-ai/20 text-xs font-semibold"
+            class="shrink-0"
             :aria-label="
               $t('账户与设置：{value1}', { value1: auth.user?.username ?? '' })
             "
-            >{{
-              auth.user?.username?.slice(0, 1).toUpperCase() || $t("我")
-            }}</RouterLink
+            ><el-avatar
+              :size="32"
+              class="border border-line bg-linear-to-br from-accent/25 to-ai/20 !text-xs !text-ghost"
+              >{{
+                auth.user?.username?.slice(0, 1).toUpperCase() || $t("我")
+              }}</el-avatar
+            ></RouterLink
           >
         </div>
-      </header>
-      <main
+      </el-header>
+      <el-main
         id="workspace-content"
-        ref="viewport"
-        class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
+        class="min-h-0 !overflow-x-hidden !p-0 !pb-8"
         tabindex="-1"
       >
         <RouterView v-slot="{ Component }">
@@ -257,8 +335,8 @@ onBeforeUnmount(() => {
             <component :is="Component" :key="String(route.name)" />
           </keep-alive>
         </RouterView>
-      </main>
-    </div>
+      </el-main>
+    </el-container>
     <input
       id="media-upload-input"
       type="file"
@@ -282,22 +360,5 @@ onBeforeUnmount(() => {
     <AssetDetailDrawer />
     <UploadPanel />
     <WorkspaceFeedback />
-  </div>
+  </el-container>
 </template>
-
-<style scoped>
-.mh-sidebar-dialog {
-  width: 248px;
-  max-width: 100vw;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0 auto 0 0;
-  padding: 0;
-  border: 0;
-  background: var(--app-panel);
-  color: var(--app-ghost);
-}
-.mh-sidebar-dialog::backdrop {
-  background: rgb(0 0 0 / 60%);
-}
-</style>
