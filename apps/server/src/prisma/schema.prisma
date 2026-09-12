@@ -51,6 +51,7 @@ model User {
   // 一个角色 可以拥有多个用户
   role        Role       @relation(fields: [roleId], references: [id])
   roleId      String
+  permissions UserPermission[]
 
   // 会话版本
   sessionVersion Int @default(0)
@@ -102,7 +103,7 @@ model Role {
   id          String           @id @default(cuid())
   roleName    String           @unique
   roleCode    String           @unique
-  description String?          @unique
+  description String?
   status      Int              @default(1)
   // 创建与更新时间
   createdAt   DateTime         @default(now())
@@ -126,6 +127,7 @@ model Permission {
 
   // 被哪些角色拥有
   roles RolePermission[]
+  users UserPermission[]
 
   // 创建与更新时间
   createdAt DateTime @default(now())
@@ -142,6 +144,17 @@ model RolePermission {
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@index([permissionId])
 }
 
 // 存储提供器类型
@@ -203,10 +216,11 @@ model FileNode {
   takenAt    DateTime?
   exif       Json?
 
-  thumbnailKey    String?
-  previewKey      String?
-  hlsKey          String?
-  hlsSegmentCount Int     @default(0)
+  thumbnailKey     String?
+  thumbnailVersion Int     @default(0)
+  previewKey       String?
+  hlsKey           String?
+  hlsSegmentCount  Int     @default(0)
 
   isFavorite Boolean @default(false)
 

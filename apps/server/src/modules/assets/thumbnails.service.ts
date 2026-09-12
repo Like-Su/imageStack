@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { FileNode } from '../../prisma/generated/prisma/client';
 import { MediaJobsService } from '../jobs/media-jobs.service';
+import { THUMBNAIL_PROFILE } from '../jobs/media-processing.constants';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 
@@ -27,7 +28,13 @@ export class ThumbnailsService {
     variant: 'thumbnail' | 'preview' = 'thumbnail',
   ): Promise<ThumbnailResponse> {
     const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;
-    if (key && (await this.storage.exists(key))) {
+    if (
+      key &&
+      (await this.storage.exists(key)) &&
+      (variant === 'preview' ||
+        asset.thumbnailVersion >= THUMBNAIL_PROFILE.version ||
+        asset.processingStatus === 'FAILED')
+    ) {
       return {
         key,
         mimeType: variant === 'preview' ? 'video/mp4' : 'image/webp',
@@ -49,6 +56,7 @@ export class ThumbnailsService {
           ownerId: asset.ownerId,
           storageKey: asset.storageKey,
           thumbnailKey: asset.thumbnailKey,
+          thumbnailVersion: asset.thumbnailVersion,
           previewKey: asset.previewKey,
           processingStatus: 'READY',
         },

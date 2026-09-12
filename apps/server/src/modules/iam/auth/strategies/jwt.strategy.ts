@@ -61,7 +61,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('会话已失效');
     }
 
-    const user = await this.userService.getAuthUser(payload.sub);
+    const user = await this.userService.getAuthUser(
+      payload.sub,
+      currentVersion,
+    );
 
     if (!user) throw new UnauthorizedException('用户不存在或已禁用!');
 

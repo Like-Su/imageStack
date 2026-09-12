@@ -32,6 +32,7 @@ export type FileNodeAvgAggregateOutputType = {
   width: number | null;
   height: number | null;
   durationMs: number | null;
+  thumbnailVersion: number | null;
   hlsSegmentCount: number | null;
 };
 
@@ -41,6 +42,7 @@ export type FileNodeSumAggregateOutputType = {
   width: number | null;
   height: number | null;
   durationMs: bigint | null;
+  thumbnailVersion: number | null;
   hlsSegmentCount: number | null;
 };
 
@@ -69,6 +71,7 @@ export type FileNodeMinAggregateOutputType = {
   durationMs: bigint | null;
   takenAt: Date | null;
   thumbnailKey: string | null;
+  thumbnailVersion: number | null;
   previewKey: string | null;
   hlsKey: string | null;
   hlsSegmentCount: number | null;
@@ -104,6 +107,7 @@ export type FileNodeMaxAggregateOutputType = {
   durationMs: bigint | null;
   takenAt: Date | null;
   thumbnailKey: string | null;
+  thumbnailVersion: number | null;
   previewKey: string | null;
   hlsKey: string | null;
   hlsSegmentCount: number | null;
@@ -140,6 +144,7 @@ export type FileNodeCountAggregateOutputType = {
   takenAt: number;
   exif: number;
   thumbnailKey: number;
+  thumbnailVersion: number;
   previewKey: number;
   hlsKey: number;
   hlsSegmentCount: number;
@@ -157,6 +162,7 @@ export type FileNodeAvgAggregateInputType = {
   width?: true;
   height?: true;
   durationMs?: true;
+  thumbnailVersion?: true;
   hlsSegmentCount?: true;
 };
 
@@ -166,6 +172,7 @@ export type FileNodeSumAggregateInputType = {
   width?: true;
   height?: true;
   durationMs?: true;
+  thumbnailVersion?: true;
   hlsSegmentCount?: true;
 };
 
@@ -194,6 +201,7 @@ export type FileNodeMinAggregateInputType = {
   durationMs?: true;
   takenAt?: true;
   thumbnailKey?: true;
+  thumbnailVersion?: true;
   previewKey?: true;
   hlsKey?: true;
   hlsSegmentCount?: true;
@@ -229,6 +237,7 @@ export type FileNodeMaxAggregateInputType = {
   durationMs?: true;
   takenAt?: true;
   thumbnailKey?: true;
+  thumbnailVersion?: true;
   previewKey?: true;
   hlsKey?: true;
   hlsSegmentCount?: true;
@@ -265,6 +274,7 @@ export type FileNodeCountAggregateInputType = {
   takenAt?: true;
   exif?: true;
   thumbnailKey?: true;
+  thumbnailVersion?: true;
   previewKey?: true;
   hlsKey?: true;
   hlsSegmentCount?: true;
@@ -395,6 +405,7 @@ export type FileNodeGroupByOutputType = {
   takenAt: Date | null;
   exif: runtime.JsonValue | null;
   thumbnailKey: string | null;
+  thumbnailVersion: number;
   previewKey: string | null;
   hlsKey: string | null;
   hlsSegmentCount: number;
@@ -464,6 +475,7 @@ export type FileNodeWhereInput = {
   takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   exif?: Prisma.JsonNullableFilter<'FileNode'>;
   thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  thumbnailVersion?: Prisma.IntFilter<'FileNode'> | number;
   previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   hlsKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   hlsSegmentCount?: Prisma.IntFilter<'FileNode'> | number;
@@ -519,6 +531,7 @@ export type FileNodeOrderByWithRelationInput = {
   takenAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   exif?: Prisma.SortOrderInput | Prisma.SortOrder;
   thumbnailKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   previewKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   hlsKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
@@ -582,6 +595,7 @@ export type FileNodeWhereUniqueInput = Prisma.AtLeast<
     takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
     exif?: Prisma.JsonNullableFilter<'FileNode'>;
     thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+    thumbnailVersion?: Prisma.IntFilter<'FileNode'> | number;
     previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
     hlsKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
     hlsSegmentCount?: Prisma.IntFilter<'FileNode'> | number;
@@ -640,6 +654,7 @@ export type FileNodeOrderByWithAggregationInput = {
   takenAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   exif?: Prisma.SortOrderInput | Prisma.SortOrder;
   thumbnailKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   previewKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   hlsKey?: Prisma.SortOrderInput | Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
@@ -727,6 +742,7 @@ export type FileNodeScalarWhereWithAggregatesInput = {
   exif?: Prisma.JsonNullableWithAggregatesFilter<'FileNode'>;
   thumbnailKey?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
+  thumbnailVersion?: Prisma.IntWithAggregatesFilter<'FileNode'> | number;
   previewKey?:
     Prisma.StringNullableWithAggregatesFilter<'FileNode'> | string | null;
   hlsKey?:
@@ -767,6 +783,7 @@ export type FileNodeCreateInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -813,6 +830,7 @@ export type FileNodeUncheckedCreateInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -876,6 +894,7 @@ export type FileNodeUpdateInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -944,6 +963,7 @@ export type FileNodeUncheckedUpdateInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -989,6 +1009,7 @@ export type FileNodeCreateManyInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -1044,6 +1065,7 @@ export type FileNodeUpdateManyMutationInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -1102,6 +1124,7 @@ export type FileNodeUncheckedUpdateManyInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -1154,6 +1177,7 @@ export type FileNodeCountOrderByAggregateInput = {
   takenAt?: Prisma.SortOrder;
   exif?: Prisma.SortOrder;
   thumbnailKey?: Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   previewKey?: Prisma.SortOrder;
   hlsKey?: Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
@@ -1170,6 +1194,7 @@ export type FileNodeAvgOrderByAggregateInput = {
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
 };
 
@@ -1198,6 +1223,7 @@ export type FileNodeMaxOrderByAggregateInput = {
   durationMs?: Prisma.SortOrder;
   takenAt?: Prisma.SortOrder;
   thumbnailKey?: Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   previewKey?: Prisma.SortOrder;
   hlsKey?: Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
@@ -1233,6 +1259,7 @@ export type FileNodeMinOrderByAggregateInput = {
   durationMs?: Prisma.SortOrder;
   takenAt?: Prisma.SortOrder;
   thumbnailKey?: Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   previewKey?: Prisma.SortOrder;
   hlsKey?: Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
@@ -1249,6 +1276,7 @@ export type FileNodeSumOrderByAggregateInput = {
   width?: Prisma.SortOrder;
   height?: Prisma.SortOrder;
   durationMs?: Prisma.SortOrder;
+  thumbnailVersion?: Prisma.SortOrder;
   hlsSegmentCount?: Prisma.SortOrder;
 };
 
@@ -1711,6 +1739,7 @@ export type FileNodeCreateWithoutOwnerInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -1755,6 +1784,7 @@ export type FileNodeUncheckedCreateWithoutOwnerInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -1856,6 +1886,7 @@ export type FileNodeScalarWhereInput = {
   takenAt?: Prisma.DateTimeNullableFilter<'FileNode'> | Date | string | null;
   exif?: Prisma.JsonNullableFilter<'FileNode'>;
   thumbnailKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
+  thumbnailVersion?: Prisma.IntFilter<'FileNode'> | number;
   previewKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   hlsKey?: Prisma.StringNullableFilter<'FileNode'> | string | null;
   hlsSegmentCount?: Prisma.IntFilter<'FileNode'> | number;
@@ -1890,6 +1921,7 @@ export type FileNodeCreateWithoutChildrenInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -1935,6 +1967,7 @@ export type FileNodeUncheckedCreateWithoutChildrenInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -1984,6 +2017,7 @@ export type FileNodeCreateWithoutParentInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2028,6 +2062,7 @@ export type FileNodeUncheckedCreateWithoutParentInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2126,6 +2161,7 @@ export type FileNodeUpdateWithoutChildrenInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2193,6 +2229,7 @@ export type FileNodeUncheckedUpdateWithoutChildrenInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2263,6 +2300,7 @@ export type FileNodeCreateWithoutRecognitionInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2308,6 +2346,7 @@ export type FileNodeUncheckedCreateWithoutRecognitionInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2398,6 +2437,7 @@ export type FileNodeUpdateWithoutRecognitionInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2465,6 +2505,7 @@ export type FileNodeUncheckedUpdateWithoutRecognitionInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2507,6 +2548,7 @@ export type FileNodeCreateWithoutAlbumCoversInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2552,6 +2594,7 @@ export type FileNodeUncheckedCreateWithoutAlbumCoversInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2642,6 +2685,7 @@ export type FileNodeUpdateWithoutAlbumCoversInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2709,6 +2753,7 @@ export type FileNodeUncheckedUpdateWithoutAlbumCoversInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2751,6 +2796,7 @@ export type FileNodeCreateWithoutAlbumsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2796,6 +2842,7 @@ export type FileNodeUncheckedCreateWithoutAlbumsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -2886,6 +2933,7 @@ export type FileNodeUpdateWithoutAlbumsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2953,6 +3001,7 @@ export type FileNodeUncheckedUpdateWithoutAlbumsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -2995,6 +3044,7 @@ export type FileNodeCreateWithoutTagsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3040,6 +3090,7 @@ export type FileNodeUncheckedCreateWithoutTagsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3130,6 +3181,7 @@ export type FileNodeUpdateWithoutTagsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3197,6 +3249,7 @@ export type FileNodeUncheckedUpdateWithoutTagsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3239,6 +3292,7 @@ export type FileNodeCreateWithoutUploadSessionInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3284,6 +3338,7 @@ export type FileNodeUncheckedCreateWithoutUploadSessionInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3374,6 +3429,7 @@ export type FileNodeUpdateWithoutUploadSessionInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3441,6 +3497,7 @@ export type FileNodeUncheckedUpdateWithoutUploadSessionInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3483,6 +3540,7 @@ export type FileNodeCreateWithoutFileSharesInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3528,6 +3586,7 @@ export type FileNodeUncheckedCreateWithoutFileSharesInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3618,6 +3677,7 @@ export type FileNodeUpdateWithoutFileSharesInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3685,6 +3745,7 @@ export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3727,6 +3788,7 @@ export type FileNodeCreateWithoutFilePermissionsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3772,6 +3834,7 @@ export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -3862,6 +3925,7 @@ export type FileNodeUpdateWithoutFilePermissionsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3929,6 +3993,7 @@ export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -3972,6 +4037,7 @@ export type FileNodeCreateManyOwnerInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -4027,6 +4093,7 @@ export type FileNodeUpdateWithoutOwnerInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4093,6 +4160,7 @@ export type FileNodeUncheckedUpdateWithoutOwnerInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4158,6 +4226,7 @@ export type FileNodeUncheckedUpdateManyWithoutOwnerInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4194,6 +4263,7 @@ export type FileNodeCreateManyParentInput = {
   takenAt?: Date | string | null;
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?: string | null;
+  thumbnailVersion?: number;
   previewKey?: string | null;
   hlsKey?: string | null;
   hlsSegmentCount?: number;
@@ -4249,6 +4319,7 @@ export type FileNodeUpdateWithoutParentInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4315,6 +4386,7 @@ export type FileNodeUncheckedUpdateWithoutParentInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4380,6 +4452,7 @@ export type FileNodeUncheckedUpdateManyWithoutParentInput = {
   exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
   thumbnailKey?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -4519,6 +4592,7 @@ export type FileNodeSelect<
     takenAt?: boolean;
     exif?: boolean;
     thumbnailKey?: boolean;
+    thumbnailVersion?: boolean;
     previewKey?: boolean;
     hlsKey?: boolean;
     hlsSegmentCount?: boolean;
@@ -4572,6 +4646,7 @@ export type FileNodeSelectCreateManyAndReturn<
     takenAt?: boolean;
     exif?: boolean;
     thumbnailKey?: boolean;
+    thumbnailVersion?: boolean;
     previewKey?: boolean;
     hlsKey?: boolean;
     hlsSegmentCount?: boolean;
@@ -4616,6 +4691,7 @@ export type FileNodeSelectUpdateManyAndReturn<
     takenAt?: boolean;
     exif?: boolean;
     thumbnailKey?: boolean;
+    thumbnailVersion?: boolean;
     previewKey?: boolean;
     hlsKey?: boolean;
     hlsSegmentCount?: boolean;
@@ -4656,6 +4732,7 @@ export type FileNodeSelectScalar = {
   takenAt?: boolean;
   exif?: boolean;
   thumbnailKey?: boolean;
+  thumbnailVersion?: boolean;
   previewKey?: boolean;
   hlsKey?: boolean;
   hlsSegmentCount?: boolean;
@@ -4695,6 +4772,7 @@ export type FileNodeOmit<
   | 'takenAt'
   | 'exif'
   | 'thumbnailKey'
+  | 'thumbnailVersion'
   | 'previewKey'
   | 'hlsKey'
   | 'hlsSegmentCount'
@@ -4780,6 +4858,7 @@ export type $FileNodePayload<
       takenAt: Date | null;
       exif: runtime.JsonValue | null;
       thumbnailKey: string | null;
+      thumbnailVersion: number;
       previewKey: string | null;
       hlsKey: string | null;
       hlsSegmentCount: number;
@@ -5521,6 +5600,7 @@ export interface FileNodeFieldRefs {
   readonly takenAt: Prisma.FieldRef<'FileNode', 'DateTime'>;
   readonly exif: Prisma.FieldRef<'FileNode', 'Json'>;
   readonly thumbnailKey: Prisma.FieldRef<'FileNode', 'String'>;
+  readonly thumbnailVersion: Prisma.FieldRef<'FileNode', 'Int'>;
   readonly previewKey: Prisma.FieldRef<'FileNode', 'String'>;
   readonly hlsKey: Prisma.FieldRef<'FileNode', 'String'>;
   readonly hlsSegmentCount: Prisma.FieldRef<'FileNode', 'Int'>;

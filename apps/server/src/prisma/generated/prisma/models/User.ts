@@ -276,6 +276,7 @@ export type UserWhereInput = {
   roleId?: Prisma.StringFilter<'User'> | string;
   sessionVersion?: Prisma.IntFilter<'User'> | number;
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>;
+  permissions?: Prisma.UserPermissionListRelationFilter;
   fileNodes?: Prisma.FileNodeListRelationFilter;
   fileShares?: Prisma.FileShareListRelationFilter;
   filePermissions?: Prisma.FilePermissionListRelationFilter;
@@ -299,6 +300,7 @@ export type UserOrderByWithRelationInput = {
   roleId?: Prisma.SortOrder;
   sessionVersion?: Prisma.SortOrder;
   role?: Prisma.RoleOrderByWithRelationInput;
+  permissions?: Prisma.UserPermissionOrderByRelationAggregateInput;
   fileNodes?: Prisma.FileNodeOrderByRelationAggregateInput;
   fileShares?: Prisma.FileShareOrderByRelationAggregateInput;
   filePermissions?: Prisma.FilePermissionOrderByRelationAggregateInput;
@@ -326,6 +328,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     roleId?: Prisma.StringFilter<'User'> | string;
     sessionVersion?: Prisma.IntFilter<'User'> | number;
     role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>;
+    permissions?: Prisma.UserPermissionListRelationFilter;
     fileNodes?: Prisma.FileNodeListRelationFilter;
     fileShares?: Prisma.FileShareListRelationFilter;
     filePermissions?: Prisma.FilePermissionListRelationFilter;
@@ -394,6 +397,7 @@ export type UserCreateInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -416,6 +420,7 @@ export type UserUncheckedCreateInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -439,6 +444,7 @@ export type UserUpdateInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -462,6 +468,7 @@ export type UserUncheckedUpdateInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -736,6 +743,32 @@ export type UserUncheckedUpdateManyWithoutRoleNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
 };
 
+export type UserCreateNestedOneWithoutPermissionsInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutPermissionsInput,
+    Prisma.UserUncheckedCreateWithoutPermissionsInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermissionsInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneRequiredWithoutPermissionsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutPermissionsInput,
+    Prisma.UserUncheckedCreateWithoutPermissionsInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermissionsInput;
+  upsert?: Prisma.UserUpsertWithoutPermissionsInput;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutPermissionsInput,
+      Prisma.UserUpdateWithoutPermissionsInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutPermissionsInput
+  >;
+};
+
 export type UserCreateNestedOneWithoutFileNodesInput = {
   create?: Prisma.XOR<
     Prisma.UserCreateWithoutFileNodesInput,
@@ -905,6 +938,7 @@ export type UserCreateWithoutAuditLogsInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -926,6 +960,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -976,6 +1011,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -998,6 +1034,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1018,6 +1055,7 @@ export type UserCreateWithoutRoleInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -1039,6 +1077,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   lastLoginAt?: Date | string | null;
   deleted?: boolean;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -1107,6 +1146,124 @@ export type UserScalarWhereInput = {
   sessionVersion?: Prisma.IntFilter<'User'> | number;
 };
 
+export type UserCreateWithoutPermissionsInput = {
+  id?: string;
+  username: string;
+  password: string;
+  email: string;
+  avatar?: string | null;
+  status?: $Enums.UserStatus;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  lastLoginAt?: Date | string | null;
+  deleted?: boolean;
+  sessionVersion?: number;
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
+  fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
+  filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
+  uploadSessions?: Prisma.UploadSessionCreateNestedManyWithoutUserInput;
+  albums?: Prisma.AlbumCreateNestedManyWithoutOwnerInput;
+  tags?: Prisma.TagCreateNestedManyWithoutOwnerInput;
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput;
+};
+
+export type UserUncheckedCreateWithoutPermissionsInput = {
+  id?: string;
+  username: string;
+  password: string;
+  email: string;
+  avatar?: string | null;
+  status?: $Enums.UserStatus;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  lastLoginAt?: Date | string | null;
+  deleted?: boolean;
+  roleId: string;
+  sessionVersion?: number;
+  fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
+  fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
+  filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
+  uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
+  albums?: Prisma.AlbumUncheckedCreateNestedManyWithoutOwnerInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutOwnerInput;
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput;
+};
+
+export type UserCreateOrConnectWithoutPermissionsInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutPermissionsInput,
+    Prisma.UserUncheckedCreateWithoutPermissionsInput
+  >;
+};
+
+export type UserUpsertWithoutPermissionsInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutPermissionsInput,
+    Prisma.UserUncheckedUpdateWithoutPermissionsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutPermissionsInput,
+    Prisma.UserUncheckedCreateWithoutPermissionsInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutPermissionsInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutPermissionsInput,
+    Prisma.UserUncheckedUpdateWithoutPermissionsInput
+  >;
+};
+
+export type UserUpdateWithoutPermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  username?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  lastLoginAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
+  fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
+  filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
+  uploadSessions?: Prisma.UploadSessionUpdateManyWithoutUserNestedInput;
+  albums?: Prisma.AlbumUpdateManyWithoutOwnerNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutOwnerNestedInput;
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutPermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  username?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  lastLoginAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
+  fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
+  filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
+  uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
+  albums?: Prisma.AlbumUncheckedUpdateManyWithoutOwnerNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutOwnerNestedInput;
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput;
+};
+
 export type UserCreateWithoutFileNodesInput = {
   id?: string;
   username: string;
@@ -1120,6 +1277,7 @@ export type UserCreateWithoutFileNodesInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionCreateNestedManyWithoutUserInput;
@@ -1141,6 +1299,7 @@ export type UserUncheckedCreateWithoutFileNodesInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1191,6 +1350,7 @@ export type UserUpdateWithoutFileNodesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUpdateManyWithoutUserNestedInput;
@@ -1213,6 +1373,7 @@ export type UserUncheckedUpdateWithoutFileNodesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1234,6 +1395,7 @@ export type UserCreateWithoutAlbumsInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -1255,6 +1417,7 @@ export type UserUncheckedCreateWithoutAlbumsInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -1305,6 +1468,7 @@ export type UserUpdateWithoutAlbumsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1327,6 +1491,7 @@ export type UserUncheckedUpdateWithoutAlbumsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1348,6 +1513,7 @@ export type UserCreateWithoutTagsInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -1369,6 +1535,7 @@ export type UserUncheckedCreateWithoutTagsInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -1419,6 +1586,7 @@ export type UserUpdateWithoutTagsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1441,6 +1609,7 @@ export type UserUncheckedUpdateWithoutTagsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1462,6 +1631,7 @@ export type UserCreateWithoutUploadSessionsInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
@@ -1483,6 +1653,7 @@ export type UserUncheckedCreateWithoutUploadSessionsInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
@@ -1533,6 +1704,7 @@ export type UserUpdateWithoutUploadSessionsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1555,6 +1727,7 @@ export type UserUncheckedUpdateWithoutUploadSessionsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1576,6 +1749,7 @@ export type UserCreateWithoutFileSharesInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionCreateNestedManyWithoutUserInput;
@@ -1597,6 +1771,7 @@ export type UserUncheckedCreateWithoutFileSharesInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1647,6 +1822,7 @@ export type UserUpdateWithoutFileSharesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUpdateManyWithoutUserNestedInput;
@@ -1669,6 +1845,7 @@ export type UserUncheckedUpdateWithoutFileSharesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1690,6 +1867,7 @@ export type UserCreateWithoutFilePermissionsInput = {
   deleted?: boolean;
   sessionVersion?: number;
   role: Prisma.RoleCreateNestedOneWithoutUsersInput;
+  permissions?: Prisma.UserPermissionCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionCreateNestedManyWithoutUserInput;
@@ -1711,6 +1889,7 @@ export type UserUncheckedCreateWithoutFilePermissionsInput = {
   deleted?: boolean;
   roleId: string;
   sessionVersion?: number;
+  permissions?: Prisma.UserPermissionUncheckedCreateNestedManyWithoutUserInput;
   fileNodes?: Prisma.FileNodeUncheckedCreateNestedManyWithoutOwnerInput;
   fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutUserInput;
   uploadSessions?: Prisma.UploadSessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1761,6 +1940,7 @@ export type UserUpdateWithoutFilePermissionsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUpdateManyWithoutUserNestedInput;
@@ -1783,6 +1963,7 @@ export type UserUncheckedUpdateWithoutFilePermissionsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   roleId?: Prisma.StringFieldUpdateOperationsInput | string;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   uploadSessions?: Prisma.UploadSessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1818,6 +1999,7 @@ export type UserUpdateWithoutRoleInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUpdateManyWithoutUserNestedInput;
@@ -1840,6 +2022,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  permissions?: Prisma.UserPermissionUncheckedUpdateManyWithoutUserNestedInput;
   fileNodes?: Prisma.FileNodeUncheckedUpdateManyWithoutOwnerNestedInput;
   fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutUserNestedInput;
   filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1869,6 +2052,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
  */
 
 export type UserCountOutputType = {
+  permissions: number;
   fileNodes: number;
   fileShares: number;
   filePermissions: number;
@@ -1882,6 +2066,7 @@ export type UserCountOutputTypeSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
+  permissions?: boolean | UserCountOutputTypeCountPermissionsArgs;
   fileNodes?: boolean | UserCountOutputTypeCountFileNodesArgs;
   fileShares?: boolean | UserCountOutputTypeCountFileSharesArgs;
   filePermissions?: boolean | UserCountOutputTypeCountFilePermissionsArgs;
@@ -1902,6 +2087,16 @@ export type UserCountOutputTypeDefaultArgs<
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null;
+};
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPermissionsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.UserPermissionWhereInput;
 };
 
 /**
@@ -1992,6 +2187,7 @@ export type UserSelect<
     roleId?: boolean;
     sessionVersion?: boolean;
     role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>;
+    permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>;
     fileNodes?: boolean | Prisma.User$fileNodesArgs<ExtArgs>;
     fileShares?: boolean | Prisma.User$fileSharesArgs<ExtArgs>;
     filePermissions?: boolean | Prisma.User$filePermissionsArgs<ExtArgs>;
@@ -2086,6 +2282,7 @@ export type UserInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>;
+  permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>;
   fileNodes?: boolean | Prisma.User$fileNodesArgs<ExtArgs>;
   fileShares?: boolean | Prisma.User$fileSharesArgs<ExtArgs>;
   filePermissions?: boolean | Prisma.User$filePermissionsArgs<ExtArgs>;
@@ -2115,6 +2312,7 @@ export type $UserPayload<
   name: 'User';
   objects: {
     role: Prisma.$RolePayload<ExtArgs>;
+    permissions: Prisma.$UserPermissionPayload<ExtArgs>[];
     fileNodes: Prisma.$FileNodePayload<ExtArgs>[];
     fileShares: Prisma.$FileSharePayload<ExtArgs>[];
     filePermissions: Prisma.$FilePermissionPayload<ExtArgs>[];
@@ -2701,6 +2899,17 @@ export interface Prisma__UserClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  permissions<T extends Prisma.User$permissionsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$permissionsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$UserPermissionPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   fileNodes<T extends Prisma.User$fileNodesArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.User$fileNodesArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
@@ -3274,6 +3483,37 @@ export type UserDeleteManyArgs<
    * Limit how many Users to delete.
    */
   limit?: number;
+};
+
+/**
+ * User.permissions
+ */
+export type User$permissionsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the UserPermission
+   */
+  select?: Prisma.UserPermissionSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the UserPermission
+   */
+  omit?: Prisma.UserPermissionOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPermissionInclude<ExtArgs> | null;
+  where?: Prisma.UserPermissionWhereInput;
+  orderBy?:
+    | Prisma.UserPermissionOrderByWithRelationInput
+    | Prisma.UserPermissionOrderByWithRelationInput[];
+  cursor?: Prisma.UserPermissionWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    | Prisma.UserPermissionScalarFieldEnum
+    | Prisma.UserPermissionScalarFieldEnum[];
 };
 
 /**

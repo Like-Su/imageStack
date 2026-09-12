@@ -1,0 +1,1 @@
+ALTER TABLE "FileNode" ADD COLUMN "thumbnailVersion" INTEGER NOT NULL DEFAULT 0;

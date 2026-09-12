@@ -47,14 +47,22 @@ export class UserService {
   }
 
   // 获取已激活用户信息
-  private async loadAuthUser(userId: string) {
+  private async loadAuthUser(userId: string, sessionVersion: number) {
     const user = await this.prismaService.user.findUnique({
       // 被删除 未激活用户查不到表示 无权限
-      where: { id: userId, deleted: false, status: UserStatus.ACTIVE },
+      where: {
+        id: userId,
+        deleted: false,
+        status: UserStatus.ACTIVE,
+        sessionVersion,
+      },
       select: {
         id: true,
         username: true,
         email: true,
+        permissions: {
+          select: { permission: { select: { permissionCode: true } } },
+        },
         role: {
           select: {
             roleCode: true,
@@ -77,19 +85,29 @@ export class UserService {
       email: user.email,
       roles: user.role.roleName,
       roleCode: user.role.roleCode,
-      permissions: user.role.permissions.map(
-        (rp) => rp.permission.permissionCode,
-      ),
+      permissions: [
+        ...new Set(
+          [...user.role.permissions, ...user.permissions].map(
+            (entry) => entry.permission.permissionCode,
+          ),
+        ),
+      ],
     };
   }
 
   // 每个带 Token 请求都会经过这里, 先调用 Redis miss 在查库
-  async getAuthUser(userId: string): Promise<AuthUser> {
-    const key = RedisKey.authUser(userId);
+  async getAuthUser(
+    userId: string,
+    expectedVersion?: number,
+  ): Promise<AuthUser> {
+    const sessionVersion =
+      expectedVersion ?? (await this.getSessionVersion(userId));
+    if (sessionVersion === null) return null;
+    const key = `${RedisKey.authUser(userId)}:v${sessionVersion}`;
     const cached = await this.redisService.get(key);
     if (cached) return JSON.parse(cached) as AuthUser;
 
-    const user = await this.loadAuthUser(userId);
+    const user = await this.loadAuthUser(userId, sessionVersion);
     if (user) {
       await this.redisService.set(key, JSON.stringify(user), AUTH_USER_TTL);
     }
@@ -98,17 +116,14 @@ export class UserService {
 
   // 用户变化后 调用(改状态, 删除, 改角色, 重置密码等)
   async evictAuthUser(userId: string) {
-    await this.redisService.del(RedisKey.authUser(userId));
-  }
-
-  async evictAuthUsersByRole(roleId: string) {
-    const users = await this.prismaService.user.findMany({
-      where: { roleId },
-      select: { id: true },
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { sessionVersion: true },
     });
-    if (users.length === 0) return;
-    // 用户量大时改为分批 del
-    await this.redisService.del(...users.map((u) => RedisKey.authUser(u.id)));
+    await this.redisService.del(
+      RedisKey.authUser(userId),
+      `${RedisKey.authUser(userId)}:v${user?.sessionVersion ?? 0}`,
+    );
   }
 
   // 注册
@@ -156,17 +171,19 @@ export class UserService {
     };
   }
 
-  // 激活账户
-  async activateUser(userId: string) {
-    const user = await this.findByIdOrThrow(userId);
-    if (user.status === UserStatus.ACTIVE) return '用户已经激活';
-    this.prismaService.user.update({
-      where: { id: userId },
-      data: {
-        status: UserStatus.ACTIVE,
+  async activateUser(userId: string, expectedSessionVersion: number) {
+    const result = await this.prismaService.user.updateMany({
+      where: {
+        id: userId,
+        deleted: false,
+        status: UserStatus.DEACTIVE,
+        sessionVersion: expectedSessionVersion,
       },
+      data: { status: UserStatus.ACTIVE },
     });
-    return '账户激活成功, 请登录';
+    if (result.count !== 1)
+      throw new BadRequestException('激活链接无效或已过期');
+    await this.evictAuthUser(userId);
   }
 
   // 重置密码(密码修改后撤销旧的 session)
@@ -201,63 +218,6 @@ export class UserService {
     return true;
   }
 
-  // 设置账户状态
-  async setStatus(userId: string, status: UserStatus) {
-    await this.findByIdOrThrow(userId);
-    await this.prismaService.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        status,
-      },
-    });
-    // 删除用户缓存
-    await this.evictAuthUser(userId);
-    return true;
-  }
-
-  // 禁用
-  async disabledUser(userId: string) {
-    await this.findByIdOrThrow(userId);
-    this.prismaService.$transaction(async (tx) => {
-      tx.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          status: UserStatus.DEACTIVE,
-          sessionVersion: {
-            increment: 1,
-          },
-        },
-      });
-    });
-    await this.evictAuthUser(userId);
-    return true;
-  }
-
-  // 删除账户
-  async deleteUser(userId: string) {
-    await this.findByIdOrThrow(userId);
-    this.prismaService.$transaction(async (tx) => {
-      tx.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          deleted: true,
-          status: UserStatus.DEACTIVE,
-          sessionVersion: {
-            increment: 1,
-          },
-        },
-      });
-    });
-    await this.evictAuthUser(userId);
-    return true;
-  }
-
   // 获取会话数量
   async getSessionVersion(userId: string) {
     const user = await this.prismaService.user.findUnique({
@@ -265,6 +225,7 @@ export class UserService {
         id: userId,
         status: UserStatus.ACTIVE,
         deleted: false,
+        role: { status: 1 },
       },
       select: {
         sessionVersion: true,
@@ -304,43 +265,5 @@ export class UserService {
     });
 
     return updated?.sessionVersion ?? null;
-  }
-
-  // 获取用户列表
-  async listAllUser(
-    pageSize: number = 0,
-    limit: number = 10,
-    status: UserStatus = UserStatus.ACTIVE,
-    deleted: boolean = false,
-  ) {
-    return await this.prismaService.user.findMany({
-      where: {
-        status,
-        deleted,
-      },
-      // 选择返回 字段
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        avatar: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        roleId: true,
-      },
-      // 分页
-      skip: pageSize * limit,
-      take: limit,
-      // 对 create 和 roleCode 排序
-
-      orderBy: {
-        createdAt: 'asc',
-        role: {
-          roleCode: 'asc',
-        },
-      },
-    });
   }
 }

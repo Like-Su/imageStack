@@ -4,6 +4,13 @@ import { MEDIA_MIME_TYPES } from '../../common/media-formats';
 export const MEDIA_QUEUE_NAME = 'media-processing';
 export const MEDIA_JOB_NAME = 'asset.ingest';
 
+export const THUMBNAIL_PROFILE = {
+  version: 1,
+  maxDimension: 1024,
+  quality: 90,
+  maxBytes: 4 * 1024 * 1024,
+} as const;
+
 export const VIDEO_PROCESSING_COMMAND = {
   FFMPEG: 'ffmpeg',
   FFPROBE: 'ffprobe',

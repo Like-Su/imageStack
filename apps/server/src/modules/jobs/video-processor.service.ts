@@ -18,6 +18,7 @@ import {
 } from '../../common/video-stream';
 import {
   MediaProcessingError,
+  THUMBNAIL_PROFILE,
   VIDEO_PROCESSING_COMMAND,
 } from './media-processing.constants';
 import type { VideoProcessingCommand } from './media-processing.constants';
@@ -194,11 +195,11 @@ export class VideoProcessorService {
         '-sn',
         '-dn',
         '-vf',
-        "scale=w='min(256,iw)':h='min(256,ih)':force_original_aspect_ratio=decrease,setsar=1",
+        `scale=w='min(${THUMBNAIL_PROFILE.maxDimension},iw)':h='min(${THUMBNAIL_PROFILE.maxDimension},ih)':force_original_aspect_ratio=decrease:flags=lanczos,setsar=1`,
         '-c:v',
         'libwebp',
         '-quality',
-        '80',
+        String(THUMBNAIL_PROFILE.quality),
         '-threads',
         '2',
         '-map_metadata',
@@ -206,7 +207,7 @@ export class VideoProcessorService {
         thumbnailPath,
       ]);
       const metadata = await stat(thumbnailPath);
-      if (metadata.size < 1 || metadata.size > 1024 * 1024)
+      if (metadata.size < 1 || metadata.size > THUMBNAIL_PROFILE.maxBytes)
         throw new MediaProcessingError('视频封面生成结果无效', true);
       thumbnail = await readFile(thumbnailPath);
     }

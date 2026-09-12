@@ -59,6 +59,7 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
+  UserPermission: 'UserPermission',
   FileNode: 'FileNode',
   AssetRecognition: 'AssetRecognition',
   Album: 'Album',
@@ -153,6 +154,14 @@ export const RolePermissionScalarFieldEnum = {
 export type RolePermissionScalarFieldEnum =
   (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum];
 
+export const UserPermissionScalarFieldEnum = {
+  userId: 'userId',
+  permissionId: 'permissionId',
+} as const;
+
+export type UserPermissionScalarFieldEnum =
+  (typeof UserPermissionScalarFieldEnum)[keyof typeof UserPermissionScalarFieldEnum];
+
 export const FileNodeScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -179,6 +188,7 @@ export const FileNodeScalarFieldEnum = {
   takenAt: 'takenAt',
   exif: 'exif',
   thumbnailKey: 'thumbnailKey',
+  thumbnailVersion: 'thumbnailVersion',
   previewKey: 'previewKey',
   hlsKey: 'hlsKey',
   hlsSegmentCount: 'hlsSegmentCount',

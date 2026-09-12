@@ -70,6 +70,11 @@ export type Permission = Prisma.PermissionModel;
  */
 export type RolePermission = Prisma.RolePermissionModel;
 /**
+ * Model UserPermission
+ *
+ */
+export type UserPermission = Prisma.UserPermissionModel;
+/**
  * Model FileNode
  *
  */
