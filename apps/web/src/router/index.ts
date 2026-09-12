@@ -140,6 +140,27 @@ const router = createRouter({
           meta: { title: "设置" },
         },
         { path: "account", redirect: { name: "settings", hash: "#account" } },
+        {
+          path: "admin/users",
+          name: "admin-users",
+          component: () => import("@/views/admin/index.vue"),
+          props: { section: "users" },
+          meta: { title: "用户管理", requiresAdmin: true },
+        },
+        {
+          path: "admin/roles",
+          name: "admin-roles",
+          component: () => import("@/views/admin/index.vue"),
+          props: { section: "roles" },
+          meta: { title: "角色管理", requiresAdmin: true },
+        },
+        {
+          path: "admin/permissions",
+          name: "admin-permissions",
+          component: () => import("@/views/admin/index.vue"),
+          props: { section: "permissions" },
+          meta: { title: "权限管理", requiresAdmin: true },
+        },
       ],
     },
     { path: "/:pathMatch(.*)*", redirect: { name: "home" } },
@@ -149,7 +170,8 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
-  if (to.meta.requiresAuth || to.meta.guestOnly) await auth.initialize();
+  if (to.meta.requiresAuth || to.meta.guestOnly)
+    await auth.initialize(Boolean(to.meta.requiresAdmin));
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: "login", query: { redirect: to.fullPath } };
@@ -157,6 +179,8 @@ router.beforeEach(async (to) => {
   if (to.meta.guestOnly && auth.isAuthenticated) {
     return getSafeRedirect(to.query.redirect);
   }
+  if (to.meta.requiresAdmin && auth.user?.roleCode !== "ROLE_ADMIN")
+    return { name: "home" };
   return true;
 });
 

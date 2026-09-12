@@ -1,4 +1,137 @@
 export const english: Record<string, string> = {
+  访问管理: "Access management",
+  用户管理: "User management",
+  角色管理: "Role management",
+  权限管理: "Permission management",
+  创建用户: "Create user",
+  编辑用户: "Edit user",
+  创建角色: "Create role",
+  编辑角色: "Edit role",
+  创建权限: "Create permission",
+  编辑权限: "Edit permission",
+  "管理账户、角色与访问权限": "Manage accounts, roles, and access permissions",
+  "仅管理员可管理访问权限。内置角色和权限不能删除，内置编码不可修改。":
+    "Only administrators can manage access. Built-in roles and permissions cannot be deleted, and their codes cannot be changed.",
+  仅管理员可访问: "Administrators only",
+  用户名称: "Username",
+  角色名称: "Role name",
+  角色编码: "Role code",
+  角色说明: "Role description",
+  权限名称: "Permission name",
+  权限编码: "Permission code",
+  父级权限: "Parent permission",
+  无父级权限: "No parent permission",
+  账户状态: "Account status",
+  启用: "Enabled",
+  停用: "Disabled",
+  角色权限: "Role permissions",
+  启用角色: "Enable role",
+  用户额外权限: "Additional user permissions",
+  额外权限: "Additional permissions",
+  生效权限: "Effective permissions",
+  生效权限预览: "Effective permission preview",
+  未生效: "Inactive",
+  未分配任何权限: "No permissions assigned",
+  编辑与授权: "Edit & assign",
+  "请选择角色后查看生效权限。":
+    "Select a role to preview effective permissions.",
+  "账户或角色停用时，所有授权均不生效。":
+    "No permissions take effect while the account or its role is disabled.",
+  "修改权限编码后，关联账户需要重新登录。":
+    "Changing a permission code requires affected accounts to sign in again.",
+  搜索并选择权限: "Search and select permissions",
+  选择权限: "Select permissions",
+  角色已有: "Inherited from role",
+  "生效权限为角色权限与额外权限的并集；清空额外权限不会移除角色已有权限。":
+    "Effective permissions combine role permissions and additional grants. Clearing additional grants does not remove permissions inherited from the role.",
+  查看角色继承权限: "View inherited role permissions",
+  "管理员角色始终拥有全部操作权限，不受勾选权限限制。":
+    "The administrator role always has full access, regardless of the selected permissions.",
+  "层级仅用于整理，不会自动授予子权限。新增编码需要业务接口接入后才能控制对应操作。":
+    "The hierarchy is for organization only and does not grant child permissions. New codes must be checked by business endpoints before they can control operations.",
+  "新密码（留空保持不变）": "New password (leave blank to keep)",
+  初始密码: "Initial password",
+  "保存用户或角色更改后，相关账户需要重新登录；若修改当前账户，将退出本次登录。":
+    "Saving user or role changes requires affected accounts to sign in again. Changes affecting your account will sign you out.",
+  请输入用户名称: "Enter a username",
+  "密码至少 8 位且不能超过 72 字节":
+    "Passwords must have at least 8 characters and no more than 72 bytes",
+  请选择角色: "Select a role",
+  请输入角色名称: "Enter a role name",
+  "角色编码须以 ROLE_ 开头，仅含大写字母、数字和下划线":
+    "Role codes must start with ROLE_ and contain only uppercase letters, numbers, and underscores",
+  请输入权限名称: "Enter a permission name",
+  "权限编码使用小写分段格式，例如 asset:list":
+    "Use lowercase, colon-separated permission codes, such as asset:list",
+  管理更改已保存: "Management changes saved",
+  搜索用户名称或邮箱: "Search usernames or emails",
+  搜索名称或编码: "Search names or codes",
+  搜索管理记录: "Search management records",
+  全部状态: "All statuses",
+  按账户状态筛选: "Filter by account status",
+  全部角色: "All roles",
+  按角色筛选: "Filter by role",
+  "共 {count} 条记录": "{count} records",
+  暂无匹配记录: "No matching records",
+  角色已停用: "Role disabled",
+  最后登录: "Last sign-in",
+  内置: "Built-in",
+  状态: "Status",
+  关联用户: "Assigned users",
+  关联角色: "Assigned roles",
+  直接授权用户: "Directly assigned users",
+  权限数量: "Permissions",
+  操作: "Actions",
+  "确认删除？": "Confirm deletion?",
+  删除: "Delete",
+  "删除用户「{name}」？账户会被停用并撤销登录，媒体文件不会删除，邮箱仍保留。":
+    "Delete user “{name}”? The account and its sessions will be disabled. Media files and the reserved email address will be retained.",
+  "删除角色「{name}」？此操作不可撤销。":
+    "Delete role “{name}”? This cannot be undone.",
+  "删除权限「{name}」？对应用户和角色的授权会一并移除，相关账户需要重新登录。":
+    "Delete permission “{name}”? Its user and role grants will be removed, and affected accounts must sign in again.",
+  "删除用户仅停用账户并保留媒体，不会释放已占用的邮箱。":
+    "Deleting users disables their accounts and preserves their media. Their email addresses remain reserved.",
+  "有关联用户的角色不能删除，请先为用户更换角色。":
+    "Roles assigned to users cannot be deleted. Assign those users to another role first.",
+  "有子权限的记录不能删除，请先调整子权限的父级。":
+    "Permissions with children cannot be deleted. Reparent their children first.",
+  "所选权限不存在，请刷新后重试":
+    "A selected permission no longer exists. Refresh and try again.",
+  角色不存在: "Role not found",
+  "仅管理员可以管理用户、角色和权限":
+    "Only administrators can manage users, roles, and permissions",
+  "名称、邮箱或编码已存在": "The name, email, or code already exists",
+  "记录仍被引用，请先解除关联":
+    "The record is still referenced. Remove its associations first.",
+  记录不存在或已被删除: "The record does not exist or has been deleted",
+  "数据已变化，请刷新后重试": "The data has changed. Refresh and try again.",
+  请选择启用的角色: "Select an enabled role",
+  邮箱已注册: "This email address is already registered",
+  请至少修改一个字段: "Change at least one field",
+  用户不存在: "User not found",
+  不能停用自己或移除自己的管理员角色:
+    "You cannot disable yourself or remove your own administrator role",
+  必须保留至少一名启用的管理员:
+    "At least one enabled administrator must remain",
+  不能删除当前登录的管理员: "You cannot delete the signed-in administrator",
+  "默认用户角色不存在，请先初始化系统":
+    "The default user role is missing. Initialize the system first.",
+  内置角色编码不可用于新角色:
+    "Built-in role codes cannot be used for new roles",
+  不能修改内置角色编码: "Built-in role codes cannot be changed",
+  不能停用管理员角色: "The administrator role cannot be disabled",
+  不能删除内置角色: "Built-in roles cannot be deleted",
+  "角色仍关联用户，请先为这些用户更换角色":
+    "The role is still assigned to users. Assign those users to another role first.",
+  权限层级不能形成循环: "The permission hierarchy cannot contain cycles",
+  父级权限不存在: "The parent permission does not exist",
+  内置权限编码不可用于新权限:
+    "Built-in permission codes cannot be used for new permissions",
+  权限不存在: "Permission not found",
+  不能修改内置权限编码: "Built-in permission codes cannot be changed",
+  不能删除内置权限: "Built-in permissions cannot be deleted",
+  请先删除或移动子权限: "Delete or move the child permissions first",
   编辑人物: "Edit person",
   编辑标签: "Edit tag",
   存储: "Storage",
@@ -578,6 +711,8 @@ export const english: Record<string, string> = {
   跳到主内容: "Skip to main content",
   媒体库导航: "Library navigation",
   打开导航: "Open navigation",
+  折叠侧边栏: "Collapse sidebar",
+  展开侧边栏: "Expand sidebar",
   "搜索你的媒体，用关键词找到灵感…":
     "Search your media and find inspiration with keywords…",
   查看后台任务: "View background tasks",
