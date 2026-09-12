@@ -432,6 +432,7 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
+  UserPermission: 'UserPermission',
   FileNode: 'FileNode',
   AssetRecognition: 'AssetRecognition',
   Album: 'Album',
@@ -469,6 +470,7 @@ export type TypeMap<
       | 'role'
       | 'permission'
       | 'rolePermission'
+      | 'userPermission'
       | 'fileNode'
       | 'assetRecognition'
       | 'album'
@@ -858,6 +860,82 @@ export type TypeMap<
           args: Prisma.RolePermissionCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.RolePermissionCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    UserPermission: {
+      payload: Prisma.$UserPermissionPayload<ExtArgs>;
+      fields: Prisma.UserPermissionFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.UserPermissionFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.UserPermissionFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        findFirst: {
+          args: Prisma.UserPermissionFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.UserPermissionFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        findMany: {
+          args: Prisma.UserPermissionFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>[];
+        };
+        create: {
+          args: Prisma.UserPermissionCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        createMany: {
+          args: Prisma.UserPermissionCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.UserPermissionCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>[];
+        };
+        delete: {
+          args: Prisma.UserPermissionDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        update: {
+          args: Prisma.UserPermissionUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        deleteMany: {
+          args: Prisma.UserPermissionDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.UserPermissionUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.UserPermissionUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>[];
+        };
+        upsert: {
+          args: Prisma.UserPermissionUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPermissionPayload>;
+        };
+        aggregate: {
+          args: Prisma.UserPermissionAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserPermission>;
+        };
+        groupBy: {
+          args: Prisma.UserPermissionGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.UserPermissionGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.UserPermissionCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.UserPermissionCountAggregateOutputType>
             | number;
         };
       };
@@ -1727,6 +1805,14 @@ export const RolePermissionScalarFieldEnum = {
 export type RolePermissionScalarFieldEnum =
   (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum];
 
+export const UserPermissionScalarFieldEnum = {
+  userId: 'userId',
+  permissionId: 'permissionId',
+} as const;
+
+export type UserPermissionScalarFieldEnum =
+  (typeof UserPermissionScalarFieldEnum)[keyof typeof UserPermissionScalarFieldEnum];
+
 export const FileNodeScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1753,6 +1839,7 @@ export const FileNodeScalarFieldEnum = {
   takenAt: 'takenAt',
   exif: 'exif',
   thumbnailKey: 'thumbnailKey',
+  thumbnailVersion: 'thumbnailVersion',
   previewKey: 'previewKey',
   hlsKey: 'hlsKey',
   hlsSegmentCount: 'hlsSegmentCount',
@@ -2312,6 +2399,7 @@ export type GlobalOmitConfig = {
   role?: Prisma.RoleOmit;
   permission?: Prisma.PermissionOmit;
   rolePermission?: Prisma.RolePermissionOmit;
+  userPermission?: Prisma.UserPermissionOmit;
   fileNode?: Prisma.FileNodeOmit;
   assetRecognition?: Prisma.AssetRecognitionOmit;
   album?: Prisma.AlbumOmit;

@@ -3,234 +3,161 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '../../../common/prisma/prisma.service';
+import { RoleCode } from '../../../common/constants';
+import type { RequestUser } from '../auth/auth.type';
 import {
-  RoleUpdateInput,
-  RoleWhereInput,
-} from 'src/prisma/generated/prisma/models';
-import { UserService } from '../user/user.service';
+  builtinRoles,
+  recordIamAudit,
+  requireRole,
+  resolvePermissions,
+  roleSelect,
+  roleSummary,
+  withIamMutation,
+} from '../iam-admin';
+import { CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
 export class RoleService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  // 创建角色
-  async create(roleName: string, roleCode: string, description?: string) {
-    const existRole = this.prismaService.role.findFirst({
-      where: {
-        OR: [{ roleName }, { roleCode }],
-      },
+  async list() {
+    const roles = await this.prisma.role.findMany({
+      select: roleSelect,
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
-
-    if (existRole) throw new BadRequestException('角色名称或编码重复');
-
-    return await this.prismaService.role.create({
-      data: {
-        roleName,
-        roleCode,
-        description,
-        status: 1,
-      },
-    });
+    return roles.map(roleSummary);
   }
 
-  // 修改 角色 权限,名称, 权限编码
-  async edit(
-    roleId: string,
-    roleName?: string,
-    roleCode?: string,
-    description?: string,
-  ) {
-    const data = {} as RoleUpdateInput;
-    roleName && (data.roleName = roleName);
-    roleCode && (data.roleCode = roleCode);
-    description && (data.description = description);
-
-    return await this.prismaService.role.update({
+  async getRolePermission(roleId: string) {
+    const role = await this.prisma.role.findUnique({
       where: { id: roleId },
-      data,
+      select: roleSelect,
     });
+    if (!role) throw new NotFoundException('角色不存在');
+    return roleSummary(role);
   }
 
-  // 修改角色权限
-  async replacePermissions(roleId: string, permissionCodes: string[]) {
-    // 去除首位空格
-    const codes = [...new Set(permissionCodes.map((code) => code.trim()))];
-
-    // 是否有空的权限编码
-    if (codes.some((code) => !code))
-      throw new BadRequestException('权限编码不能为空');
-
-    // 角色查询
-    const role = await this.prismaService.role.findUnique({
-      where: {
-        id: roleId,
-      },
-      select: {
-        id: true,
-        roleCode: true,
-        status: true,
-      },
-    });
-
-    if (!role) throw new NotFoundException('角色不存在');
-
-    // 角色被禁用时不允许修改权限
-    if (role.status !== 1) {
-      throw new BadRequestException('角色已禁用');
-    }
-
-    // 查询所有权限
-    const permissions = await this.prismaService.permission.findMany({
-      where: {
-        permissionCode: {
-          in: codes,
-        },
-      },
-      select: {
-        id: true,
-        permissionCode: true,
-      },
-    });
-
-    // 检查是否存在不存在的权限编码
-    const foundCodes = new Set(
-      permissions.map((permission) => permission.permissionCode),
-    );
-
-    const missingCodes = codes.filter((code) => !foundCodes.has(code));
-
-    if (missingCodes.length > 0) {
-      throw new BadRequestException(
-        `以下权限不存在 ${missingCodes.join(', ')}`,
+  create(actor: RequestUser, body: CreateRoleDto) {
+    return withIamMutation(this.prisma, actor, async (transaction) => {
+      if (builtinRoles.has(body.roleCode))
+        throw new BadRequestException('内置角色编码不可用于新角色');
+      const permissions = await resolvePermissions(
+        transaction,
+        body.permissionCodes ?? [],
       );
-    }
-
-    // 更新角色权限
-    const updatedRole = await this.prismaService.$transaction(async (tx) => {
-      // 删除旧权限关系
-      await tx.rolePermission.deleteMany({
-        where: {
-          roleId,
-        },
-      });
-
-      // 写入新权限关系
-      if (permissions.length > 0) {
-        await tx.rolePermission.createMany({
-          data: permissions.map((permission) => ({
-            roleId,
-            permissionId: permission.id,
-          })),
-        });
-      }
-
-      // 查询最新结果
-      return tx.role.findUnique({
-        where: {
-          id: roleId,
-        },
-        select: {
-          id: true,
-          roleName: true,
-          roleCode: true,
+      const role = await transaction.role.create({
+        data: {
+          roleName: body.roleName,
+          roleCode: body.roleCode,
+          description: body.description || null,
+          status: body.status ?? 1,
           permissions: {
-            select: {
-              permission: {
-                select: {
-                  id: true,
-                  permissionName: true,
-                  permissionCode: true,
-                  parentId: true,
-                },
-              },
-            },
+            create: permissions.map((permission) => ({
+              permissionId: permission.id,
+            })),
           },
         },
+        select: roleSelect,
       });
-    });
-
-    if (!updatedRole) throw new NotFoundException('角色不存在');
-
-    await this.userService.evictAuthUsersByRole(roleId);
-
-    return {
-      id: updatedRole.id,
-      roleName: updatedRole.roleName,
-      roleCode: updatedRole.roleCode,
-      permissions: updatedRole.permissions.map((item) => item.permission),
-    };
-  }
-
-  // 获取角色信息
-  async getRoleInfo(
-    roleId: string,
-    status: number = 1,
-    roleName?: string,
-    roleCode?: string,
-  ) {
-    const where = { id: roleId, status } as RoleWhereInput;
-    roleName && (where.roleName = roleName);
-    roleCode && (where.roleCode = roleCode);
-    return await this.prismaService.role.findFirst({
-      where,
+      await recordIamAudit(
+        transaction,
+        actor.id,
+        'iam.role.create',
+        'Role',
+        role.id,
+        { permissionCodes: body.permissionCodes ?? [] },
+      );
+      return roleSummary(role);
     });
   }
 
-  // 查询角色拥有的权限
-  async getRolePermission(roleId: string) {
-    const role = await this.prismaService.role.findUnique({
-      where: { id: roleId },
-      select: {
-        id: true,
-        roleName: true,
-        roleCode: true,
-        permissions: { select: { permission: true } },
-      },
-    });
-
-    if (!role) throw new NotFoundException('角色不存在');
-
-    return {
-      ...role,
-      permissions: role.permissions.map((rp) => rp.permission),
-    };
-  }
-
-  // 查询角色下的用户与用户数量
-  async getRoleUser(roleId: string) {
-    const where = { roleId, deleted: false };
-    const [total, users] = await this.prismaService.$transaction([
-      this.prismaService.user.count({ where }),
-      this.prismaService.user.findMany({
-        where,
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          status: true,
-          createdAt: true,
+  update(actor: RequestUser, roleId: string, body: UpdateRoleDto) {
+    if (!Object.values(body).some((value) => value !== undefined))
+      throw new BadRequestException('请至少修改一个字段');
+    return withIamMutation(this.prisma, actor, async (transaction) => {
+      const role = await requireRole(transaction, roleId);
+      if (
+        body.roleCode !== undefined &&
+        body.roleCode !== role.roleCode &&
+        (builtinRoles.has(role.roleCode) || builtinRoles.has(body.roleCode))
+      )
+        throw new BadRequestException('不能修改内置角色编码');
+      if (role.roleCode === RoleCode.ADMIN && body.status === 0)
+        throw new BadRequestException('不能停用管理员角色');
+      const permissions =
+        body.permissionCodes === undefined
+          ? undefined
+          : await resolvePermissions(transaction, body.permissionCodes);
+      const updated = await transaction.role.update({
+        where: { id: roleId },
+        data: {
+          roleName: body.roleName,
+          roleCode: body.roleCode,
+          status: body.status,
+          description:
+            body.description === undefined
+              ? undefined
+              : body.description || null,
+          ...(permissions === undefined
+            ? {}
+            : {
+                permissions: {
+                  deleteMany: {},
+                  create: permissions.map((permission) => ({
+                    permissionId: permission.id,
+                  })),
+                },
+              }),
         },
-      }),
-    ]);
-
-    return {
-      total,
-      users,
-    };
+        select: roleSelect,
+      });
+      await transaction.user.updateMany({
+        where: { roleId, deleted: false },
+        data: { sessionVersion: { increment: 1 } },
+      });
+      await recordIamAudit(
+        transaction,
+        actor.id,
+        'iam.role.update',
+        'Role',
+        roleId,
+        {
+          fields: Object.keys(body).filter((key) => body[key] !== undefined),
+          permissionCodes: updated.permissions.map(
+            (entry) => entry.permission.permissionCode,
+          ),
+        },
+      );
+      return roleSummary(updated);
+    });
   }
 
-  // 角色列表
-  listRoles(pageSize: number, limit: number, status: number = 1) {
-    return this.prismaService.role.findMany({
-      take: limit,
-      skip: (pageSize - 1) * limit,
-      where: {
-        status,
-      },
+  remove(actor: RequestUser, roleId: string) {
+    return withIamMutation(this.prisma, actor, async (transaction) => {
+      const role = await requireRole(transaction, roleId);
+      if (builtinRoles.has(role.roleCode))
+        throw new BadRequestException('不能删除内置角色');
+      if (await transaction.user.count({ where: { roleId, deleted: false } }))
+        throw new BadRequestException('角色仍关联用户，请先为这些用户更换角色');
+      const defaultRole = await transaction.role.findUnique({
+        where: { roleCode: RoleCode.USER },
+      });
+      if (!defaultRole)
+        throw new BadRequestException('默认用户角色不存在，请先初始化系统');
+      await transaction.user.updateMany({
+        where: { roleId, deleted: true },
+        data: { roleId: defaultRole.id },
+      });
+      await transaction.role.delete({ where: { id: roleId } });
+      await recordIamAudit(
+        transaction,
+        actor.id,
+        'iam.role.delete',
+        'Role',
+        roleId,
+      );
+      return { id: roleId };
     });
   }
 }

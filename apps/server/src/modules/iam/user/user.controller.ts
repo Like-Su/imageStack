@@ -1,53 +1,83 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-// Custom Module
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequestUser } from '../auth/auth.type';
 import { UserService } from './user.service';
-import { CreateUserDto, DeleteUserDto } from './dto/user.dto';
+import { UserManagementService } from './user-management.service';
 import {
-  RequirePermission,
-  RequireRole,
-} from '../auth/decorators/roles-permissions.decorator';
-import { PermissionCode, RoleCode } from 'src/common/constants';
-import { UserStatus } from 'src/prisma/generated/prisma/enums';
+  CreateUserDto,
+  DeleteUserDto,
+  ListUsersDto,
+  UpdateUserDto,
+} from './dto/user.dto';
+import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
+import { RoleCode } from '../../../common/constants';
+import { PermissionCodesDto } from '../dto/iam.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly management: UserManagementService,
+  ) {}
+
   @Post('me')
-  async me(@CurrentUser() user: RequestUser) {
-    return this.userService.getAuthUser(user.id);
-  }
-
-  // 管理员增加用户
-  @RequireRole(RoleCode.ADMIN)
-  @RequirePermission(PermissionCode.SYSTEM_USER_CREATE)
-  @Post('create')
-  createUser(@Body() dto: CreateUserDto) {
-    return this.userService.register(
-      dto.username,
-      dto.email,
-      dto.password,
-      dto.status,
-    );
-  }
-
-  // 删除用户
-  @RequireRole(RoleCode.ADMIN)
-  @RequirePermission(PermissionCode.SYSTEM_USER_DELETE)
-  @Post('delete')
-  deleteUser(@Body() dto: DeleteUserDto) {
-    return this.userService.deleteUser(dto.id);
+  me(@CurrentUser() user: RequestUser) {
+    return this.userService.getAuthUser(user.id, user.sessionVersion);
   }
 
   @RequireRole(RoleCode.ADMIN)
-  @RequirePermission(PermissionCode.SYSTEM_USER)
-  @Get('list-users')
-  listUsers(
-    @Query('page-size') pageSize,
-    @Query('limit') limit,
-    @Query('status') status = UserStatus.ACTIVE,
+  @Get(['', 'list-users'])
+  listUsers(@Query() query: ListUsersDto) {
+    return this.management.list(query);
+  }
+
+  @RequireRole(RoleCode.ADMIN)
+  @Post(['', 'create'])
+  createUser(@CurrentUser() actor: RequestUser, @Body() body: CreateUserDto) {
+    return this.management.create(actor, body);
+  }
+
+  @RequireRole(RoleCode.ADMIN)
+  @Patch(':id')
+  updateUser(
+    @CurrentUser() actor: RequestUser,
+    @Param('id') userId: string,
+    @Body() body: UpdateUserDto,
   ) {
-    return this.userService.listAllUser(pageSize, limit, status);
+    return this.management.update(actor, userId, body);
+  }
+
+  @RequireRole(RoleCode.ADMIN)
+  @Patch(':id/permissions')
+  replacePermissions(
+    @CurrentUser() actor: RequestUser,
+    @Param('id') userId: string,
+    @Body() body: PermissionCodesDto,
+  ) {
+    return this.management.update(actor, userId, body);
+  }
+
+  @RequireRole(RoleCode.ADMIN)
+  @Delete(':id')
+  deleteUser(@CurrentUser() actor: RequestUser, @Param('id') userId: string) {
+    return this.management.remove(actor, userId);
+  }
+
+  @RequireRole(RoleCode.ADMIN)
+  @Post('delete')
+  deleteUserLegacy(
+    @CurrentUser() actor: RequestUser,
+    @Body() body: DeleteUserDto,
+  ) {
+    return this.management.remove(actor, body.id);
   }
 }

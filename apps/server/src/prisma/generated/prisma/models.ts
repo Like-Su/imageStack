@@ -12,6 +12,7 @@ export type * from './models/AuditLog';
 export type * from './models/Role';
 export type * from './models/Permission';
 export type * from './models/RolePermission';
+export type * from './models/UserPermission';
 export type * from './models/FileNode';
 export type * from './models/AssetRecognition';
 export type * from './models/Album';

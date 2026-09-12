@@ -31,6 +31,7 @@ import {
   MediaProcessingError,
   mediaRetryDelay,
   runnableMediaWhere,
+  THUMBNAIL_PROFILE,
 } from './media-processing.constants';
 import type {
   MediaJobData,
@@ -84,6 +85,7 @@ export class MediaProcessorService {
       ownerId: asset.ownerId,
       storageKey: asset.storageKey,
       thumbnailKey: asset.thumbnailKey,
+      thumbnailVersion: asset.thumbnailVersion,
       previewKey: asset.previewKey,
       hlsKey: asset.hlsKey,
       hlsSegmentCount: asset.hlsSegmentCount,
@@ -226,6 +228,9 @@ export class MediaProcessorService {
         where: processingWhere,
         data: {
           thumbnailKey,
+          thumbnailVersion: prepared.thumbnail
+            ? THUMBNAIL_PROFILE.version
+            : asset.thumbnailVersion,
           previewKey,
           hlsKey,
           hlsSegmentCount,
@@ -421,18 +426,19 @@ export class MediaProcessorService {
 
     if (
       !asset.thumbnailKey ||
+      asset.thumbnailVersion < THUMBNAIL_PROFILE.version ||
       !(await this.storage.exists(asset.thumbnailKey))
     ) {
       try {
         thumbnail = await image.decoder
           .rotate()
           .resize({
-            width: 256,
-            height: 256,
+            width: THUMBNAIL_PROFILE.maxDimension,
+            height: THUMBNAIL_PROFILE.maxDimension,
             fit: 'inside',
             withoutEnlargement: true,
           })
-          .webp({ quality: 80 })
+          .webp({ quality: THUMBNAIL_PROFILE.quality })
           .toBuffer();
       } catch {
         throw new MediaProcessingError('无法生成缩略图', true);
@@ -510,7 +516,9 @@ export class MediaProcessorService {
     const video = await this.videos.inspect(path, format);
     const prepared = await this.videos.prepare(path, directory, video, {
       thumbnail:
-        !asset.thumbnailKey || !(await this.storage.exists(asset.thumbnailKey)),
+        !asset.thumbnailKey ||
+        asset.thumbnailVersion < THUMBNAIL_PROFILE.version ||
+        !(await this.storage.exists(asset.thumbnailKey)),
       preview:
         !asset.previewKey || !(await this.storage.exists(asset.previewKey)),
       hls:

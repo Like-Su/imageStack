@@ -87,13 +87,17 @@ export class AuthService {
     };
   }
 
-  private async sendActivateMail(email: string) {
+  private async sendActivateMail(email: string, sessionVersion: number) {
     const token = randomBytes(64).toString('hex');
     const expire = 30 * 60;
 
     // 存储到 缓存
     // 通过 token 判断 user 是否存在
-    await this.redisService.set(RedisKey.activate(token), email, expire);
+    await this.redisService.set(
+      RedisKey.activate(token),
+      JSON.stringify({ email, sessionVersion }),
+      expire,
+    );
     // 用户查询 token 是否存在
     await this.redisService.set(RedisKey.activate(email), token, expire);
 
@@ -112,10 +116,10 @@ export class AuthService {
 
     const user = await this.userService.register(username, email, password);
     // 通过 发送邮件 打开 邮件中的地址来激活账户
-    await this.sendActivateMail(email);
+    await this.sendActivateMail(email, user.sessionVersion);
 
     return {
-      user,
+      user: { id: user.id, username: user.username, email: user.email },
       message: '发送成功, 请前往邮箱激活账户',
     };
   }
@@ -124,7 +128,26 @@ export class AuthService {
   async activate(token: string) {
     if (!token) throw new BadRequestException('缺少 激活 token');
     const key = RedisKey.activate(token);
-    const email = await this.redisService.get(key);
+    const stored = await this.redisService.get(key);
+    if (!stored) throw new BadRequestException('激活链接无效或已过期');
+    let email = stored;
+    let sessionVersion = 0;
+    if (stored.startsWith('{')) {
+      const activation: unknown = JSON.parse(stored);
+      if (
+        !activation ||
+        typeof activation !== 'object' ||
+        !('email' in activation) ||
+        typeof activation.email !== 'string' ||
+        !('sessionVersion' in activation) ||
+        typeof activation.sessionVersion !== 'number' ||
+        !Number.isSafeInteger(activation.sessionVersion) ||
+        activation.sessionVersion < 0
+      )
+        throw new BadRequestException('激活链接无效或已过期');
+      email = activation.email;
+      sessionVersion = activation.sessionVersion;
+    }
     const cachedToken = await this.redisService.get(RedisKey.activate(email));
     if (!email || cachedToken !== token)
       throw new BadRequestException('激活链接无效或已过期');
@@ -132,7 +155,7 @@ export class AuthService {
     const user = await this.userService.findByEmail(email);
     if (!user || user.deleted) throw new NotFoundException('用户不存在');
 
-    await this.userService.setStatus(user.id, UserStatus.ACTIVE);
+    await this.userService.activateUser(user.id, sessionVersion);
 
     await this.redisService.del(key);
 
@@ -233,7 +256,10 @@ export class AuthService {
       throw new UnauthorizedException('refresh token 已使用或失效');
     }
 
-    const user = await this.userService.getAuthUser(payload.sub);
+    const user = await this.userService.getAuthUser(
+      payload.sub,
+      currentVersion,
+    );
 
     if (!user) throw new UnauthorizedException('用户不存在或已禁用');
 

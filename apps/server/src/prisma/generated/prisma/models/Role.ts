@@ -256,17 +256,17 @@ export type RoleWhereUniqueInput = Prisma.AtLeast<
     id?: string;
     roleName?: string;
     roleCode?: string;
-    description?: string;
     AND?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[];
     OR?: Prisma.RoleWhereInput[];
     NOT?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[];
+    description?: Prisma.StringNullableFilter<'Role'> | string | null;
     status?: Prisma.IntFilter<'Role'> | number;
     createdAt?: Prisma.DateTimeFilter<'Role'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'Role'> | Date | string;
     users?: Prisma.UserListRelationFilter;
     permissions?: Prisma.RolePermissionListRelationFilter;
   },
-  'id' | 'roleName' | 'roleCode' | 'description'
+  'id' | 'roleName' | 'roleCode'
 >;
 
 export type RoleOrderByWithAggregationInput = {
