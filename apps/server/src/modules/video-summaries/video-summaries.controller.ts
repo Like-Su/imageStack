@@ -1,11 +1,13 @@
 import {
   Controller,
+  DefaultValuePipe,
   Get,
   Header,
   Headers,
   HttpCode,
   HttpStatus,
   Param,
+  ParseBoolPipe,
   Post,
   Query,
   Sse,
@@ -41,8 +43,13 @@ export class VideoSummariesController {
   @Get('assets/:id')
   @Header('Cache-Control', 'no-store')
   @RequirePermission(PermissionCode.ASSET_LIST)
-  detail(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
-    return this.summaries.detail(assetId, user.id);
+  detail(
+    @Param('id') assetId: string,
+    @CurrentUser() user: RequestUser,
+    @Query('includeTranscript', new DefaultValuePipe(true), ParseBoolPipe)
+    includeTranscript: boolean,
+  ) {
+    return this.summaries.detail(assetId, user.id, includeTranscript);
   }
 
   @Post('assets/:id')

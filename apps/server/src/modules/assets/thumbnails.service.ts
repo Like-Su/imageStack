@@ -8,10 +8,10 @@ import type { MediaAsset } from './asset-media';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { THUMBNAIL_PROFILE } from '../jobs/media-processing.constants';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import type { StorageProvider, StorageStat } from '../storage/storage.provider';
 
 export type ThumbnailResponse =
-  | { key: string; mimeType: 'image/webp' | 'video/mp4' }
+  | { key: string; mimeType: 'image/webp' | 'video/mp4'; stat: StorageStat }
   | { assetId: string; status: 'PENDING' | 'PROCESSING' };
 
 @Injectable()
@@ -28,15 +28,17 @@ export class ThumbnailsService {
     variant: 'thumbnail' | 'preview' = 'thumbnail',
   ): Promise<ThumbnailResponse> {
     const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;
+    const metadata = key ? await this.storage.stat(key) : null;
     if (
       key &&
-      (await this.storage.exists(key)) &&
+      metadata &&
       (variant === 'preview' ||
         asset.thumbnailVersion >= THUMBNAIL_PROFILE.version ||
         asset.processingStatus === 'FAILED')
     ) {
       return {
         key,
+        stat: metadata,
         mimeType: variant === 'preview' ? 'video/mp4' : 'image/webp',
       };
     }

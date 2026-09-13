@@ -18,6 +18,7 @@ export type * from './models/AssetRecognition';
 export type * from './models/VideoSummary';
 export type * from './models/VideoSummaryEvent';
 export type * from './models/Album';
+export type * from './models/AlbumMember';
 export type * from './models/AlbumAsset';
 export type * from './models/Tag';
 export type * from './models/AssetTag';

@@ -5,12 +5,15 @@ import { ref } from "vue";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
 import type { Album } from "@/types/media";
 import AppModal from "@/components/workspace/AppModal.vue";
 
-const props = defineProps<{ album?: Album }>();
+const props = defineProps<{ album?: Album; shared?: boolean }>();
 const emit = defineEmits<{ close: []; saved: [album: Album] }>();
 const workspace = useWorkspaceStore();
+const auth = useAuthStore();
+const shared = ref(props.album?.shared ?? props.shared ?? false);
 const name = ref(props.album?.name ?? "");
 const description = ref(props.album?.description ?? "");
 const busy = ref(false);
@@ -31,7 +34,7 @@ async function submit() {
     };
     const album = props.album
       ? await mediaApi.updateAlbum(props.album.id, body)
-      : await mediaApi.createAlbum(body);
+      : await mediaApi.createAlbum({ ...body, shared: shared.value });
     workspace.updateAlbum(album, !props.album);
     workspace.notify(
       props.album
@@ -51,12 +54,29 @@ async function submit() {
 <template>
   <AppModal
     open
-    :title="album ? $t('编辑相册') : $t('新建相册')"
-    :description="$t('给回忆一个名字，让每一张照片都有归属。')"
+    :title="
+      album ? $t('编辑相册') : shared ? $t('新建共享相册') : $t('新建相册')
+    "
+    :description="
+      shared
+        ? $t('仅创建者和受邀成员可见，可分别授权添加、编辑和移除媒体。')
+        : $t('给回忆一个名字，让每一张照片都有归属。')
+    "
     :busy="busy"
     @update:open="emit('close')"
   >
     <form class="space-y-4 p-5" @submit.prevent="submit">
+      <div
+        v-if="!album && auth.user?.roleCode === 'ROLE_ADMIN'"
+        class="space-y-2"
+      >
+        <el-checkbox v-model="shared" :disabled="busy">{{
+          $t("共享相册")
+        }}</el-checkbox>
+        <p v-if="shared" class="text-xs leading-6 text-soft">
+          {{ $t("创建后可在「成员管理」中按已注册邮箱邀请其他用户。") }}
+        </p>
+      </div>
       <label class="mh-label"
         >{{ $t("相册名称")
         }}<el-input

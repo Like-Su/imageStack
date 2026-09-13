@@ -15,11 +15,14 @@ import {
   runnableRecognitionWhere,
 } from './ai.constants';
 import { AiVisionService } from './ai-vision.service';
+import { CoalescedReads } from '../../common/coalesced-reads';
+import { notifyWorkspaceChange } from '../../common/workspace-notifications';
 
 @Injectable()
 export class AiIndexService {
   private readonly logger = new Logger(AiIndexService.name);
   private readonly queueListeners = new Set<() => void>();
+  private readonly reads = new CoalescedReads();
 
   onQueued(listener: () => void) {
     this.queueListeners.add(listener);
@@ -75,7 +78,11 @@ export class AiIndexService {
     return asset.recognition;
   }
 
-  async status(userId: string) {
+  status(userId: string) {
+    return this.reads.run(userId, () => this.readStatus(userId));
+  }
+
+  private async readStatus(userId: string) {
     const where = { ...aiImageWhere, ownerId: userId };
     const [total, groups] = await Promise.all([
       this.prisma.fileNode.count({ where }),
@@ -111,9 +118,14 @@ export class AiIndexService {
       select: { id: true },
     });
     if (asset) {
-      const created = await this.prisma.assetRecognition.createMany({
-        data: [{ assetId: asset.id }],
-        skipDuplicates: true,
+      const created = await this.prisma.$transaction(async (transaction) => {
+        const result = await transaction.assetRecognition.createMany({
+          data: [{ assetId: asset.id }],
+          skipDuplicates: true,
+        });
+        if (result.count)
+          await notifyWorkspaceChange(transaction, data.ownerId, ['ai']);
+        return result;
       });
       if (created.count) this.notifyQueued();
     }
@@ -162,7 +174,9 @@ export class AiIndexService {
           nextAttemptAt: null,
         },
       });
-      return created.count + retried.count;
+      const count = created.count + retried.count;
+      if (count) await notifyWorkspaceChange(transaction, userId, ['ai']);
+      return count;
     });
     if (queued) this.notifyQueued();
     return { queued };
@@ -202,7 +216,7 @@ export class AiIndexService {
       },
     };
     if (record.attempts >= AI_INDEX_MAX_ATTEMPTS) {
-      await this.prisma.assetRecognition.updateMany({
+      await this.updateState(ownerId, {
         where: claimWhere,
         data: {
           status: 'FAILED',
@@ -216,7 +230,7 @@ export class AiIndexService {
     }
     const leaseToken = randomUUID();
     const attempt = record.attempts + 1;
-    const claimed = await this.prisma.assetRecognition.updateMany({
+    const claimed = await this.updateState(ownerId, {
       where: claimWhere,
       data: {
         status: 'PROCESSING',
@@ -260,7 +274,7 @@ export class AiIndexService {
       const bytes = await this.readImage(record.asset, controller.signal);
       const result = await this.vision.recognize(bytes, controller.signal);
       controller.signal.throwIfAborted();
-      await this.prisma.assetRecognition.updateMany({
+      await this.updateState(ownerId, {
         where: processingWhere,
         data: {
           ...result,
@@ -282,7 +296,7 @@ export class AiIndexService {
         error instanceof AiRecognitionError
           ? error.message
           : '识图任务中断或暂时失败，等待重试';
-      await this.prisma.assetRecognition.updateMany({
+      await this.updateState(ownerId, {
         where: processingWhere,
         data: {
           status: failed ? 'FAILED' : 'PENDING',
@@ -300,6 +314,22 @@ export class AiIndexService {
       await renewal;
       signal.removeEventListener('abort', abort);
     }
+  }
+
+  private updateState(
+    ownerId: string,
+    args: Prisma.AssetRecognitionUpdateManyArgs,
+  ) {
+    return this.prisma.$transaction(async (transaction) => {
+      const updated = await transaction.assetRecognition.updateMany(args);
+      if (updated.count)
+        await notifyWorkspaceChange(
+          transaction,
+          ownerId,
+          args.data.status === 'READY' ? ['ai', 'search'] : ['ai'],
+        );
+      return updated;
+    });
   }
 
   private async readImage(asset: FileNode, signal: AbortSignal) {

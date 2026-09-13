@@ -30,11 +30,16 @@ export function useRemoteData<Data>(
   let dirty = true;
   let pendingUpdates: ((data: Data) => Data)[] = [];
   let coldInvalidation = false;
+  let pendingRead: Promise<void> | null = null;
 
-  async function refresh(): Promise<void> {
+  function refresh(replace = false): Promise<void> {
     if (!active) {
       dirty = true;
-      return;
+      return Promise.resolve();
+    }
+    if (loading.value && !replace) {
+      coldInvalidation = true;
+      return pendingRead ?? Promise.resolve();
     }
     controller?.abort();
     const current = new AbortController();
@@ -42,26 +47,31 @@ export function useRemoteData<Data>(
     loading.value = true;
     error.value = "";
     coldInvalidation = false;
-    try {
-      const result = await loader(current.signal);
-      if (!current.signal.aborted) {
-        let next: Data = result;
-        for (const update of pendingUpdates) next = update(next);
-        data.value = next;
-        pendingUpdates = [];
-        dirty = coldInvalidation;
-      }
-    } catch (cause) {
-      if (!current.signal.aborted) error.value = getErrorMessage(cause);
-    } finally {
-      if (controller === current) {
-        loading.value = false;
-        if (coldInvalidation && !current.signal.aborted) {
-          options.invalidate?.();
-          void refresh();
+    const pending = (async () => {
+      try {
+        const result = await loader(current.signal);
+        if (!current.signal.aborted) {
+          let next: Data = result;
+          for (const update of pendingUpdates) next = update(next);
+          data.value = next;
+          pendingUpdates = [];
+          dirty = coldInvalidation;
+        }
+      } catch (cause) {
+        if (!current.signal.aborted) error.value = getErrorMessage(cause);
+      } finally {
+        if (controller === current) {
+          loading.value = false;
+          pendingRead = null;
+          if (coldInvalidation && !current.signal.aborted) {
+            options.invalidate?.();
+            await refresh();
+          }
         }
       }
-    }
+    })();
+    pendingRead = pending;
+    return pending;
   }
 
   function mutate(update: (data: Data) => Data) {
@@ -105,7 +115,7 @@ export function useRemoteData<Data>(
         data.value = null;
       pendingUpdates = [];
       dirty = true;
-      void refresh();
+      void refresh(true);
     },
     { immediate: true },
   );

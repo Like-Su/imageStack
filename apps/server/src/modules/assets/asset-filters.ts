@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import type { ListAssetsDto } from './dto/assets-query.dto';
+import { albumWhere } from '../collections/album-scope';
 
 const mediaTypes = {
   image: 'IMAGE',
@@ -31,7 +32,7 @@ export function buildAssetFilters(
 
   if (query.type) conditions.push({ mediaType: mediaTypes[query.type] });
   if (query.favorite !== undefined) {
-    conditions.push({ isFavorite: query.favorite });
+    conditions.push({ ownerId: userId, isFavorite: query.favorite });
   }
   if (query.uncategorized !== undefined) {
     conditions.push({
@@ -81,7 +82,7 @@ export function buildAssetFilters(
   }
   if (query.albumId) {
     conditions.push({
-      albums: { some: { album: { id: query.albumId, ownerId: userId } } },
+      albums: { some: { album: { id: query.albumId, ...albumWhere(userId) } } },
     });
   }
   if (query.tagId || query.tag) {

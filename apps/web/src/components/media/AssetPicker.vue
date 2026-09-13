@@ -100,7 +100,7 @@ function submit() {
           <AssetImage
             :asset-id="asset.id"
             :name="asset.name"
-            :version="asset.status"
+            :version="asset.thumbnailRevision ?? asset.status"
           /><span
             v-if="selected.has(asset.id)"
             class="absolute top-1 right-1 rounded-full bg-accent p-1 text-ink"

@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { notifyWorkspaceChange } from '../../common/workspace-notifications';
 import { inspectImageContent } from '../../common/image-inspection';
 import { IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '../../common/media-formats';
 import type { VideoFormat } from '../../common/media-formats';
@@ -102,7 +103,7 @@ export class MediaProcessorService {
 
     if (asset.processingAttempts >= maxAttempts) {
       const error = '媒体任务重试已耗尽或执行中断';
-      const updated = await this.prisma.fileNode.updateMany({
+      const updated = await this.updateState(data.ownerId, {
         where: claimWhere,
         data: {
           processingStatus: 'FAILED',
@@ -123,7 +124,7 @@ export class MediaProcessorService {
     );
     const processingToken = randomUUID();
     const attempt = asset.processingAttempts + 1;
-    const claimed = await this.prisma.fileNode.updateMany({
+    const claimed = await this.updateState(data.ownerId, {
       where: claimWhere,
       data: {
         processingStatus: 'PROCESSING',
@@ -225,7 +226,7 @@ export class MediaProcessorService {
       }
 
       linkAttempted = true;
-      const updated = await this.prisma.fileNode.updateMany({
+      const updated = await this.updateState(data.ownerId, {
         where: processingWhere,
         data: {
           thumbnailKey,
@@ -278,7 +279,7 @@ export class MediaProcessorService {
         error instanceof Error ? error.stack : String(error),
       );
 
-      const updated = await this.prisma.fileNode.updateMany({
+      const updated = await this.updateState(data.ownerId, {
         where: processingWhere,
         data: {
           processingStatus: failed ? 'FAILED' : 'PENDING',
@@ -307,6 +308,21 @@ export class MediaProcessorService {
         );
       }
     }
+  }
+
+  private updateState(ownerId: string, args: Prisma.FileNodeUpdateManyArgs) {
+    return this.prisma.$transaction(async (transaction) => {
+      const updated = await transaction.fileNode.updateMany(args);
+      if (updated.count)
+        await notifyWorkspaceChange(
+          transaction,
+          ownerId,
+          args.data.processingStatus === 'READY'
+            ? ['processing', 'overview', 'places']
+            : ['processing', 'overview'],
+        );
+      return updated;
+    });
   }
 
   private maintainLease(where: Prisma.FileNodeWhereInput, leaseMs: number) {

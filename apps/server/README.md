@@ -70,6 +70,8 @@ pnpm --dir apps/server run db:generate
 
 ## 多格式图片与视频
 
+视频转写/总结状态由 PostgreSQL 提交通知驱动鉴权 SSE 推送，包含进度和摘要，不再逐连接定时查询事件。前端按需读取完整转写，支持断线补发、长连接鉴权复核及重连退避；接口与部署注意事项见 [VIDEO_SUMMARY.md](../../VIDEO_SUMMARY.md)。
+
 上传、图库/搜索、收藏/相册/标签、回收站与后台处理使用同一组媒体类型：
 
 | 类型                        | 扩展名                                     | 限制                             |
@@ -289,22 +291,26 @@ pnpm exec prisma generate --config prisma7.config.ts
 以下路径使用配置的 `API_PREFIX`（默认 `/api`），要求现有 JWT 鉴权。
 JSON 响应沿用 `{ success, data, timestamp }`。
 
-| 方法           | 路径                                  | 用途                                                                    |
-| -------------- | ------------------------------------- | ----------------------------------------------------------------------- |
-| GET            | `/assets?favorite=true`               | 收藏列表；也支持 `favorite=false`、`albumId`、`tagId`、精确标签名 `tag` |
-| POST / DELETE  | `/assets/:id/favorite`                | 收藏 / 取消收藏，返回 `{ id, isFavorite }`                              |
-| DELETE         | `/assets`                             | `{ ids }` 批量移入回收站                                                |
-| GET            | `/assets/trash`                       | 回收站，支持与图库相同的分页和筛选                                      |
-| POST           | `/assets/restore`                     | `{ ids }` 批量恢复                                                      |
-| GET            | `/assets/trash/:id/thumbnail?size=sm` | 回收站缩略图；M5 起由后台生成，未就绪返回 202                           |
-| GET / POST     | `/albums`                             | 相册数组 / 新建 `{ name, description? }`                                |
-| GET            | `/albums/:id?cursor&limit`            | 相册信息和 `assets: { items, nextCursor, hasMore }`                     |
-| PATCH / DELETE | `/albums/:id`                         | 更新 `{ name?, description?, coverAssetId? }` / 删除相册                |
-| POST / DELETE  | `/albums/:id/assets`                  | `{ ids }` 添加 / 移出相册成员，返回 `{ count, album }`                  |
-| GET / POST     | `/tags`                               | 手动标签云 / 新建 `{ name }`                                            |
-| PATCH / DELETE | `/tags/:id`                           | 改名 `{ name }` 或手动合并 `{ mergeIntoId }` / 删除标签                 |
-| POST           | `/assets/:id/tags`                    | `{ names }` 自动创建并关联手动标签，返回 `{ tags, createdCount }`       |
-| DELETE         | `/assets/:id/tags/:tagId`             | 解除该资产与标签的关联，返回 `{ count, tag }`                           |
+| 方法           | 路径                                  | 用途                                                                                |
+| -------------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
+| GET            | `/assets?favorite=true`               | 收藏列表；也支持 `favorite=false`、`albumId`、`tagId`、精确标签名 `tag`             |
+| POST / DELETE  | `/assets/:id/favorite`                | 收藏 / 取消收藏，返回 `{ id, isFavorite }`                                          |
+| DELETE         | `/assets`                             | `{ ids }` 批量移入回收站                                                            |
+| GET            | `/assets/trash`                       | 回收站，支持与图库相同的分页和筛选                                                  |
+| POST           | `/assets/restore`                     | `{ ids }` 批量恢复                                                                  |
+| GET            | `/assets/trash/:id/thumbnail?size=sm` | 回收站缩略图；M5 起由后台生成，未就绪返回 202                                       |
+| GET / POST     | `/albums`                             | 本人及受邀相册 / 新建 `{ name, description?, shared? }`，共享相册仅管理员可创建     |
+| GET            | `/albums/:id?cursor&limit`            | 相册信息和 `assets: { items, nextCursor, hasMore }`                                 |
+| PATCH / DELETE | `/albums/:id`                         | 更新 `{ name?, description?, coverAssetId? }` / 删除相册                            |
+| POST / DELETE  | `/albums/:id/assets`                  | `{ ids }` 添加 / 移出相册成员，返回 `{ count, album }`                              |
+| PATCH          | `/albums/:id/assets/:assetId`         | `{ name }`，在相册编辑权限内修改文件名称                                            |
+| GET / POST     | `/albums/:id/members`                 | 创建管理员查看成员 / 按 `{ email, canAdd, canEdit, canRemove }` 邀请                |
+| PATCH / DELETE | `/albums/:id/members/:userId`         | 创建管理员替换成员权限 / 移除成员访问权限                                           |
+| GET / POST     | `/tags`                               | 手动标签云 / 新建 `{ name }`                                                        |
+| PATCH / DELETE | `/tags/:id`                           | 改名 `{ name }` 或手动合并 `{ mergeIntoId }` / 删除标签                             |
+| POST           | `/assets/:id/tags`                    | `{ names }` 自动创建并关联手动标签，返回 `{ tags, createdCount }`                   |
+| POST           | `/assets/:id/tags/confirm`            | 确认候选标签，接受 `{ mode, tagIds, names }`，返回 `{ assets, tags, createdCount }` |
+| DELETE         | `/assets/:id/tags/:tagId`             | 解除该资产与标签的关联，返回 `{ count, tag }`                                       |
 
 资产分页默认 `limit=24`，范围为 1～100，按 `createdAt DESC, id DESC` 排序。
 切换视图或筛选条件时清空 `cursor`；`favorite` 只接受 `true` / `false`。
@@ -313,10 +319,13 @@ JSON 响应沿用 `{ success, data, timestamp }`。
 
 ### 一致性与权限
 
-- 所有资源按当前用户隔离，包括管理员；他人资源与不存在的资源均返回 404。
+- 私人资源仍按当前用户隔离，包括管理员；共享相册只向创建者和受邀成员开放，写入另按相册内添加、编辑、移除权限校验。未获邀请不泄露资源存在性。
 - 批量 `{ ids }` 接受 1～100 个不重复 ID；整个批次先校验，再在可重试的串行化事务中写入。
-  只要存在无效或他人 ID，整批回滚。回收/恢复返回 `{ count }`，表示实际变化数；添加/移出相册额外返回更新后的 `album` 摘要，供前端直接更新计数及封面。
+  添加媒体、回收/恢复仍要求本人资源，存在无效或他人 ID 时整批回滚。移出相册只删除指定相册内的关联，允许有移除权限的成员操作其他上传者的媒体，重复移除返回实际变化数。回收/恢复返回 `{ count }`；添加/移出相册额外返回更新后的 `album` 摘要，供前端直接更新计数及封面。
+- 共享相册成员默认仅查看，创建管理员可按已注册邮箱邀请并分别授予 `canAdd`、`canEdit`、`canRemove`。成员授权只在该相册内生效，不修改全局角色权限；元数据、原文件和每次视频流读取均验证访问范围，其他用户的私人相册、标签和收藏状态不通过共享媒体泄露。邀请管理写入审计日志。部署前应用 `20260913140000_shared_album_members` 迁移并生成 Prisma Client，详见 [共享相册说明](../../SHARED_ALBUMS.md)。
+- 上传会话可携带 `albumId`，共享相册的添加权限可用于该相册内上传，不能用于私人上传。上传完成时在同一事务内重新校验并关联相册；撤销权限后后续上传请求被拒绝，仍允许会话本人查询和取消清理。相册移除仅解除关联，原文件所有权不变。
 - 添加资产标签返回当前全部标签摘要 `tags`（包含计数及封面）和新建标签数 `createdCount`；移除关联返回实际变化数 `count` 及该标签更新后的摘要 `tag`。前端不必再请求整份集合列表；新前端依赖这些字段，部署时先更新服务端。详见 [性能优化清单](../../docs/性能优化.md)。
+- AI 标签必须经用户确认后才注册到 `Tag` 并建立 `AssetTag` 关联，后台识图不会自动创建标签。确认接口需要 `asset:tag` 权限，`mode=existing` 仅接受本人已有 `tagIds` 且禁止非空 `names`；`mode=create` 可提交编辑后的新名称并复用已有标签。每次确认 1～50 项，复用标签先校验归属与存在性，新建及关联在同一事务中完成；取消候选不写入，已有名称/关联自动去重，不修改已有标签和原有关联。详见 [AI 标签确认说明](../../AI_SEARCH.md#确认-ai-标签)。
 - 收藏、回收/恢复和关联添加/移除可重复执行；重复回收不会改变首次删除时间。
   回收不删除原图、缩略图、收藏或集合关系；恢复重新显示这些关系。
 - 回收站资产不出现在普通图库、收藏、相册成员及标签计数中；普通详情、原图和缩略图接口返回 404。
@@ -648,6 +657,7 @@ pnpm --dir apps/server exec prisma db seed --config prisma7.config.ts
 | GET    | `/assets/overview`       | `asset:list`   | 当前用户未删除/回收站数量、收藏、相册、标签、原图字节字符串与 `PENDING/PROCESSING/READY/FAILED` 统计       |
 | GET    | `/assets/places`         | `asset:list`   | 当前用户未删除图片的 EXIF 经纬度按 0.1° 网格聚合；`items/locatedAssets/totalPlaces`，数量最多的 500 个分组 |
 | GET    | `/assets/trash/:id`      | `asset:list`   | 自己的回收站媒体详情，`fileUrl` 为 null，缩略图仍走已有回收站路由                                          |
+| GET    | `/assets/trash/ids`      | `asset:delete` | 轻量回收站 ID 游标页，固定最多 1000 项；供清空操作枚举后确认，不读取完整媒体摘要                           |
 | POST   | `/assets/:id/retry`      | `asset:edit`   | 仅重置自己的未删除 FAILED 入库记录；`{id,status:'PENDING',enqueued}`，队列暂不可用时由数据库补投           |
 | DELETE | `/assets/trash`          | `asset:delete` | `{ids}`，1～100 个不重复 ID；仅允许自己的回收站图片，返回 `{count,cleanupPending}`                         |
 | GET    | `/system/capabilities`   | `asset:list`   | 已实现的后端能力与未接入扩展、上传限制、存储类型等；不是健康探测，也不提供插件安装/启停                    |
@@ -655,6 +665,8 @@ pnpm --dir apps/server exec prisma db seed --config prisma7.config.ts
 列表和搜索新增可选条件 `uncategorized`（布尔）、`minSize`（非负安全整数，字节）、`placeId`（`纬度网格整数:经度网格整数`，分别是原始坐标乘 10 向下取整）。条件与所有者、回收站状态及原有筛选取交集；`placeId` 的有效范围为纬度格 -900～900、经度格 -1800～1800。关键词搜索游标签名范围包含这些新条件。
 
 资产摘要补充 `processingAttempts`、`nextAttemptAt`、`updatedAt`，标签摘要补充 `coverAssetId`（该用户的未删除图片），用于任务中心和手动人物分组预览。人物以约定前缀 `人物:` 的普通标签存储，复用标签增删改/合并和媒体关联的权限与所有者隔离，不包含自动检测、识别或人脸裁剪模型。
+
+2026-09-13 性能优化补充：上传完成/秒传响应返回本次 `albumId` 与可用的 `album` 摘要，已绑定时无需再次归档；分片清理由终态会话后台有界追赶，失败保留记录重试。资产与集合摘要新增 `thumbnailRevision` / `coverThumbnailRevision`，统一前端缩略图缓存版本。图片识别与媒体任务失效复用 `/video-summaries/events`，统计和事件读取增加单实例同键在途合并。接口兼容性、按用户事件锁的统一切换要求及仍未实施的专项见 [性能优化记录](../../docs/性能优化.md#9-2026-09-13-优化实施记录)。
 
 ### 永久删除约束
 

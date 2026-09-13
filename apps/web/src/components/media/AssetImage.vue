@@ -28,6 +28,7 @@ const errorMessage = ref("");
 let observer: IntersectionObserver | null = null;
 let controller: AbortController | null = null;
 let timer: number | undefined;
+let forceReload = false;
 
 function clear() {
   controller?.abort();
@@ -36,7 +37,7 @@ function clear() {
   source.value = "";
 }
 
-async function retrieve(current: AbortController, attempt = 0) {
+async function retrieve(current: AbortController, attempt = 0, force = false) {
   try {
     const { assetId, trash, shareToken } = props;
     const key = JSON.stringify([
@@ -46,16 +47,18 @@ async function retrieve(current: AbortController, attempt = 0) {
       props.trash,
       props.version,
     ]);
-    const cached = shareToken ? null : cachedThumbnail(key);
+    const cached = shareToken || force ? null : cachedThumbnail(key);
     const blob =
       cached ??
       (await (shareToken
         ? sharesApi.thumbnail(shareToken, assetId, current.signal)
-        : sharedRead(
-            `thumbnail:${key}`,
-            (signal) => mediaApi.thumbnail(assetId, trash, signal),
-            current.signal,
-          )));
+        : force
+          ? mediaApi.thumbnail(assetId, trash, current.signal)
+          : sharedRead(
+              `thumbnail:${key}`,
+              (signal) => mediaApi.thumbnail(assetId, trash, signal),
+              current.signal,
+            )));
     if (current.signal.aborted) return;
     if (!shareToken && !cached) cacheThumbnail(key, blob);
     source.value = URL.createObjectURL(blob);
@@ -70,7 +73,7 @@ async function retrieve(current: AbortController, attempt = 0) {
       state.value = "processing";
       timer = window.setTimeout(
         () => {
-          void retrieve(current, attempt + 1);
+          void retrieve(current, attempt + 1, force);
         },
         Math.min(15, error.retryAfter ?? 3) * 1000,
       );
@@ -94,8 +97,20 @@ function loadVisible() {
   )
     return;
   controller = new AbortController();
-  void retrieve(controller);
+  void retrieve(controller, 0, forceReload);
+  forceReload = false;
 }
+
+function reload() {
+  clear();
+  controller = null;
+  state.value = "loading";
+  errorMessage.value = "";
+  forceReload = true;
+  loadVisible();
+}
+
+defineExpose({ reload });
 
 watch(visible, (shown) => {
   if (shown) loadVisible();
@@ -134,6 +149,7 @@ onMounted(() => {
   );
   if (host.value) observer.observe(host.value);
 });
+
 onBeforeUnmount(() => {
   observer?.disconnect();
   clear();
@@ -141,10 +157,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <!-- 防止用户按住图片出现 拖动照片 -->
   <div
     ref="host"
     class="relative size-full overflow-hidden bg-panel2"
     :title="errorMessage || undefined"
+    @mousedown.prevent
   >
     <img
       v-if="source && state === 'ready'"

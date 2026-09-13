@@ -9,6 +9,7 @@ import {
   Trash2,
   Share2,
   Upload,
+  Users,
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
@@ -23,6 +24,8 @@ import AssetPicker from "@/components/media/AssetPicker.vue";
 import AlbumForm from "@/components/media/AlbumForm.vue";
 import ViewToggle from "@/components/media/ViewToggle.vue";
 import ShareDialog from "@/components/media/ShareDialog.vue";
+import AlbumMembersDialog from "@/components/media/AlbumMembersDialog.vue";
+import SharedAlbumBrowser from "@/components/media/SharedAlbumBrowser.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -44,14 +47,31 @@ const {
 );
 const editing = ref(false);
 const sharing = ref(false);
+const managingMembers = ref(false);
 const picking = ref(false);
 const busy = ref(false);
 const pickerError = ref("");
+watch(
+  album,
+  (value) => {
+    if (value) uploads.setAlbumAccess(value);
+  },
+  { immediate: true },
+);
+watch(error, (value) => {
+  if (value) uploads.forgetAlbum(albumId.value);
+});
 watch(albumId, () => {
   sharing.value = false;
+  editing.value = false;
+  picking.value = false;
+  managingMembers.value = false;
 });
 onDeactivated(() => {
   sharing.value = false;
+  editing.value = false;
+  picking.value = false;
+  managingMembers.value = false;
 });
 
 async function addAssets(ids: string[]) {
@@ -120,9 +140,16 @@ async function remove() {
           :to="{ name: 'albums' }"
           class="mb-3 flex items-center gap-1 text-xs text-soft hover:text-accent"
           ><ArrowLeft class="size-3.5" />{{ $t("全部相册") }}</RouterLink
-        ></template
+        >
+        <p
+          v-if="album?.shared"
+          class="mb-3 flex items-center gap-2 text-xs text-ai"
+        >
+          <Users class="size-3.5" />{{ $t("共享相册") }} ·
+          {{ $t("创建者：{value1}", { value1: album.owner.username }) }}
+        </p></template
       ><ViewToggle /><el-button
-        v-if="album && uploads.canUpload(album.id)"
+        v-if="album?.permissions.addAssets && uploads.canUpload(album.id)"
         type="primary"
         native-type="button"
         :icon="Upload"
@@ -130,13 +157,24 @@ async function remove() {
         @click="uploads.chooseFiles(album.id)"
         >{{ $t("上传到相册") }}</el-button
       ><el-button
-        v-if="album"
+        v-if="album && !album.shared"
         :icon="Share2"
         :disabled="busy || !workspace.can('asset:share')"
         @click="sharing = true"
         >{{ $t("分享相册") }}</el-button
-      ><template v-if="album && workspace.can('asset:category')"
+      ><el-button
+        v-if="
+          album?.permissions.manageMembers && workspace.can('asset:category')
+        "
+        :icon="Users"
+        :disabled="busy"
+        native-type="button"
+        @click="managingMembers = true"
+        >{{ $t("成员管理") }} ({{ album.memberCount }})</el-button
+      ><template
+        v-if="album && (album.shared || workspace.can('asset:category'))"
         ><el-button
+          v-if="album.permissions.edit"
           text
           circle
           native-type="button"
@@ -146,6 +184,7 @@ async function remove() {
         >
           <Pencil /></el-button
         ><el-button
+          v-if="album.permissions.deleteAlbum"
           text
           circle
           native-type="button"
@@ -156,6 +195,7 @@ async function remove() {
         >
           <Trash2 /></el-button
         ><el-button
+          v-if="album.permissions.addAssets"
           native-type="button"
           :disabled="busy"
           @click="
@@ -173,6 +213,12 @@ async function remove() {
       :error="error"
       @retry="refresh"
     />
+    <SharedAlbumBrowser
+      v-else-if="album && album.shared"
+      :key="album.id"
+      :album="album"
+      @refresh="refresh"
+    />
     <AssetBrowser
       v-else-if="album"
       :query="{ albumId }"
@@ -182,12 +228,12 @@ async function remove() {
       "
     />
     <AlbumForm
-      v-if="editing && album"
+      v-if="editing && album?.permissions.edit"
       :album="album"
       @close="editing = false"
     />
     <AssetPicker
-      v-if="picking"
+      v-if="picking && album?.permissions.addAssets"
       :title="$t('添加到 {value1}', { value1: album?.name ?? $t('相册') })"
       :busy="busy"
       :error="pickerError"
@@ -195,11 +241,17 @@ async function remove() {
       @submit="addAssets"
     />
     <ShareDialog
-      v-if="sharing && album"
+      v-if="sharing && album && !album.shared"
       :key="album.id"
       :target="{ kind: 'album', targetId: album.id }"
       :name="album.name"
       @close="sharing = false"
+    />
+    <AlbumMembersDialog
+      v-if="managingMembers && album?.permissions.manageMembers"
+      :key="album.id"
+      :album="album"
+      @close="managingMembers = false"
     />
   </section>
 </template>

@@ -3,10 +3,10 @@ export const english: Record<string, string> = {
     "Local Chinese and English transcription with video speech summaries.",
   "上传完成后独立进行音轨提取、分段转写与 AI 总结，保存原语言文字及时间戳。需要配置 ASR 服务和文本模型；失败可在视频详情重试。摘要不包含画面分析，当前不参与关键词搜索。":
     "Extracts audio, transcribes segments, and summarizes speech in the background after upload. Original-language text and timestamps are saved. Requires ASR and a text model; retry failures in video details. Visual analysis and keyword indexing are not included.",
-  "视频转写与总结完成通知。":
-    "Video transcription and summary completion notifications.",
-  "通过鉴权 SSE 向视频所属用户推送总结完成或失败消息，断线后可从当前浏览器会话的游标补收。其他任务通知与 Webhook 尚未接入；SMTP 仍仅用于账户邮件。":
-    "Authenticated SSE sends video summary completion or failure events to the owner and resumes from this browser session's cursor after reconnection. Other task notifications and webhooks are not implemented; SMTP remains for account emails only.",
+  "视频转写与总结实时通知。":
+    "Real-time video transcription and summary notifications.",
+  "通过鉴权 SSE 实时推送视频转写进度、摘要和完成或失败消息，由数据库提交事件驱动，断线后按游标补收。推送链路不定时查询任务状态；其他任务通知与 Webhook 尚未接入，SMTP 仍仅用于账户邮件。":
+    "Authenticated SSE pushes transcription progress, summaries, and completion or failure events after database commits, with cursor-based replay on reconnect. The event stream does not poll task status. Other task notifications and webhooks are not implemented; SMTP remains for account emails only.",
   "视频总结完毕：{value1}": "Video summary complete: {value1}",
   "视频总结失败：{value1}，可在详情中重试":
     "Video summary failed: {value1}. Retry from its details.",
@@ -34,6 +34,16 @@ export const english: Record<string, string> = {
   "转写尚未完成，以下为已保存的部分内容。":
     "Transcription is incomplete. Saved progress is shown below.",
   显示更多转写内容: "Show more transcript",
+  "已完成 {value1} 段语音转写，进度由服务端推送。":
+    "Transcribed {value1} audio chunks. Progress is pushed by the server.",
+  "推送连接暂不可用，将自动恢复；也可手动刷新状态，不会启用定时查询。":
+    "Live updates are temporarily unavailable and will reconnect automatically. You can refresh manually; polling remains disabled.",
+  "正在按需读取语音转写…": "Loading the transcript on demand…",
+  重试读取转写: "Retry loading transcript",
+  加载最新转写: "Load latest transcript",
+  "未检测到可识别的语音。": "No recognizable speech detected.",
+  "状态和摘要由服务端推送，完整转写仅在展开时读取并缓存。":
+    "Status and summaries are pushed by the server. Full transcripts are loaded and cached only when expanded.",
   "摘要基于视频语音，不包含画面理解；转写和 AI 总结可能有误，请以原视频为准。":
     "This summary covers speech, not visual content. Transcription and AI summaries may contain errors; refer to the original video.",
   访问管理: "Access management",
@@ -438,6 +448,74 @@ export const english: Record<string, string> = {
     "Added {value1} images to the recognition queue.",
   编辑相册: "Edit album",
   新建相册: "New album",
+  新建共享相册: "New shared album",
+  共享相册: "Shared album",
+  私人相册: "Private albums",
+  相册类型: "Album type",
+  可协作: "Collaboration enabled",
+  仅查看: "View only",
+  "创建者：{value1}": "Created by: {value1}",
+  "仅创建者和受邀成员可见，可分别授权添加、编辑和移除媒体。":
+    "Visible only to its creator and invited members. Grant permissions to add, edit, and remove media separately.",
+  "创建后可在「成员管理」中按已注册邮箱邀请其他用户。":
+    "After creating the album, invite registered users by email in Member management.",
+  成员管理: "Member management",
+  共享相册成员管理: "Shared album members",
+  "按已注册邮箱邀请，默认仅查看。邀请后对方即可在相册列表中访问，无需公开分享链接。":
+    "Invite registered users by email with view-only access by default. Invited users can open the album from their album list; no public link is needed.",
+  邀请成员: "Invite member",
+  受邀成员: "Invited members",
+  已注册邮箱: "Registered email",
+  请输入对方已注册的邮箱: "Enter the member's registered email",
+  查看相册: "View album",
+  编辑相册和文件名称: "Edit album and filenames",
+  移除相册媒体: "Remove media from album",
+  "编辑包含相册信息、封面和文件名称；移除仅解除相册关联，不删除原文件。成员不能邀请他人或删除整个相册。":
+    "Editing covers album details, cover, and filenames. Removing media only unlinks it and preserves original files. Members cannot invite others or delete the album.",
+  修改成员权限: "Edit member permissions",
+  取消修改: "Cancel editing",
+  保存权限: "Save permissions",
+  成员权限已更新: "Member permissions updated",
+  "邀请已生效，对方可在相册列表查看":
+    "Invitation applied; the member can now access the album from their album list",
+  "移除相册成员？": "Remove album member?",
+  "移除「{value1}」的相册访问与协作权限，已添加的媒体仍保留。":
+    "Revoke album access and collaboration permissions for {value1}. Previously added media will remain.",
+  移除成员: "Remove member",
+  成员已移除: "Member removed",
+  刷新成员列表: "Refresh members",
+  "尚未邀请成员，只有创建者可以访问。":
+    "No members invited yet. Only the creator can access this album.",
+  媒体类型: "Media type",
+  查看媒体: "View media",
+  相册封面已更新: "Album cover updated",
+  刷新共享相册: "Refresh shared album",
+  "共享相册只在授权范围内协作，移除媒体不会删除上传者的原文件。":
+    "Collaboration is limited to your album permissions. Removing media does not delete the uploader's original file.",
+  "有添加权限的成员可以上传媒体或从自己的图库添加。":
+    "Members with add permission can upload media or add it from their own library.",
+  "从共享相册移除媒体？": "Remove media from the shared album?",
+  "将移除所选 {value1} 项关联，上传者的原文件和其他相册不受影响。":
+    "Remove {value1} selected associations. Original files and other albums remain unchanged.",
+  移除媒体: "Remove media",
+  "已从相册移除 {value1} 项媒体": "Removed {value1} media items from the album",
+  "修改共享文件名称会同步更新上传者图库中的名称，原文件和扩展名保持不变。":
+    "Renaming a shared file also updates its name in the uploader's library. The original file and extension remain unchanged.",
+  相册不存在或未获邀请: "Album not found or you have not been invited",
+  没有此相册的操作权限: "You do not have permission for this album operation",
+  仅管理员可以创建共享相册: "Only administrators can create shared albums",
+  该邮箱没有可用的已注册用户:
+    "No active registered user was found for this email",
+  相册创建者无需邀请: "The album creator does not need an invitation",
+  "该用户已加入相册，请修改成员权限":
+    "This user is already a member. Edit their permissions instead.",
+  "每个共享相册最多邀请 200 名成员":
+    "A shared album supports up to 200 invited members",
+  相册成员不存在: "Album member not found",
+  资产不存在或没有查看权限:
+    "Media not found or you do not have view permission",
+  没有私人相册的归档权限:
+    "You do not have permission to add media to private albums",
   "给回忆一个名字，让每一张照片都有归属。":
     "Give your memories a name and your photos a home.",
   相册名称: "Album name",
@@ -648,6 +726,46 @@ export const english: Record<string, string> = {
   添加所选媒体: "Add selected media",
   选择图库媒体: "Choose media from gallery",
   刷新图片识别结果: "Refresh recognition results",
+  "编辑 AI 标签": "Edit AI tags",
+  "可先增加、修改或删除 AI 候选标签，确认保存前不会写入标签表。":
+    "Add, edit, or delete AI tag suggestions before saving. Nothing is written to the tag library until you confirm.",
+  "AI 关键词用于检索，不会自动创建标签；可先增加、修改或删除候选，确认后再保存并关联图片。":
+    "AI keywords support search but do not automatically create tags. Add, edit, or delete suggestions before confirming to save tags and link them to this image.",
+  仅使用已有标签: "Existing tags only",
+  允许新建标签: "Allow new tags",
+  "仅关联与候选名称匹配的已有标签；未匹配的候选不会保存，也不会创建新标签。":
+    "Only existing tags matching suggestion names are linked. Unmatched suggestions are not saved and no new tags are created.",
+  "直接修改名称，点击「添加候选标签」新增，点击「删除」移除；同名标签自动复用，重复名称自动去重。":
+    "Edit names directly, use Add suggested tag to add one, or Delete to remove one. Existing names are reused and duplicates are ignored.",
+  候选标签: "Suggested tags",
+  "还没有候选标签，请添加候选或选择已有标签。":
+    "No suggestions yet. Add a suggestion or select an existing tag.",
+  候选标签名称: "Suggested tag name",
+  添加候选标签: "Add suggested tag",
+  "移除候选标签 {value1}": "Remove suggested tag {value1}",
+  复用已有: "Reuse existing",
+  待新建: "New tag",
+  不会保存: "Not saved",
+  选择已有标签: "Select existing tags",
+  "已有标签选择与候选列表同步；取消选中会移除对应候选。":
+    "Existing tag selections stay in sync with suggestions. Deselecting a tag removes its suggestion.",
+  刷新标签列表: "Refresh tag list",
+  搜索并选择已有标签: "Search and select existing tags",
+  "还没有可用标签，可选择允许新建标签。":
+    "No tags are available yet. Select Allow new tags to create some.",
+  "将关联 {value1} 个标签，其中新建 {value2} 个、复用 {value3} 个。":
+    "Link {value1} tags: create {value2} and reuse {value3} existing tags.",
+  "{value1} 个候选未匹配已有标签，不会保存；可改为已有名称，或选择「允许新建标签」。":
+    "{value1} suggestions do not match existing tags and will not be saved. Change them to existing names or select Allow new tags.",
+  "仅新增关联，不移除媒体原有标签；编辑候选不会修改或删除已有标签。":
+    "Only adds associations and keeps existing media tags. Editing suggestions does not rename or delete registered tags.",
+  "请确认 1～50 个标签": "Choose 1–50 tags to confirm",
+  "标签名称须为 1～100 个字符，且不能包含空字符。":
+    "Tag names must contain 1–100 characters and cannot contain null characters.",
+  "部分标签已不可用，请刷新标签列表后重新选择。":
+    "Some tags are no longer available. Refresh the tag list and select again.",
+  确认保存标签: "Confirm and save tags",
+  "标签已保存，新增 {value1} 个标签": "Tags saved; {value1} new tags created",
   查看识别文字: "View recognized text",
   "模型：{value1}。AI 结果可能存在误识别，仅作检索参考；动画只识别首帧。":
     "Model: {value1}. AI results may be inaccurate and are for search reference only. Only the first frame of an animation is recognized.",
@@ -1179,6 +1297,8 @@ export const english: Record<string, string> = {
   刷新: "Refresh",
   全部入库任务: "All ingestion tasks",
   "每 10 秒刷新首页": "Refresh overview every 10 seconds",
+  服务端推送任务状态: "Task updates via server push",
+  定时校准任务状态: "Periodic task status reconciliation",
   手动刷新列表: "Refresh list manually",
   "{value1} · 仅当前账户的未删除图片":
     "{value1} · Only this account's undeleted images",

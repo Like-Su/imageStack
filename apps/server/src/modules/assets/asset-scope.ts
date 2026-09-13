@@ -1,19 +1,35 @@
 import { NotFoundException } from '@nestjs/common';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { MEDIA_MIME_TYPES } from '../../common/media-formats';
+import { albumWhere } from '../collections/album-scope';
 
-export function assetWhere(
-  ownerId: string,
+export function mediaAssetWhere(
   deleted: boolean | null = false,
 ): Prisma.FileNodeWhereInput {
   return {
-    ownerId,
     ...(deleted === null ? {} : { deleted }),
     type: 'FILE',
     mediaType: { in: ['IMAGE', 'VIDEO'] },
     storageProvider: 'LOCAL_FS',
     storageKey: { not: null },
     mimeType: { in: MEDIA_MIME_TYPES },
+  };
+}
+
+export function assetWhere(
+  ownerId: string,
+  deleted: boolean | null = false,
+): Prisma.FileNodeWhereInput {
+  return { ...mediaAssetWhere(deleted), ownerId };
+}
+
+export function readableAssetWhere(userId: string): Prisma.FileNodeWhereInput {
+  return {
+    ...mediaAssetWhere(),
+    OR: [
+      { ownerId: userId },
+      { albums: { some: { album: { shared: true, ...albumWhere(userId) } } } },
+    ],
   };
 }
 

@@ -12,6 +12,12 @@ import {
 import { UPLOAD_MAX_BYTES } from '../upload.constants';
 
 export class CreateUploadSessionDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  albumId?: string;
+
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @MinLength(1)

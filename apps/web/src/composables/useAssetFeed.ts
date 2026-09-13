@@ -9,14 +9,16 @@ import {
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
 import type { AssetQuery, AssetSummary } from "@/types/media";
 import type { WorkspaceChange } from "@/types/workspace";
-import { updateAsset } from "./workspaceUpdates";
+import { assetChangeIds, updateAsset } from "./workspaceUpdates";
 
 export function useAssetFeed(
   options: () => { query: AssetQuery; trash?: boolean; search?: string },
 ) {
   const workspace = useWorkspaceStore();
+  const auth = useAuthStore();
   const items = shallowRef<AssetSummary[]>([]);
   const loading = ref(false);
   const loadingMore = ref(false);
@@ -31,14 +33,26 @@ export function useAssetFeed(
   let dirty = true;
   let reloadRequested = false;
   let pendingChanges: WorkspaceChange[] = [];
+  const positions = new Map<string, number>();
+
+  function replaceItems(next: AssetSummary[], reindex = true) {
+    if (reindex) {
+      positions.clear();
+      next.forEach((asset, index) => positions.set(asset.id, index));
+    }
+    items.value = next;
+  }
 
   function matches(asset: AssetSummary) {
     const { query, trash } = options();
     const date = Date.parse(asset[query.timeField ?? "createdAt"] ?? "");
     return (
+      (Boolean(query.albumId) || asset.ownerId === auth.user?.id) &&
       asset.deleted === Boolean(trash) &&
       (!query.type || asset.type.toLowerCase() === query.type) &&
-      (query.favorite === undefined || asset.isFavorite === query.favorite) &&
+      (query.favorite === undefined ||
+        (asset.ownerId === auth.user?.id &&
+          asset.isFavorite === query.favorite)) &&
       (!query.status || asset.status === query.status) &&
       ((!query.tagId && !query.tag) ||
         asset.tags.some(
@@ -72,14 +86,29 @@ export function useAssetFeed(
       change.value === null &&
       query.albumId === change.id
     ) {
-      items.value = [];
+      replaceItems([]);
       hasMore.value = false;
       return false;
     }
     const previous = items.value;
-    const updated = previous
-      .map((asset) => updateAsset(asset, change))
-      .filter((asset) => !removedIds.has(asset.id) && matches(asset));
+    let updated = previous;
+    const removedPositions = new Set<number>();
+    const targets =
+      assetChangeIds(change) ?? (change.type === "tag" ? positions.keys() : []);
+    for (const id of targets) {
+      const index = positions.get(id);
+      if (index === undefined) continue;
+      const asset = previous[index]!;
+      const next = updateAsset(asset, change);
+      if (removedIds.has(id) || !matches(next)) {
+        removedPositions.add(index);
+      } else if (next !== asset) {
+        if (updated === previous) updated = [...previous];
+        updated[index] = next;
+      }
+    }
+    if (removedPositions.size)
+      updated = updated.filter((_asset, index) => !removedPositions.has(index));
     const candidates =
       change.type === "assets" && !change.removed
         ? change.before.map((asset) => updateAsset(asset, change))
@@ -97,10 +126,13 @@ export function useAssetFeed(
     const compare = (left: AssetSummary, right: AssetSummary) =>
       right.createdAt.localeCompare(left.createdAt) ||
       right.id.localeCompare(left.id);
-    if (canInsert) {
-      const seen = new Set(updated.map((asset) => asset.id));
+    let inserted = false;
+    if (canInsert && candidates.length) {
+      const added = new Set<string>();
       const last = previous[previous.length - 1];
       for (const asset of candidates) {
+        const position = positions.get(asset.id);
+        if (position !== undefined && !removedPositions.has(position)) continue;
         const albumMatches =
           !query.albumId ||
           (change.type === "album-members" &&
@@ -109,20 +141,26 @@ export function useAssetFeed(
             change.albumIds[asset.id]?.includes(query.albumId));
         if (
           albumMatches &&
-          !seen.has(asset.id) &&
+          !added.has(asset.id) &&
           matches(asset) &&
           (!hasMore.value || !last || compare(asset, last) <= 0)
         ) {
+          if (updated === previous) updated = [...previous];
           updated.push(asset);
-          seen.add(asset.id);
+          added.add(asset.id);
+          inserted = true;
         }
       }
     }
-    if (
-      updated.length !== previous.length ||
-      updated.some((asset, index) => asset !== previous[index])
-    )
-      items.value = updated.sort(compare);
+    if (updated !== previous) {
+      const orderChanged =
+        inserted ||
+        (change.type === "assets" &&
+          (change.patch.createdAt !== undefined ||
+            change.patch.id !== undefined));
+      if (orderChanged) updated.sort(compare);
+      replaceItems(updated, orderChanged || removedPositions.size > 0);
+    }
     const serverFilterChanged =
       (change.type === "assets" &&
         change.patch.name !== undefined &&
@@ -150,8 +188,10 @@ export function useAssetFeed(
     if (
       (append || quiet) &&
       (loading.value || loadingMore.value || refreshing.value)
-    )
+    ) {
+      if (quiet) reloadRequested = true;
       return;
+    }
     if (append && !hasMore.value) return;
     controller?.abort();
     const current = new AbortController();
@@ -178,7 +218,7 @@ export function useAssetFeed(
       moreError.value = "";
       hasMore.value = false;
       cursor = null;
-      items.value = [];
+      replaceItems([]);
     }
     try {
       const result =
@@ -192,14 +232,20 @@ export function useAssetFeed(
           : result.items;
       const existing = append ? items.value : [];
       const seen = new Set(existing.map((item) => item.id));
-      items.value = [...existing, ...page.filter((item) => !seen.has(item.id))];
+      replaceItems([...existing, ...page.filter((item) => !seen.has(item.id))]);
       cursor = result.nextCursor;
       hasMore.value = result.hasMore && Boolean(cursor);
       tookMs.value = "tookMs" in result ? result.tookMs : null;
       dirty = false;
       for (const change of pendingChanges) applyChange(change);
       pendingChanges = [];
-      workspace.rememberAssets(items.value, settings.query.albumId);
+      workspace.rememberAssets(
+        page.flatMap((asset) => {
+          const index = positions.get(asset.id);
+          return index === undefined ? [] : [items.value[index]!];
+        }),
+        settings.query.albumId,
+      );
     } catch (cause) {
       if (!current.signal.aborted) {
         if (append || quiet) moreError.value = getErrorMessage(cause);

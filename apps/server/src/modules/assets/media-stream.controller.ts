@@ -14,6 +14,7 @@ import { PermissionCode } from '../../common/constants';
 import { SkipResponseWrap } from '../../common/decorators/skip-response-wrap.decorator';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
+import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { Open } from '../iam/auth/decorators/open.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
@@ -30,6 +31,7 @@ export class MediaStreamController {
   ) {}
 
   @Post(':id/stream-ticket')
+  @AllowSharedAlbum('asset', 'view')
   @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
   ticket(
     @Param('id') assetId: string,

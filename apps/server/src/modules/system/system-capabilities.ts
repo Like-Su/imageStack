@@ -156,9 +156,9 @@ export const systemCapabilities = {
       name: '任务通知',
       category: '系统',
       builtin: true,
-      description: '视频转写与总结完成通知。',
+      description: '视频转写与总结实时通知。',
       detail:
-        '通过鉴权 SSE 向视频所属用户推送总结完成或失败消息，断线后可从当前浏览器会话的游标补收。其他任务通知与 Webhook 尚未接入；SMTP 仍仅用于账户邮件。',
+        '通过鉴权 SSE 实时推送视频转写进度、摘要和完成或失败消息，由数据库提交事件驱动，断线后按游标补收。推送链路不定时查询任务状态；其他任务通知与 Webhook 尚未接入，SMTP 仍仅用于账户邮件。',
     },
     {
       id: 'backup',

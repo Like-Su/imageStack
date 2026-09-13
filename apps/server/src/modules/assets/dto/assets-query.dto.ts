@@ -19,6 +19,14 @@ import type { MediaProcessingStatus } from '../../../prisma/generated/prisma/cli
 const dateFilterPattern =
   /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2}))?$/;
 
+export class TrashIdsQueryDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(512)
+  cursor?: string;
+}
+
 export class ListAssetsDto extends CursorPaginationDto {
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,

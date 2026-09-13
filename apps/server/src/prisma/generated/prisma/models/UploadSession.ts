@@ -41,6 +41,7 @@ export type UploadSessionSumAggregateOutputType = {
 export type UploadSessionMinAggregateOutputType = {
   id: string | null;
   userId: string | null;
+  albumId: string | null;
   fileName: string | null;
   size: bigint | null;
   mimeType: string | null;
@@ -59,6 +60,7 @@ export type UploadSessionMinAggregateOutputType = {
 export type UploadSessionMaxAggregateOutputType = {
   id: string | null;
   userId: string | null;
+  albumId: string | null;
   fileName: string | null;
   size: bigint | null;
   mimeType: string | null;
@@ -77,6 +79,7 @@ export type UploadSessionMaxAggregateOutputType = {
 export type UploadSessionCountAggregateOutputType = {
   id: number;
   userId: number;
+  albumId: number;
   fileName: number;
   size: number;
   mimeType: number;
@@ -108,6 +111,7 @@ export type UploadSessionSumAggregateInputType = {
 export type UploadSessionMinAggregateInputType = {
   id?: true;
   userId?: true;
+  albumId?: true;
   fileName?: true;
   size?: true;
   mimeType?: true;
@@ -126,6 +130,7 @@ export type UploadSessionMinAggregateInputType = {
 export type UploadSessionMaxAggregateInputType = {
   id?: true;
   userId?: true;
+  albumId?: true;
   fileName?: true;
   size?: true;
   mimeType?: true;
@@ -144,6 +149,7 @@ export type UploadSessionMaxAggregateInputType = {
 export type UploadSessionCountAggregateInputType = {
   id?: true;
   userId?: true;
+  albumId?: true;
   fileName?: true;
   size?: true;
   mimeType?: true;
@@ -259,6 +265,7 @@ export type UploadSessionGroupByArgs<
 export type UploadSessionGroupByOutputType = {
   id: string;
   userId: string;
+  albumId: string | null;
   fileName: string;
   size: bigint | null;
   mimeType: string | null;
@@ -300,6 +307,7 @@ export type UploadSessionWhereInput = {
   NOT?: Prisma.UploadSessionWhereInput | Prisma.UploadSessionWhereInput[];
   id?: Prisma.StringFilter<'UploadSession'> | string;
   userId?: Prisma.StringFilter<'UploadSession'> | string;
+  albumId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   fileName?: Prisma.StringFilter<'UploadSession'> | string;
   size?: Prisma.BigIntNullableFilter<'UploadSession'> | bigint | number | null;
   mimeType?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
@@ -315,6 +323,10 @@ export type UploadSessionWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
   fileId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+  album?: Prisma.XOR<
+    Prisma.AlbumNullableScalarRelationFilter,
+    Prisma.AlbumWhereInput
+  > | null;
   parts?: Prisma.UploadPartListRelationFilter;
   file?: Prisma.XOR<
     Prisma.FileNodeNullableScalarRelationFilter,
@@ -325,6 +337,7 @@ export type UploadSessionWhereInput = {
 export type UploadSessionOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
+  albumId?: Prisma.SortOrderInput | Prisma.SortOrder;
   fileName?: Prisma.SortOrder;
   size?: Prisma.SortOrderInput | Prisma.SortOrder;
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -339,6 +352,7 @@ export type UploadSessionOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder;
   fileId?: Prisma.SortOrderInput | Prisma.SortOrder;
   user?: Prisma.UserOrderByWithRelationInput;
+  album?: Prisma.AlbumOrderByWithRelationInput;
   parts?: Prisma.UploadPartOrderByRelationAggregateInput;
   file?: Prisma.FileNodeOrderByWithRelationInput;
 };
@@ -351,6 +365,7 @@ export type UploadSessionWhereUniqueInput = Prisma.AtLeast<
     OR?: Prisma.UploadSessionWhereInput[];
     NOT?: Prisma.UploadSessionWhereInput | Prisma.UploadSessionWhereInput[];
     userId?: Prisma.StringFilter<'UploadSession'> | string;
+    albumId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
     fileName?: Prisma.StringFilter<'UploadSession'> | string;
     size?:
       Prisma.BigIntNullableFilter<'UploadSession'> | bigint | number | null;
@@ -367,6 +382,10 @@ export type UploadSessionWhereUniqueInput = Prisma.AtLeast<
     createdAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'UploadSession'> | Date | string;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
+    album?: Prisma.XOR<
+      Prisma.AlbumNullableScalarRelationFilter,
+      Prisma.AlbumWhereInput
+    > | null;
     parts?: Prisma.UploadPartListRelationFilter;
     file?: Prisma.XOR<
       Prisma.FileNodeNullableScalarRelationFilter,
@@ -379,6 +398,7 @@ export type UploadSessionWhereUniqueInput = Prisma.AtLeast<
 export type UploadSessionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
+  albumId?: Prisma.SortOrderInput | Prisma.SortOrder;
   fileName?: Prisma.SortOrder;
   size?: Prisma.SortOrderInput | Prisma.SortOrder;
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -409,6 +429,8 @@ export type UploadSessionScalarWhereWithAggregatesInput = {
     | Prisma.UploadSessionScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<'UploadSession'> | string;
   userId?: Prisma.StringWithAggregatesFilter<'UploadSession'> | string;
+  albumId?:
+    Prisma.StringNullableWithAggregatesFilter<'UploadSession'> | string | null;
   fileName?: Prisma.StringWithAggregatesFilter<'UploadSession'> | string;
   size?:
     | Prisma.BigIntNullableWithAggregatesFilter<'UploadSession'>
@@ -457,6 +479,7 @@ export type UploadSessionCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  album?: Prisma.AlbumCreateNestedOneWithoutUploadSessionsInput;
   parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
   file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
 };
@@ -464,6 +487,7 @@ export type UploadSessionCreateInput = {
 export type UploadSessionUncheckedCreateInput = {
   id?: string;
   userId: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -498,6 +522,7 @@ export type UploadSessionUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  album?: Prisma.AlbumUpdateOneWithoutUploadSessionsNestedInput;
   parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
   file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
 };
@@ -505,6 +530,7 @@ export type UploadSessionUpdateInput = {
 export type UploadSessionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -527,6 +553,7 @@ export type UploadSessionUncheckedUpdateInput = {
 export type UploadSessionCreateManyInput = {
   id?: string;
   userId: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -564,6 +591,7 @@ export type UploadSessionUpdateManyMutationInput = {
 export type UploadSessionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -600,6 +628,7 @@ export type UploadSessionNullableScalarRelationFilter = {
 export type UploadSessionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
+  albumId?: Prisma.SortOrder;
   fileName?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
@@ -624,6 +653,7 @@ export type UploadSessionAvgOrderByAggregateInput = {
 export type UploadSessionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
+  albumId?: Prisma.SortOrder;
   fileName?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
@@ -642,6 +672,7 @@ export type UploadSessionMaxOrderByAggregateInput = {
 export type UploadSessionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
+  albumId?: Prisma.SortOrder;
   fileName?: Prisma.SortOrder;
   size?: Prisma.SortOrder;
   mimeType?: Prisma.SortOrder;
@@ -834,6 +865,116 @@ export type UploadSessionUncheckedUpdateOneWithoutFileNestedInput = {
   >;
 };
 
+export type UploadSessionCreateNestedManyWithoutAlbumInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UploadSessionCreateWithoutAlbumInput,
+        Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+      >
+    | Prisma.UploadSessionCreateWithoutAlbumInput[]
+    | Prisma.UploadSessionUncheckedCreateWithoutAlbumInput[];
+  connectOrCreate?:
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput[];
+  createMany?: Prisma.UploadSessionCreateManyAlbumInputEnvelope;
+  connect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+};
+
+export type UploadSessionUncheckedCreateNestedManyWithoutAlbumInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UploadSessionCreateWithoutAlbumInput,
+        Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+      >
+    | Prisma.UploadSessionCreateWithoutAlbumInput[]
+    | Prisma.UploadSessionUncheckedCreateWithoutAlbumInput[];
+  connectOrCreate?:
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput[];
+  createMany?: Prisma.UploadSessionCreateManyAlbumInputEnvelope;
+  connect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+};
+
+export type UploadSessionUpdateManyWithoutAlbumNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UploadSessionCreateWithoutAlbumInput,
+        Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+      >
+    | Prisma.UploadSessionCreateWithoutAlbumInput[]
+    | Prisma.UploadSessionUncheckedCreateWithoutAlbumInput[];
+  connectOrCreate?:
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput[];
+  upsert?:
+    | Prisma.UploadSessionUpsertWithWhereUniqueWithoutAlbumInput
+    | Prisma.UploadSessionUpsertWithWhereUniqueWithoutAlbumInput[];
+  createMany?: Prisma.UploadSessionCreateManyAlbumInputEnvelope;
+  set?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  disconnect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  delete?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  connect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  update?:
+    | Prisma.UploadSessionUpdateWithWhereUniqueWithoutAlbumInput
+    | Prisma.UploadSessionUpdateWithWhereUniqueWithoutAlbumInput[];
+  updateMany?:
+    | Prisma.UploadSessionUpdateManyWithWhereWithoutAlbumInput
+    | Prisma.UploadSessionUpdateManyWithWhereWithoutAlbumInput[];
+  deleteMany?:
+    | Prisma.UploadSessionScalarWhereInput
+    | Prisma.UploadSessionScalarWhereInput[];
+};
+
+export type UploadSessionUncheckedUpdateManyWithoutAlbumNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UploadSessionCreateWithoutAlbumInput,
+        Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+      >
+    | Prisma.UploadSessionCreateWithoutAlbumInput[]
+    | Prisma.UploadSessionUncheckedCreateWithoutAlbumInput[];
+  connectOrCreate?:
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput
+    | Prisma.UploadSessionCreateOrConnectWithoutAlbumInput[];
+  upsert?:
+    | Prisma.UploadSessionUpsertWithWhereUniqueWithoutAlbumInput
+    | Prisma.UploadSessionUpsertWithWhereUniqueWithoutAlbumInput[];
+  createMany?: Prisma.UploadSessionCreateManyAlbumInputEnvelope;
+  set?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  disconnect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  delete?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  connect?:
+    | Prisma.UploadSessionWhereUniqueInput
+    | Prisma.UploadSessionWhereUniqueInput[];
+  update?:
+    | Prisma.UploadSessionUpdateWithWhereUniqueWithoutAlbumInput
+    | Prisma.UploadSessionUpdateWithWhereUniqueWithoutAlbumInput[];
+  updateMany?:
+    | Prisma.UploadSessionUpdateManyWithWhereWithoutAlbumInput
+    | Prisma.UploadSessionUpdateManyWithWhereWithoutAlbumInput[];
+  deleteMany?:
+    | Prisma.UploadSessionScalarWhereInput
+    | Prisma.UploadSessionScalarWhereInput[];
+};
+
 export type EnumUploadStatusFieldUpdateOperationsInput = {
   set?: $Enums.UploadStatus;
 };
@@ -878,12 +1019,14 @@ export type UploadSessionCreateWithoutUserInput = {
   mergeLeaseUntil?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  album?: Prisma.AlbumCreateNestedOneWithoutUploadSessionsInput;
   parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
   file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
 };
 
 export type UploadSessionUncheckedCreateWithoutUserInput = {
   id?: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -953,6 +1096,7 @@ export type UploadSessionScalarWhereInput = {
     | Prisma.UploadSessionScalarWhereInput[];
   id?: Prisma.StringFilter<'UploadSession'> | string;
   userId?: Prisma.StringFilter<'UploadSession'> | string;
+  albumId?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   fileName?: Prisma.StringFilter<'UploadSession'> | string;
   size?: Prisma.BigIntNullableFilter<'UploadSession'> | bigint | number | null;
   mimeType?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
@@ -984,12 +1128,14 @@ export type UploadSessionCreateWithoutFileInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  album?: Prisma.AlbumCreateNestedOneWithoutUploadSessionsInput;
   parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
 };
 
 export type UploadSessionUncheckedCreateWithoutFileInput = {
   id?: string;
   userId: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -1051,12 +1197,14 @@ export type UploadSessionUpdateWithoutFileInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  album?: Prisma.AlbumUpdateOneWithoutUploadSessionsNestedInput;
   parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
 };
 
 export type UploadSessionUncheckedUpdateWithoutFileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -1075,6 +1223,87 @@ export type UploadSessionUncheckedUpdateWithoutFileInput = {
   parts?: Prisma.UploadPartUncheckedUpdateManyWithoutSessionNestedInput;
 };
 
+export type UploadSessionCreateWithoutAlbumInput = {
+  id?: string;
+  fileName: string;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hash?: string | null;
+  storageKey: string;
+  status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  parts?: Prisma.UploadPartCreateNestedManyWithoutSessionInput;
+  file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
+};
+
+export type UploadSessionUncheckedCreateWithoutAlbumInput = {
+  id?: string;
+  userId: string;
+  fileName: string;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hash?: string | null;
+  storageKey: string;
+  status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  fileId?: string | null;
+  parts?: Prisma.UploadPartUncheckedCreateNestedManyWithoutSessionInput;
+};
+
+export type UploadSessionCreateOrConnectWithoutAlbumInput = {
+  where: Prisma.UploadSessionWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutAlbumInput,
+    Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+  >;
+};
+
+export type UploadSessionCreateManyAlbumInputEnvelope = {
+  data:
+    | Prisma.UploadSessionCreateManyAlbumInput
+    | Prisma.UploadSessionCreateManyAlbumInput[];
+  skipDuplicates?: boolean;
+};
+
+export type UploadSessionUpsertWithWhereUniqueWithoutAlbumInput = {
+  where: Prisma.UploadSessionWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.UploadSessionUpdateWithoutAlbumInput,
+    Prisma.UploadSessionUncheckedUpdateWithoutAlbumInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UploadSessionCreateWithoutAlbumInput,
+    Prisma.UploadSessionUncheckedCreateWithoutAlbumInput
+  >;
+};
+
+export type UploadSessionUpdateWithWhereUniqueWithoutAlbumInput = {
+  where: Prisma.UploadSessionWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.UploadSessionUpdateWithoutAlbumInput,
+    Prisma.UploadSessionUncheckedUpdateWithoutAlbumInput
+  >;
+};
+
+export type UploadSessionUpdateManyWithWhereWithoutAlbumInput = {
+  where: Prisma.UploadSessionScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.UploadSessionUpdateManyMutationInput,
+    Prisma.UploadSessionUncheckedUpdateManyWithoutAlbumInput
+  >;
+};
+
 export type UploadSessionCreateWithoutPartsInput = {
   id?: string;
   fileName: string;
@@ -1090,12 +1319,14 @@ export type UploadSessionCreateWithoutPartsInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   user: Prisma.UserCreateNestedOneWithoutUploadSessionsInput;
+  album?: Prisma.AlbumCreateNestedOneWithoutUploadSessionsInput;
   file?: Prisma.FileNodeCreateNestedOneWithoutUploadSessionInput;
 };
 
 export type UploadSessionUncheckedCreateWithoutPartsInput = {
   id?: string;
   userId: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -1157,12 +1388,14 @@ export type UploadSessionUpdateWithoutPartsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  album?: Prisma.AlbumUpdateOneWithoutUploadSessionsNestedInput;
   file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
 };
 
 export type UploadSessionUncheckedUpdateWithoutPartsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -1183,6 +1416,7 @@ export type UploadSessionUncheckedUpdateWithoutPartsInput = {
 
 export type UploadSessionCreateManyUserInput = {
   id?: string;
+  albumId?: string | null;
   fileName: string;
   size?: bigint | number | null;
   mimeType?: string | null;
@@ -1215,12 +1449,14 @@ export type UploadSessionUpdateWithoutUserInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  album?: Prisma.AlbumUpdateOneWithoutUploadSessionsNestedInput;
   parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
   file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
 };
 
 export type UploadSessionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -1242,6 +1478,90 @@ export type UploadSessionUncheckedUpdateWithoutUserInput = {
 
 export type UploadSessionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  albumId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
+
+export type UploadSessionCreateManyAlbumInput = {
+  id?: string;
+  userId: string;
+  fileName: string;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hash?: string | null;
+  storageKey: string;
+  status?: $Enums.UploadStatus;
+  chunkSize?: number | null;
+  chunkCount?: number | null;
+  mergeToken?: string | null;
+  mergeLeaseUntil?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  fileId?: string | null;
+};
+
+export type UploadSessionUpdateWithoutAlbumInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  user?: Prisma.UserUpdateOneRequiredWithoutUploadSessionsNestedInput;
+  parts?: Prisma.UploadPartUpdateManyWithoutSessionNestedInput;
+  file?: Prisma.FileNodeUpdateOneWithoutUploadSessionNestedInput;
+};
+
+export type UploadSessionUncheckedUpdateWithoutAlbumInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  userId?: Prisma.StringFieldUpdateOperationsInput | string;
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
+  chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  chunkCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  mergeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mergeLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  fileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  parts?: Prisma.UploadPartUncheckedUpdateManyWithoutSessionNestedInput;
+};
+
+export type UploadSessionUncheckedUpdateManyWithoutAlbumInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  userId?: Prisma.StringFieldUpdateOperationsInput | string;
   fileName?: Prisma.StringFieldUpdateOperationsInput | string;
   size?:
     Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
@@ -1305,6 +1625,7 @@ export type UploadSessionSelect<
   {
     id?: boolean;
     userId?: boolean;
+    albumId?: boolean;
     fileName?: boolean;
     size?: boolean;
     mimeType?: boolean;
@@ -1319,6 +1640,7 @@ export type UploadSessionSelect<
     updatedAt?: boolean;
     fileId?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
     parts?: boolean | Prisma.UploadSession$partsArgs<ExtArgs>;
     file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
     _count?: boolean | Prisma.UploadSessionCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1333,6 +1655,7 @@ export type UploadSessionSelectCreateManyAndReturn<
   {
     id?: boolean;
     userId?: boolean;
+    albumId?: boolean;
     fileName?: boolean;
     size?: boolean;
     mimeType?: boolean;
@@ -1347,6 +1670,7 @@ export type UploadSessionSelectCreateManyAndReturn<
     updatedAt?: boolean;
     fileId?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
     file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
   },
   ExtArgs['result']['uploadSession']
@@ -1359,6 +1683,7 @@ export type UploadSessionSelectUpdateManyAndReturn<
   {
     id?: boolean;
     userId?: boolean;
+    albumId?: boolean;
     fileName?: boolean;
     size?: boolean;
     mimeType?: boolean;
@@ -1373,6 +1698,7 @@ export type UploadSessionSelectUpdateManyAndReturn<
     updatedAt?: boolean;
     fileId?: boolean;
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+    album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
     file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
   },
   ExtArgs['result']['uploadSession']
@@ -1381,6 +1707,7 @@ export type UploadSessionSelectUpdateManyAndReturn<
 export type UploadSessionSelectScalar = {
   id?: boolean;
   userId?: boolean;
+  albumId?: boolean;
   fileName?: boolean;
   size?: boolean;
   mimeType?: boolean;
@@ -1402,6 +1729,7 @@ export type UploadSessionOmit<
 > = runtime.Types.Extensions.GetOmit<
   | 'id'
   | 'userId'
+  | 'albumId'
   | 'fileName'
   | 'size'
   | 'mimeType'
@@ -1422,6 +1750,7 @@ export type UploadSessionInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+  album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
   parts?: boolean | Prisma.UploadSession$partsArgs<ExtArgs>;
   file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
   _count?: boolean | Prisma.UploadSessionCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1431,6 +1760,7 @@ export type UploadSessionIncludeCreateManyAndReturn<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+  album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
   file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
 };
 export type UploadSessionIncludeUpdateManyAndReturn<
@@ -1438,6 +1768,7 @@ export type UploadSessionIncludeUpdateManyAndReturn<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
+  album?: boolean | Prisma.UploadSession$albumArgs<ExtArgs>;
   file?: boolean | Prisma.UploadSession$fileArgs<ExtArgs>;
 };
 
@@ -1448,6 +1779,7 @@ export type $UploadSessionPayload<
   name: 'UploadSession';
   objects: {
     user: Prisma.$UserPayload<ExtArgs>;
+    album: Prisma.$AlbumPayload<ExtArgs> | null;
     parts: Prisma.$UploadPartPayload<ExtArgs>[];
     file: Prisma.$FileNodePayload<ExtArgs> | null;
   };
@@ -1455,6 +1787,7 @@ export type $UploadSessionPayload<
     {
       id: string;
       userId: string;
+      albumId: string | null;
       fileName: string;
       size: bigint | null;
       mimeType: string | null;
@@ -2041,6 +2374,19 @@ export interface Prisma__UploadSessionClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  album<T extends Prisma.UploadSession$albumArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.UploadSession$albumArgs<ExtArgs>>,
+  ): Prisma.Prisma__AlbumClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$AlbumPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   parts<T extends Prisma.UploadSession$partsArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.UploadSession$partsArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
@@ -2103,6 +2449,7 @@ export interface Prisma__UploadSessionClient<
 export interface UploadSessionFieldRefs {
   readonly id: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly userId: Prisma.FieldRef<'UploadSession', 'String'>;
+  readonly albumId: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly fileName: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly size: Prisma.FieldRef<'UploadSession', 'BigInt'>;
   readonly mimeType: Prisma.FieldRef<'UploadSession', 'String'>;
@@ -2584,6 +2931,28 @@ export type UploadSessionDeleteManyArgs<
    * Limit how many UploadSessions to delete.
    */
   limit?: number;
+};
+
+/**
+ * UploadSession.album
+ */
+export type UploadSession$albumArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Album
+   */
+  select?: Prisma.AlbumSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Album
+   */
+  omit?: Prisma.AlbumOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AlbumInclude<ExtArgs> | null;
+  where?: Prisma.AlbumWhereInput;
 };
 
 /**

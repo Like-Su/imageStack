@@ -12,11 +12,16 @@ import type { AssetSummary } from "@/types/media";
 import AssetImage from "./AssetImage.vue";
 import VirtualAssetRows from "./VirtualAssetRows.vue";
 
-defineProps<{
-  items: AssetSummary[];
-  selected: Set<string>;
-  selecting: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    items: AssetSummary[];
+    selected: Set<string>;
+    selecting: boolean;
+    selectable?: boolean;
+    favorites?: boolean;
+  }>(),
+  { selectable: true, favorites: true },
+);
 defineEmits<{ select: [id: string]; open: [asset: AssetSummary] }>();
 const preferences = usePreferencesStore();
 const workspace = useWorkspaceStore();
@@ -50,7 +55,7 @@ const workspace = useWorkspaceStore();
           :asset-id="asset.id"
           :name="asset.name"
           :trash="asset.deleted"
-          :version="asset.status"
+          :version="asset.thumbnailRevision ?? asset.status"
           :class="{ 'opacity-60': asset.deleted }"
         />
         <span
@@ -80,6 +85,7 @@ const workspace = useWorkspaceStore();
         >
       </button>
       <button
+        v-if="selectable"
         class="media-card-selector absolute top-2 left-2 grid size-6 place-items-center rounded-md border border-white/20 bg-black/50 text-white backdrop-blur"
         type="button"
         :class="{ '!bg-accent !text-ink': selected.has(asset.id) }"
@@ -93,7 +99,7 @@ const workspace = useWorkspaceStore();
         />
       </button>
       <button
-        v-if="!asset.deleted && workspace.can('asset:edit')"
+        v-if="favorites && !asset.deleted && workspace.can('asset:edit')"
         class="absolute top-2 right-2 grid size-6 place-items-center rounded-full bg-black/50 text-white/70 backdrop-blur transition-colors hover:text-accent"
         :class="{ '!text-accent': asset.isFavorite }"
         type="button"
@@ -122,12 +128,14 @@ const workspace = useWorkspaceStore();
         :class="{ 'bg-accent/5': selected.has(asset.id) }"
       >
         <input
+          v-if="selectable"
           type="checkbox"
           class="mh-checkbox"
           :checked="selected.has(asset.id)"
           :aria-label="$t('选择 {value1}', { value1: asset.name })"
           @change="$emit('select', asset.id)"
         />
+        <span v-else />
         <button
           type="button"
           class="flex min-w-0 flex-1 items-center gap-3 text-left"
@@ -139,7 +147,7 @@ const workspace = useWorkspaceStore();
               :asset-id="asset.id"
               :name="asset.name"
               :trash="asset.deleted"
-              :version="asset.status" /></span
+              :version="asset.thumbnailRevision ?? asset.status" /></span
           ><span class="min-w-0"
             ><span class="block truncate text-xs">{{ asset.name }}</span
             ><span class="mt-1 block truncate text-[10px] text-faint"
@@ -170,7 +178,7 @@ const workspace = useWorkspaceStore();
           formatBytes(asset.size)
         }}</span>
         <button
-          v-if="!asset.deleted && workspace.can('asset:edit')"
+          v-if="favorites && !asset.deleted && workspace.can('asset:edit')"
           type="button"
           class="shrink-0 p-1 text-faint hover:text-accent"
           :class="{ '!text-accent': asset.isFavorite }"

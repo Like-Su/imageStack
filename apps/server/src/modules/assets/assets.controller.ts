@@ -19,10 +19,15 @@ import { PermissionCode } from '../../common/constants';
 import { SkipResponseWrap } from '../../common/decorators/skip-response-wrap.decorator';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
+import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
-import { ListAssetsDto, ThumbnailQueryDto } from './dto/assets-query.dto';
+import {
+  ListAssetsDto,
+  ThumbnailQueryDto,
+  TrashIdsQueryDto,
+} from './dto/assets-query.dto';
 import { AssetIdsDto } from './dto/asset-ids.dto';
 import { RenameAssetDto } from './dto/rename-asset.dto';
 import { AssetsService } from './assets.service';
@@ -41,6 +46,7 @@ export class AssetsController {
   ) {}
 
   @Get()
+  @AllowSharedAlbum('album-query', 'view')
   @Header('Cache-Control', 'no-store')
   list(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
     return this.assets.list(user.id, query);
@@ -75,6 +81,13 @@ export class AssetsController {
   @Header('Cache-Control', 'no-store')
   trash(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
     return this.assets.list(user.id, query, true);
+  }
+
+  @Get('trash/ids')
+  @RequirePermission(PermissionCode.ASSET_DELETE)
+  @Header('Cache-Control', 'no-store')
+  trashIds(@CurrentUser() user: RequestUser, @Query() query: TrashIdsQueryDto) {
+    return this.assets.trashIds(user.id, query.cursor);
   }
 
   @Get('trash/:id')
@@ -116,6 +129,7 @@ export class AssetsController {
   }
 
   @Get(':id')
+  @AllowSharedAlbum('asset', 'view')
   @Header('Cache-Control', 'no-store')
   detail(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
     return this.assets.detail(assetId, user.id);
@@ -145,6 +159,7 @@ export class AssetsController {
   }
 
   @Get(':id/file')
+  @AllowSharedAlbum('asset', 'view')
   @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
   @SkipResponseWrap()
   async original(
@@ -159,6 +174,7 @@ export class AssetsController {
   }
 
   @Get(':id/thumbnail')
+  @AllowSharedAlbum('asset', 'view')
   @SkipResponseWrap()
   async thumbnail(
     @Param('id') assetId: string,
@@ -173,6 +189,7 @@ export class AssetsController {
   }
 
   @Get(':id/preview')
+  @AllowSharedAlbum('asset', 'view')
   @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
   @SkipResponseWrap()
   async preview(

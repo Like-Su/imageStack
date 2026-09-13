@@ -438,6 +438,7 @@ export const ModelName = {
   VideoSummary: 'VideoSummary',
   VideoSummaryEvent: 'VideoSummaryEvent',
   Album: 'Album',
+  AlbumMember: 'AlbumMember',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
   AssetTag: 'AssetTag',
@@ -480,6 +481,7 @@ export type TypeMap<
       | 'videoSummary'
       | 'videoSummaryEvent'
       | 'album'
+      | 'albumMember'
       | 'albumAsset'
       | 'tag'
       | 'assetTag'
@@ -1324,6 +1326,82 @@ export type TypeMap<
           args: Prisma.AlbumCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.AlbumCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    AlbumMember: {
+      payload: Prisma.$AlbumMemberPayload<ExtArgs>;
+      fields: Prisma.AlbumMemberFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AlbumMemberFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AlbumMemberFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        findFirst: {
+          args: Prisma.AlbumMemberFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AlbumMemberFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        findMany: {
+          args: Prisma.AlbumMemberFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>[];
+        };
+        create: {
+          args: Prisma.AlbumMemberCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        createMany: {
+          args: Prisma.AlbumMemberCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AlbumMemberCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>[];
+        };
+        delete: {
+          args: Prisma.AlbumMemberDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        update: {
+          args: Prisma.AlbumMemberUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AlbumMemberDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AlbumMemberUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AlbumMemberUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>[];
+        };
+        upsert: {
+          args: Prisma.AlbumMemberUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlbumMemberPayload>;
+        };
+        aggregate: {
+          args: Prisma.AlbumMemberAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlbumMember>;
+        };
+        groupBy: {
+          args: Prisma.AlbumMemberGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AlbumMemberGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AlbumMemberCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AlbumMemberCountAggregateOutputType>
             | number;
         };
       };
@@ -2225,6 +2303,7 @@ export const AlbumScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
+  shared: 'shared',
   ownerId: 'ownerId',
   coverAssetId: 'coverAssetId',
   createdAt: 'createdAt',
@@ -2233,6 +2312,19 @@ export const AlbumScalarFieldEnum = {
 
 export type AlbumScalarFieldEnum =
   (typeof AlbumScalarFieldEnum)[keyof typeof AlbumScalarFieldEnum];
+
+export const AlbumMemberScalarFieldEnum = {
+  albumId: 'albumId',
+  userId: 'userId',
+  canAdd: 'canAdd',
+  canEdit: 'canEdit',
+  canRemove: 'canRemove',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AlbumMemberScalarFieldEnum =
+  (typeof AlbumMemberScalarFieldEnum)[keyof typeof AlbumMemberScalarFieldEnum];
 
 export const AlbumAssetScalarFieldEnum = {
   albumId: 'albumId',
@@ -2266,6 +2358,7 @@ export type AssetTagScalarFieldEnum =
 export const UploadSessionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  albumId: 'albumId',
   fileName: 'fileName',
   size: 'size',
   mimeType: 'mimeType',
@@ -2789,6 +2882,7 @@ export type GlobalOmitConfig = {
   videoSummary?: Prisma.VideoSummaryOmit;
   videoSummaryEvent?: Prisma.VideoSummaryEventOmit;
   album?: Prisma.AlbumOmit;
+  albumMember?: Prisma.AlbumMemberOmit;
   albumAsset?: Prisma.AlbumAssetOmit;
   tag?: Prisma.TagOmit;
   assetTag?: Prisma.AssetTagOmit;

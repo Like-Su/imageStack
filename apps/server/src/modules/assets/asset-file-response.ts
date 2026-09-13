@@ -11,6 +11,7 @@ import { StorageError } from '../storage/storage.provider';
 import type {
   StorageProvider,
   StorageReadRange,
+  StorageStat,
 } from '../storage/storage.provider';
 
 const streamLogger = new Logger('MediaStream');
@@ -69,11 +70,12 @@ export async function streamStoredMedia(
     key: string;
     mimeType: string;
     disposition?: string;
+    stat?: StorageStat;
   },
   request: Request,
   response: Response,
 ): Promise<StreamableFile | undefined> {
-  const metadata = await storage.stat(resource.key);
+  const metadata = resource.stat ?? (await storage.stat(resource.key));
 
   if (!metadata) {
     throw new NotFoundException('存储对象不存在');

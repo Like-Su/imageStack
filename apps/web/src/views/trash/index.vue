@@ -24,12 +24,7 @@ async function emptyTrash() {
     const ids: string[] = [];
     let cursor: string | undefined;
     do {
-      const page = await mediaApi.assets(
-        { limit: 100, cursor },
-        controller.signal,
-        true,
-      );
-      workspace.rememberAssets(page.items);
+      const page = await mediaApi.trashIds(cursor, controller.signal);
       ids.push(...page.items.map((asset) => asset.id));
       cursor = page.hasMore ? (page.nextCursor ?? undefined) : undefined;
     } while (cursor && !controller.signal.aborted);

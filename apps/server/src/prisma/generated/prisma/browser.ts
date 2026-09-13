@@ -72,6 +72,11 @@ export type VideoSummaryEvent = Prisma.VideoSummaryEventModel;
  */
 export type Album = Prisma.AlbumModel;
 /**
+ * Model AlbumMember
+ *
+ */
+export type AlbumMember = Prisma.AlbumMemberModel;
+/**
  * Model AlbumAsset
  *
  */

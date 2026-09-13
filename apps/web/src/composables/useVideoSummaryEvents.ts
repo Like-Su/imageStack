@@ -1,9 +1,27 @@
-import { onScopeDispose, watch } from "vue";
+import { onScopeDispose, ref, watch } from "vue";
 import { API_BASE_URL } from "@/config/api";
 import { readServerEvents } from "@/api/server-events";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { usePreferencesStore } from "@/stores/preferences";
+import type { WorkspaceResource } from "@/types/workspace";
 import { translate } from "@/i18n";
+import {
+  emitVideoSummaryEvent,
+  parseVideoSummaryUpdate,
+  parseWorkspaceResources,
+  readWorkspaceEventSupport,
+  setVideoSummaryConnection,
+  workspaceEventsAvailable,
+} from "./videoSummaryEvents";
+
+const reconciliationResources: WorkspaceResource[] = [
+  "ai",
+  "processing",
+  "overview",
+  "places",
+  "search",
+];
 
 function validCursor(value: string | null | undefined): value is string {
   return (
@@ -26,10 +44,70 @@ function waitForRetry(delay: number, signal: AbortSignal) {
   });
 }
 
+function retryAfterMs(response: Response) {
+  const value = response.headers.get("Retry-After");
+  if (!value) return 0;
+  const seconds = Number(value);
+  const delay = Number.isFinite(seconds)
+    ? seconds * 1000
+    : Date.parse(value) - Date.now();
+  return Number.isFinite(delay) ? Math.max(0, Math.min(86400000, delay)) : 0;
+}
+
 export function useVideoSummaryEvents() {
   const auth = useAuthStore();
   const workspace = useWorkspaceStore();
+  const preferences = usePreferencesStore();
+  const pendingResources = new Set<WorkspaceResource>();
+  let invalidationTimer: number | undefined;
   let controller: AbortController | undefined;
+  const online = ref(navigator.onLine);
+  const updateOnline = () => {
+    online.value = navigator.onLine;
+  };
+  window.addEventListener("online", updateOnline);
+  window.addEventListener("offline", updateOnline);
+
+  function scheduleInvalidation(resources: WorkspaceResource[] = []) {
+    for (const resource of resources) pendingResources.add(resource);
+    if (
+      invalidationTimer !== undefined ||
+      !pendingResources.size ||
+      !preferences.values.autoRefresh ||
+      document.visibilityState !== "visible" ||
+      !online.value
+    )
+      return;
+    invalidationTimer = window.setTimeout(() => {
+      invalidationTimer = undefined;
+      if (
+        !auth.isAuthenticated ||
+        !preferences.values.autoRefresh ||
+        document.visibilityState !== "visible" ||
+        !online.value
+      )
+        return;
+      const resources = [...pendingResources];
+      pendingResources.clear();
+      workspace.invalidate(resources);
+    }, 5000);
+  }
+
+  function visibilityChanged() {
+    if (
+      document.visibilityState === "visible" &&
+      workspaceEventsAvailable.value
+    )
+      scheduleInvalidation(reconciliationResources);
+  }
+  document.addEventListener("visibilitychange", visibilityChanged);
+  watch(
+    () => preferences.values.autoRefresh,
+    (enabled) => {
+      if (enabled && workspaceEventsAvailable.value)
+        scheduleInvalidation(reconciliationResources);
+    },
+  );
 
   async function connect(userId: string, signal: AbortSignal) {
     const scope = auth.getSessionVersion();
@@ -51,7 +129,15 @@ export function useVideoSummaryEvents() {
       const connection = new AbortController();
       const abort = () => connection.abort();
       signal.addEventListener("abort", abort, { once: true });
-      const timeout = window.setTimeout(abort, 75000);
+      let timeout: number | undefined;
+      let retryAfter = 0;
+      const openedAt = Date.now();
+      const received = () => {
+        window.clearTimeout(timeout);
+        timeout = window.setTimeout(abort, 45000);
+        if (Date.now() - openedAt >= 15000) delay = 1000;
+      };
+      received();
       try {
         const query =
           cursor === undefined ? "" : `?after=${encodeURIComponent(cursor)}`;
@@ -85,61 +171,76 @@ export function useVideoSummaryEvents() {
         }
         if (response.status === 403) {
           await response.body?.cancel();
+          setVideoSummaryConnection("offline");
           return;
         }
         if (
           !response.ok ||
           !response.headers.get("Content-Type")?.includes("text/event-stream")
         ) {
+          retryAfter = retryAfterMs(response);
           await response.body?.cancel();
           throw new Error("Video summary events unavailable");
         }
         refreshed = false;
         await readServerEvents(response, connection.signal, (event) => {
-          if (!current() || !validCursor(event.id)) return;
-          if (event.type === "connected")
-            workspace.invalidate(["video-summaries"]);
+          received();
+          if (!current()) return;
+          if (event.type === "workspace-changed") {
+            const resources = parseWorkspaceResources(event.data);
+            if (resources) scheduleInvalidation(resources);
+            return;
+          }
+          if (!validCursor(event.id)) return;
+          if (event.type === "connected") {
+            setVideoSummaryConnection("connected");
+            if (readWorkspaceEventSupport(event.data))
+              scheduleInvalidation(reconciliationResources);
+            emitVideoSummaryEvent({ type: "connected" });
+          }
           if (cursor !== undefined && BigInt(event.id) <= BigInt(cursor))
             return;
           if (event.type === "video-summary") {
-            const result: unknown = JSON.parse(event.data);
+            const update = parseVideoSummaryUpdate(event.data);
+            if (!update) return;
+            emitVideoSummaryEvent({ type: "summary", value: update });
             if (
-              !result ||
-              typeof result !== "object" ||
-              !("assetId" in result) ||
-              typeof result.assetId !== "string" ||
-              !("name" in result) ||
-              typeof result.name !== "string" ||
-              !("status" in result) ||
-              !["READY", "FAILED"].includes(String(result.status))
+              ["READY", "FAILED"].includes(update.status) &&
+              update.status === update.result.status
             )
-              return;
-            workspace.notify(
-              translate(
-                result.status === "READY"
-                  ? "视频总结完毕：{value1}"
-                  : "视频总结失败：{value1}，可在详情中重试",
-                { value1: result.name },
-              ),
-              result.status === "READY" ? "success" : "error",
-            );
-            workspace.invalidate(["video-summaries"]);
+              workspace.notify(
+                translate(
+                  update.status === "READY"
+                    ? "视频总结完毕：{value1}"
+                    : "视频总结失败：{value1}，可在详情中重试",
+                  { value1: update.name },
+                ),
+                update.status === "READY" ? "success" : "error",
+              );
           } else if (event.type !== "connected") return;
           cursor = event.id;
           try {
             sessionStorage.setItem(storageKey, cursor);
           } catch {}
         });
-        delay = 1000;
       } catch {
         if (!current()) return;
-        delay = Math.min(30000, delay * 2);
       } finally {
         window.clearTimeout(timeout);
         signal.removeEventListener("abort", abort);
         connection.abort();
       }
-      if (current()) await waitForRetry(delay, signal);
+      if (current()) {
+        setVideoSummaryConnection("reconnecting");
+        delay = Math.min(60000, delay * 2);
+        await waitForRetry(
+          Math.max(
+            retryAfter,
+            delay + Math.random() * Math.min(5000, delay / 5),
+          ),
+          signal,
+        );
+      }
     }
   }
 
@@ -148,14 +249,30 @@ export function useVideoSummaryEvents() {
       () => auth.user?.id,
       () => auth.isAuthenticated,
       () => workspace.can("asset:list"),
+      () => online.value,
     ],
-    ([userId, authenticated, allowed]) => {
+    ([userId, authenticated, allowed, connected]) => {
       controller?.abort();
-      if (!userId || !authenticated || !allowed) return;
+      window.clearTimeout(invalidationTimer);
+      invalidationTimer = undefined;
+      pendingResources.clear();
+      if (!userId || !authenticated || !allowed || !connected) {
+        setVideoSummaryConnection("offline");
+        return;
+      }
+      setVideoSummaryConnection("connecting");
       controller = new AbortController();
       void connect(userId, controller.signal);
     },
     { immediate: true },
   );
-  onScopeDispose(() => controller?.abort());
+  onScopeDispose(() => {
+    controller?.abort();
+    window.clearTimeout(invalidationTimer);
+    pendingResources.clear();
+    setVideoSummaryConnection("offline");
+    document.removeEventListener("visibilitychange", visibilityChanged);
+    window.removeEventListener("online", updateOnline);
+    window.removeEventListener("offline", updateOnline);
+  });
 }

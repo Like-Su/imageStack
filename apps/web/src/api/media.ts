@@ -1,13 +1,17 @@
 import { translate } from "@/i18n";
-import { request } from "./request";
+import { request, requestScope } from "./request";
+import { sharedRead } from "./sharedRead";
 import { readAlbums, readTags } from "./collectionCache";
 import { API_BASE_URL } from "@/config/api";
 import type {
   Album,
+  AlbumMember,
+  AlbumMemberPermissions,
   AssetDetail,
   AssetQuery,
   AssetSummary,
   AssetTagBatch,
+  ConfirmAssetTagsInput,
   AiIndexStatus,
   CursorPage,
   LibraryOverview,
@@ -16,7 +20,7 @@ import type {
   PlacesResult,
   SearchResult,
   Tag,
-  UploadedFile,
+  UploadCompletion,
   UploadSession,
   VideoSummaryDetail,
 } from "@/types/media";
@@ -43,12 +47,37 @@ const originalFile = (assetId: string, signal?: AbortSignal) =>
     timeoutMs: 660_000,
   });
 
+const readVideoSummary = (
+  assetId: string,
+  includeTranscript: boolean,
+  signal?: AbortSignal,
+) =>
+  sharedRead(
+    JSON.stringify([
+      "video-summary",
+      requestScope(),
+      assetId,
+      includeTranscript,
+    ]),
+    (sharedSignal) =>
+      request<VideoSummaryDetail>(
+        `/video-summaries/assets/${identifier(assetId)}?includeTranscript=${includeTranscript}`,
+        { signal: sharedSignal },
+      ),
+    signal,
+  );
+
 export const mediaApi = {
   overview: (signal?: AbortSignal) =>
     request<LibraryOverview>("/assets/overview", { signal }),
   assets: (query: AssetQuery = {}, signal?: AbortSignal, trash = false) =>
     request<CursorPage<AssetSummary>>(
       `/assets${trash ? "/trash" : ""}${queryString(query)}`,
+      { signal },
+    ),
+  trashIds: (cursor?: string, signal?: AbortSignal) =>
+    request<CursorPage<{ id: string }>>(
+      `/assets/trash/ids${queryString({ cursor })}`,
       { signal },
     ),
   detail: (assetId: string, signal?: AbortSignal, trash = false) =>
@@ -113,14 +142,13 @@ export const mediaApi = {
   aiStatus: (signal?: AbortSignal) =>
     request<AiIndexStatus>("/ai/status", { signal }),
   videoSummary: (assetId: string, signal?: AbortSignal) =>
-    request<VideoSummaryDetail>(
+    readVideoSummary(assetId, false, signal),
+  videoTranscript: (assetId: string, signal?: AbortSignal) =>
+    readVideoSummary(assetId, true, signal),
+  summarizeVideo: (assetId: string, signal?: AbortSignal) =>
+    request<{ queued: number; detail: VideoSummaryDetail }>(
       `/video-summaries/assets/${identifier(assetId)}`,
-      { signal },
-    ),
-  summarizeVideo: (assetId: string) =>
-    request<{ queued: number }>(
-      `/video-summaries/assets/${identifier(assetId)}`,
-      { method: "POST" },
+      { method: "POST", signal },
     ),
   recognition: (assetId: string, signal?: AbortSignal) =>
     request<ImageRecognition | null>(`/ai/assets/${identifier(assetId)}`, {
@@ -136,8 +164,11 @@ export const mediaApi = {
   albums: readAlbums,
   album: (albumId: string, signal?: AbortSignal) =>
     request<Album>(`/albums/${identifier(albumId)}/summary`, { signal }),
-  createAlbum: (body: { name: string; description?: string }) =>
-    request<Album>("/albums", { method: "POST", body }),
+  createAlbum: (body: {
+    name: string;
+    description?: string;
+    shared?: boolean;
+  }) => request<Album>("/albums", { method: "POST", body }),
   updateAlbum: (
     albumId: string,
     body: {
@@ -166,6 +197,55 @@ export const mediaApi = {
       {
         method: "DELETE",
         body: { ids },
+      },
+    ),
+  renameAlbumAsset: (
+    albumId: string,
+    assetId: string,
+    name: string,
+    signal?: AbortSignal,
+  ) =>
+    request<{ id: string; name: string; updatedAt: string }>(
+      `/albums/${identifier(albumId)}/assets/${identifier(assetId)}`,
+      { method: "PATCH", body: { name }, signal },
+    ),
+  albumMembers: (albumId: string, signal?: AbortSignal) =>
+    request<AlbumMember[]>(`/albums/${identifier(albumId)}/members`, {
+      signal,
+    }),
+  inviteAlbumMember: (
+    albumId: string,
+    body: AlbumMemberPermissions & { email: string },
+    signal?: AbortSignal,
+  ) =>
+    request<{ member: AlbumMember; album: Album }>(
+      `/albums/${identifier(albumId)}/members`,
+      {
+        method: "POST",
+        body,
+        signal,
+      },
+    ),
+  updateAlbumMember: (
+    albumId: string,
+    userId: string,
+    body: AlbumMemberPermissions,
+    signal?: AbortSignal,
+  ) =>
+    request<{ member: AlbumMember; album: Album }>(
+      `/albums/${identifier(albumId)}/members/${identifier(userId)}`,
+      {
+        method: "PATCH",
+        body,
+        signal,
+      },
+    ),
+  removeAlbumMember: (albumId: string, userId: string, signal?: AbortSignal) =>
+    request<{ userId: string; album: Album }>(
+      `/albums/${identifier(albumId)}/members/${identifier(userId)}`,
+      {
+        method: "DELETE",
+        signal,
       },
     ),
   tags: readTags,
@@ -197,15 +277,30 @@ export const mediaApi = {
         body: { names },
       },
     ),
+  confirmTags: (
+    assetId: string,
+    body: ConfirmAssetTagsInput,
+    signal?: AbortSignal,
+  ) =>
+    request<AssetTagBatch>(`/assets/${identifier(assetId)}/tags/confirm`, {
+      method: "POST",
+      body,
+      signal,
+    }),
   removeTag: (assetId: string, tagId: string) =>
     request<{ count: number; tag: Tag }>(
       `/assets/${identifier(assetId)}/tags/${identifier(tagId)}`,
       { method: "DELETE" },
     ),
-  createUpload: (file: File, hash: string, signal?: AbortSignal) =>
+  createUpload: (
+    file: File,
+    hash: string,
+    signal?: AbortSignal,
+    albumId?: string,
+  ) =>
     request<UploadSession>("/uploads/sessions", {
       method: "POST",
-      body: { fileName: file.name, size: file.size, hash },
+      body: { fileName: file.name, size: file.size, hash, albumId },
       signal,
     }),
   uploadSession: (sessionId: string, signal?: AbortSignal) =>
@@ -213,10 +308,9 @@ export const mediaApi = {
       signal,
     }),
   uploadProgress: (sessionId: string, signal?: AbortSignal) =>
-    request<Pick<UploadSession, "status" | "expired" | "merging" | "file">>(
-      `/uploads/sessions/${identifier(sessionId)}/progress`,
-      { signal },
-    ),
+    request<
+      Pick<UploadSession, "status" | "expired" | "merging" | "file" | "albumId">
+    >(`/uploads/sessions/${identifier(sessionId)}/progress`, { signal }),
   uploadPart: (
     sessionId: string,
     index: number,
@@ -238,7 +332,7 @@ export const mediaApi = {
       },
     ),
   completeUpload: (sessionId: string, signal?: AbortSignal) =>
-    request<{ sessionId: string; status: "COMPLETED"; file: UploadedFile }>(
+    request<UploadCompletion>(
       `/uploads/sessions/${identifier(sessionId)}/complete`,
       { method: "POST", signal, timeoutMs: 660_000 },
     ),
@@ -248,7 +342,7 @@ export const mediaApi = {
       { method: "DELETE" },
     ),
   upload: (sessionId: string, file: File, signal?: AbortSignal) =>
-    request<{ sessionId: string; status: "COMPLETED"; file: UploadedFile }>(
+    request<UploadCompletion>(
       `/uploads/sessions/${identifier(sessionId)}/content`,
       {
         method: "PUT",

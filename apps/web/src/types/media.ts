@@ -14,6 +14,16 @@ export interface VideoSummary {
   attempts: number;
   nextAttemptAt: string | null;
   completedAt: string | null;
+  updatedAt: string;
+}
+
+export type VideoSummaryState = Omit<VideoSummary, "transcript" | "segments">;
+
+export interface VideoSummaryUpdate {
+  assetId: string;
+  name: string;
+  status: ProcessingStatus;
+  result: VideoSummaryState;
 }
 
 export interface VideoSummaryDetail {
@@ -54,6 +64,7 @@ export interface AssetTag {
 
 export interface AssetSummary {
   id: string;
+  ownerId: string;
   name: string;
   type: MediaType;
   status: ProcessingStatus;
@@ -73,6 +84,7 @@ export interface AssetSummary {
   updatedAt: string;
   tags: AssetTag[];
   thumbUrl: string;
+  thumbnailRevision?: string | null;
 }
 
 export interface AssetDetail extends AssetSummary {
@@ -123,8 +135,20 @@ export interface Album {
   id: string;
   name: string;
   description: string | null;
+  shared: boolean;
+  owner: { id: string; username: string };
+  memberCount: number;
+  permissions: {
+    view: boolean;
+    addAssets: boolean;
+    edit: boolean;
+    removeAssets: boolean;
+    deleteAlbum: boolean;
+    manageMembers: boolean;
+  };
   coverAssetId: string | null;
   coverUrl: string | null;
+  coverThumbnailRevision?: string | null;
   count: number;
   createdAt: string;
   updatedAt: string;
@@ -134,15 +158,36 @@ export interface AlbumDetail extends Album {
   assets: CursorPage<AssetSummary>;
 }
 
+export interface AlbumMemberPermissions {
+  canAdd: boolean;
+  canEdit: boolean;
+  canRemove: boolean;
+}
+
+export interface AlbumMember extends AlbumMemberPermissions {
+  userId: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Tag extends AssetTag {
   count: number;
   coverAssetId: string | null;
+  coverThumbnailRevision?: string | null;
 }
 
 export interface AssetTagBatch {
   assets: { id: string; tagIds: string[] }[];
   tags: Tag[];
   createdCount: number;
+}
+
+export interface ConfirmAssetTagsInput {
+  mode: "existing" | "create";
+  names: string[];
+  tagIds: string[];
 }
 
 export interface SearchResult extends CursorPage<{
@@ -184,6 +229,8 @@ export interface UploadedFile {
 
 export interface UploadSession {
   id: string;
+  albumId?: string | null;
+  album?: Album | null;
   status: "PENDING" | "UPLOADING" | "COMPLETED" | "FAILED" | "CANCELLED";
   fileName: string;
   size: string | null;
@@ -197,6 +244,14 @@ export interface UploadSession {
   merging: boolean;
   instant: boolean;
   file: UploadedFile | null;
+}
+
+export interface UploadCompletion {
+  sessionId: string;
+  status: "COMPLETED";
+  file: UploadedFile;
+  albumId?: string | null;
+  album?: Album | null;
 }
 
 export interface MediaStreamTicket {

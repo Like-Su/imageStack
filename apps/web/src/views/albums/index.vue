@@ -10,11 +10,13 @@ import {
   Sparkles,
   RefreshCw,
   Search,
+  Users,
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { useRemoteData } from "@/composables/useRemoteData";
 import { updateAlbums } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
 import type { Album } from "@/types/media";
 import PageHeader from "@/components/workspace/PageHeader.vue";
 import DataState from "@/components/workspace/DataState.vue";
@@ -22,6 +24,7 @@ import AssetImage from "@/components/media/AssetImage.vue";
 import AlbumForm from "@/components/media/AlbumForm.vue";
 
 const workspace = useWorkspaceStore();
+const auth = useAuthStore();
 const router = useRouter();
 const {
   data: albums,
@@ -35,13 +38,18 @@ const {
 const text = ref("");
 const order = ref("recent");
 const formOpen = ref(false);
+const creatingShared = ref(false);
+const scope = ref("all");
 const editing = ref<Album>();
 const deleting = ref(false);
 const filtered = computed(() => {
-  const result = (albums.value ?? []).filter((album) =>
-    `${album.name} ${album.description ?? ""}`
-      .toLocaleLowerCase()
-      .includes(text.value.trim().toLocaleLowerCase()),
+  const result = (albums.value ?? []).filter(
+    (album) =>
+      (scope.value === "all" ||
+        (scope.value === "shared" ? album.shared : !album.shared)) &&
+      `${album.name} ${album.description ?? ""} ${album.owner.username}`
+        .toLocaleLowerCase()
+        .includes(text.value.trim().toLocaleLowerCase()),
   );
   return order.value === "name"
     ? result.sort((left, right) =>
@@ -51,8 +59,9 @@ const filtered = computed(() => {
       ? result.sort((left, right) => right.count - left.count)
       : result;
 });
-function edit(album?: Album) {
+function edit(album?: Album, shared = false) {
   editing.value = album;
+  creatingShared.value = shared;
   formOpen.value = true;
 }
 function saved(album: Album) {
@@ -113,6 +122,11 @@ async function remove(album: Album) {
         @click="edit()"
       >
         <Plus />{{ $t("新建相册") }}</el-button
+      ><el-button
+        v-if="auth.user?.roleCode === 'ROLE_ADMIN'"
+        native-type="button"
+        @click="edit(undefined, true)"
+        ><Users />{{ $t("新建共享相册") }}</el-button
       ></PageHeader
     >
     <div class="space-y-5 px-4 sm:px-6">
@@ -135,6 +149,11 @@ async function remove(album: Album) {
           >{{ $t("创建一个相册") }}</el-button
         >
       </div>
+      <el-radio-group v-model="scope" :aria-label="$t('相册类型')">
+        <el-radio-button value="all">{{ $t("全部相册") }}</el-radio-button>
+        <el-radio-button value="private">{{ $t("私人相册") }}</el-radio-button>
+        <el-radio-button value="shared">{{ $t("共享相册") }}</el-radio-button>
+      </el-radio-group>
       <div class="flex gap-3">
         <label
           class="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line bg-panel2 px-3"
@@ -181,12 +200,19 @@ async function remove(album: Album) {
           class="group overflow-hidden rounded-xl border border-line bg-panel"
         >
           <div class="relative">
+            <span
+              v-if="album.shared"
+              class="pointer-events-none absolute top-2 left-2 z-10 inline-flex items-center gap-1 rounded-md bg-black/65 px-2 py-1 text-[10px] text-white"
+            >
+              <Users class="size-3" />{{ $t("共享相册") }}
+            </span>
             <RouterLink
               :to="{ name: 'album-detail', params: { id: album.id } }"
               class="relative block aspect-[4/3] overflow-hidden bg-panel2"
               ><AssetImage
                 v-if="album.coverAssetId"
                 :asset-id="album.coverAssetId"
+                :version="album.coverThumbnailRevision ?? undefined"
                 :name="album.name"
               /><span
                 v-else
@@ -203,10 +229,14 @@ async function remove(album: Album) {
               ></RouterLink
             >
             <div
-              v-if="workspace.can('asset:category')"
+              v-if="
+                (album.shared || workspace.can('asset:category')) &&
+                (album.permissions.edit || album.permissions.deleteAlbum)
+              "
               class="absolute top-2 right-2 flex gap-1 rounded-lg bg-black/50 p-1 text-white/80"
             >
               <button
+                v-if="album.permissions.edit"
                 type="button"
                 class="rounded p-1.5 hover:bg-white/10"
                 :aria-label="$t('编辑相册 {value1}', { value1: album.name })"
@@ -214,6 +244,7 @@ async function remove(album: Album) {
               >
                 <Pencil class="size-3.5" /></button
               ><button
+                v-if="album.permissions.deleteAlbum"
                 type="button"
                 class="rounded p-1.5 hover:bg-white/10 hover:text-err"
                 :aria-label="$t('删除相册 {value1}', { value1: album.name })"
@@ -224,6 +255,17 @@ async function remove(album: Album) {
               </button>
             </div>
           </div>
+          <p v-if="album.shared" class="px-4 pt-3 text-xs text-soft">
+            {{ $t("创建者：{value1}", { value1: album.owner.username }) }}
+            ·
+            {{
+              album.permissions.addAssets ||
+              album.permissions.edit ||
+              album.permissions.removeAssets
+                ? $t("可协作")
+                : $t("仅查看")
+            }}
+          </p>
           <p
             v-if="album.description"
             class="line-clamp-2 px-4 py-3 text-xs leading-6 text-soft"
@@ -236,6 +278,7 @@ async function remove(album: Album) {
     <AlbumForm
       v-if="formOpen"
       :album="editing"
+      :shared="creatingShared"
       @close="formOpen = false"
       @saved="saved"
     />

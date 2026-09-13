@@ -34,11 +34,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (payload.type !== 'access' || !payload.sub || !payload.jti)
       throw new UnauthorizedException('无效 access token');
 
-    const [blacklisted, revoked] = await this.redisService.getMany([
-      RedisKey.blacklist(payload.jti),
-      ...(payload.sid
-        ? [RedisKey.sessionRevoked(payload.sub, payload.sid)]
-        : []),
+    const [[blacklisted, revoked], currentVersion] = await Promise.all([
+      this.redisService.getMany([
+        RedisKey.blacklist(payload.jti),
+        ...(payload.sid
+          ? [RedisKey.sessionRevoked(payload.sub, payload.sid)]
+          : []),
+      ]),
+      this.userService.getSessionVersion(payload.sub),
     ]);
 
     // 登出后 token 放入黑名单
@@ -50,9 +53,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('会话已 登出');
     }
 
-    const currentVersion = await this.userService.getSessionVersion(
-      payload.sub,
-    );
     const tokenVersion = payload.sv ?? 0;
 
     if (currentVersion === null || tokenVersion !== currentVersion) {

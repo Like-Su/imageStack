@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { ref } from "vue";
+import { onActivated, onDeactivated, onScopeDispose, ref, watch } from "vue";
 import {
   Clock3,
   LoaderCircle,
@@ -18,6 +18,7 @@ import { processingLabels } from "@/config/workspace";
 import { useAssetFeed } from "@/composables/useAssetFeed";
 import { formatDate } from "@/composables/mediaFormat";
 import { useVisiblePolling } from "@/composables/useVisiblePolling";
+import { workspaceEventsAvailable } from "@/composables/videoSummaryEvents";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { ProcessingStatus } from "@/types/media";
@@ -65,18 +66,49 @@ async function retry(id: string) {
     retrying.value.delete(id);
   }
 }
+let active = true;
+let processingDirty = false;
+function refreshFeed() {
+  if (
+    active &&
+    preferences.values.autoRefresh &&
+    document.visibilityState === "visible" &&
+    items.value.length <= 40 &&
+    !retrying.value.size &&
+    !workspace.selectedAsset
+  ) {
+    processingDirty = false;
+    return feed.poll();
+  }
+  return Promise.resolve();
+}
+const unsubscribeProcessing = workspace.onInvalidate((resources, lazy) => {
+  if (!resources.has("processing")) return;
+  processingDirty = true;
+  if (!lazy) void refreshFeed();
+});
+watch([() => workspace.selectedAsset, () => retrying.value.size], () => {
+  if (processingDirty) void refreshFeed();
+});
+onActivated(() => {
+  active = true;
+  if (processingDirty) void refreshFeed();
+});
+onDeactivated(() => {
+  active = false;
+});
+onScopeDispose(unsubscribeProcessing);
+
 useVisiblePolling(
   async () => {
-    await Promise.all([
-      items.value.length <= 40 &&
-      !retrying.value.size &&
-      !workspace.selectedAsset
-        ? feed.poll()
-        : Promise.resolve(),
-      workspace.loadOverview(),
-    ]);
+    await Promise.all([refreshFeed(), workspace.loadOverview()]);
   },
-  () => (workspace.pendingTasks ? 10000 : 30000),
+  () =>
+    workspaceEventsAvailable.value
+      ? 300000
+      : workspace.pendingTasks
+        ? 10000
+        : 30000,
 );
 </script>
 
@@ -139,7 +171,9 @@ useVisiblePolling(
             $t("{value1} · 仅当前账户的未删除图片", {
               value1:
                 preferences.values.autoRefresh && items.length <= 40
-                  ? $t("每 10 秒刷新首页")
+                  ? workspaceEventsAvailable
+                    ? $t("服务端推送任务状态")
+                    : $t("定时校准任务状态")
                   : $t("手动刷新列表"),
             })
           }}
