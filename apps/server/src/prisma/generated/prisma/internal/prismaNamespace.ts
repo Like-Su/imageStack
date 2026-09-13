@@ -435,12 +435,16 @@ export const ModelName = {
   UserPermission: 'UserPermission',
   FileNode: 'FileNode',
   AssetRecognition: 'AssetRecognition',
+  VideoSummary: 'VideoSummary',
+  VideoSummaryEvent: 'VideoSummaryEvent',
   Album: 'Album',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
   AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
   UploadPart: 'UploadPart',
+  ShareLink: 'ShareLink',
+  ShareSave: 'ShareSave',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
 } as const;
@@ -473,12 +477,16 @@ export type TypeMap<
       | 'userPermission'
       | 'fileNode'
       | 'assetRecognition'
+      | 'videoSummary'
+      | 'videoSummaryEvent'
       | 'album'
       | 'albumAsset'
       | 'tag'
       | 'assetTag'
       | 'uploadSession'
       | 'uploadPart'
+      | 'shareLink'
+      | 'shareSave'
       | 'fileShare'
       | 'filePermission';
     txIsolationLevel: TransactionIsolationLevel;
@@ -1092,6 +1100,158 @@ export type TypeMap<
         };
       };
     };
+    VideoSummary: {
+      payload: Prisma.$VideoSummaryPayload<ExtArgs>;
+      fields: Prisma.VideoSummaryFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.VideoSummaryFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.VideoSummaryFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        findFirst: {
+          args: Prisma.VideoSummaryFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.VideoSummaryFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        findMany: {
+          args: Prisma.VideoSummaryFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>[];
+        };
+        create: {
+          args: Prisma.VideoSummaryCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        createMany: {
+          args: Prisma.VideoSummaryCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.VideoSummaryCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>[];
+        };
+        delete: {
+          args: Prisma.VideoSummaryDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        update: {
+          args: Prisma.VideoSummaryUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        deleteMany: {
+          args: Prisma.VideoSummaryDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.VideoSummaryUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.VideoSummaryUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>[];
+        };
+        upsert: {
+          args: Prisma.VideoSummaryUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryPayload>;
+        };
+        aggregate: {
+          args: Prisma.VideoSummaryAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVideoSummary>;
+        };
+        groupBy: {
+          args: Prisma.VideoSummaryGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.VideoSummaryGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.VideoSummaryCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.VideoSummaryCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    VideoSummaryEvent: {
+      payload: Prisma.$VideoSummaryEventPayload<ExtArgs>;
+      fields: Prisma.VideoSummaryEventFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.VideoSummaryEventFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.VideoSummaryEventFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        findFirst: {
+          args: Prisma.VideoSummaryEventFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.VideoSummaryEventFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        findMany: {
+          args: Prisma.VideoSummaryEventFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>[];
+        };
+        create: {
+          args: Prisma.VideoSummaryEventCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        createMany: {
+          args: Prisma.VideoSummaryEventCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.VideoSummaryEventCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>[];
+        };
+        delete: {
+          args: Prisma.VideoSummaryEventDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        update: {
+          args: Prisma.VideoSummaryEventUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        deleteMany: {
+          args: Prisma.VideoSummaryEventDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.VideoSummaryEventUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.VideoSummaryEventUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>[];
+        };
+        upsert: {
+          args: Prisma.VideoSummaryEventUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VideoSummaryEventPayload>;
+        };
+        aggregate: {
+          args: Prisma.VideoSummaryEventAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVideoSummaryEvent>;
+        };
+        groupBy: {
+          args: Prisma.VideoSummaryEventGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.VideoSummaryEventGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.VideoSummaryEventCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.VideoSummaryEventCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     Album: {
       payload: Prisma.$AlbumPayload<ExtArgs>;
       fields: Prisma.AlbumFieldRefs;
@@ -1548,6 +1708,158 @@ export type TypeMap<
         };
       };
     };
+    ShareLink: {
+      payload: Prisma.$ShareLinkPayload<ExtArgs>;
+      fields: Prisma.ShareLinkFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.ShareLinkFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.ShareLinkFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        findFirst: {
+          args: Prisma.ShareLinkFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.ShareLinkFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        findMany: {
+          args: Prisma.ShareLinkFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>[];
+        };
+        create: {
+          args: Prisma.ShareLinkCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        createMany: {
+          args: Prisma.ShareLinkCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.ShareLinkCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>[];
+        };
+        delete: {
+          args: Prisma.ShareLinkDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        update: {
+          args: Prisma.ShareLinkUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        deleteMany: {
+          args: Prisma.ShareLinkDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.ShareLinkUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.ShareLinkUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>[];
+        };
+        upsert: {
+          args: Prisma.ShareLinkUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareLinkPayload>;
+        };
+        aggregate: {
+          args: Prisma.ShareLinkAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShareLink>;
+        };
+        groupBy: {
+          args: Prisma.ShareLinkGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.ShareLinkGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.ShareLinkCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.ShareLinkCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    ShareSave: {
+      payload: Prisma.$ShareSavePayload<ExtArgs>;
+      fields: Prisma.ShareSaveFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.ShareSaveFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.ShareSaveFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        findFirst: {
+          args: Prisma.ShareSaveFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.ShareSaveFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        findMany: {
+          args: Prisma.ShareSaveFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>[];
+        };
+        create: {
+          args: Prisma.ShareSaveCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        createMany: {
+          args: Prisma.ShareSaveCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.ShareSaveCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>[];
+        };
+        delete: {
+          args: Prisma.ShareSaveDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        update: {
+          args: Prisma.ShareSaveUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        deleteMany: {
+          args: Prisma.ShareSaveDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.ShareSaveUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.ShareSaveUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>[];
+        };
+        upsert: {
+          args: Prisma.ShareSaveUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShareSavePayload>;
+        };
+        aggregate: {
+          args: Prisma.ShareSaveAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShareSave>;
+        };
+        groupBy: {
+          args: Prisma.ShareSaveGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.ShareSaveGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.ShareSaveCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.ShareSaveCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     FileShare: {
       payload: Prisma.$FileSharePayload<ExtArgs>;
       fields: Prisma.FileShareFieldRefs;
@@ -1875,6 +2187,40 @@ export const AssetRecognitionScalarFieldEnum = {
 export type AssetRecognitionScalarFieldEnum =
   (typeof AssetRecognitionScalarFieldEnum)[keyof typeof AssetRecognitionScalarFieldEnum];
 
+export const VideoSummaryScalarFieldEnum = {
+  assetId: 'assetId',
+  status: 'status',
+  stage: 'stage',
+  transcript: 'transcript',
+  segments: 'segments',
+  transcribedChunks: 'transcribedChunks',
+  language: 'language',
+  summary: 'summary',
+  model: 'model',
+  sourceHash: 'sourceHash',
+  error: 'error',
+  attempts: 'attempts',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  nextAttemptAt: 'nextAttemptAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type VideoSummaryScalarFieldEnum =
+  (typeof VideoSummaryScalarFieldEnum)[keyof typeof VideoSummaryScalarFieldEnum];
+
+export const VideoSummaryEventScalarFieldEnum = {
+  id: 'id',
+  assetId: 'assetId',
+  status: 'status',
+  createdAt: 'createdAt',
+} as const;
+
+export type VideoSummaryEventScalarFieldEnum =
+  (typeof VideoSummaryEventScalarFieldEnum)[keyof typeof VideoSummaryEventScalarFieldEnum];
+
 export const AlbumScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1949,6 +2295,32 @@ export const UploadPartScalarFieldEnum = {
 
 export type UploadPartScalarFieldEnum =
   (typeof UploadPartScalarFieldEnum)[keyof typeof UploadPartScalarFieldEnum];
+
+export const ShareLinkScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  ownerId: 'ownerId',
+  assetId: 'assetId',
+  albumId: 'albumId',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+} as const;
+
+export type ShareLinkScalarFieldEnum =
+  (typeof ShareLinkScalarFieldEnum)[keyof typeof ShareLinkScalarFieldEnum];
+
+export const ShareSaveScalarFieldEnum = {
+  shareId: 'shareId',
+  userId: 'userId',
+  assetId: 'assetId',
+  albumId: 'albumId',
+  count: 'count',
+  createdAt: 'createdAt',
+} as const;
+
+export type ShareSaveScalarFieldEnum =
+  (typeof ShareSaveScalarFieldEnum)[keyof typeof ShareSaveScalarFieldEnum];
 
 export const FileShareScalarFieldEnum = {
   id: 'id',
@@ -2190,6 +2562,18 @@ export type ListEnumMediaProcessingStatusFieldRefInput<$PrismaModel> =
   FieldRefInputType<$PrismaModel, 'MediaProcessingStatus[]'>;
 
 /**
+ * Reference to a field of type 'VideoSummaryStage'
+ */
+export type EnumVideoSummaryStageFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'VideoSummaryStage'>;
+
+/**
+ * Reference to a field of type 'VideoSummaryStage[]'
+ */
+export type ListEnumVideoSummaryStageFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'VideoSummaryStage[]'>;
+
+/**
  * Reference to a field of type 'UploadStatus'
  */
 export type EnumUploadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
@@ -2402,12 +2786,16 @@ export type GlobalOmitConfig = {
   userPermission?: Prisma.UserPermissionOmit;
   fileNode?: Prisma.FileNodeOmit;
   assetRecognition?: Prisma.AssetRecognitionOmit;
+  videoSummary?: Prisma.VideoSummaryOmit;
+  videoSummaryEvent?: Prisma.VideoSummaryEventOmit;
   album?: Prisma.AlbumOmit;
   albumAsset?: Prisma.AlbumAssetOmit;
   tag?: Prisma.TagOmit;
   assetTag?: Prisma.AssetTagOmit;
   uploadSession?: Prisma.UploadSessionOmit;
   uploadPart?: Prisma.UploadPartOmit;
+  shareLink?: Prisma.ShareLinkOmit;
+  shareSave?: Prisma.ShareSaveOmit;
   fileShare?: Prisma.FileShareOmit;
   filePermission?: Prisma.FilePermissionOmit;
 };

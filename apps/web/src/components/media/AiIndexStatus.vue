@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { computed, onScopeDispose, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { RefreshCw, Sparkles } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { useVisiblePolling } from "@/composables/useVisiblePolling";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { AiIndexStatus } from "@/types/media";
 
@@ -14,7 +15,7 @@ const {
   error,
   loading,
   refresh,
-} = useRemoteData<AiIndexStatus>(mediaApi.aiStatus);
+} = useRemoteData<AiIndexStatus>(mediaApi.aiStatus, [], { resources: ["ai"] });
 const busy = ref(false);
 const eligible = computed(() =>
   status.value
@@ -24,21 +25,17 @@ const eligible = computed(() =>
       )
     : 0,
 );
-let timer: number | undefined;
-
 watch(status, (value, previous) => {
-  window.clearTimeout(timer);
   if (previous && value && value.counts.READY !== previous.counts.READY)
-    workspace.invalidate();
-  if (value?.configured)
-    timer = window.setTimeout(
-      () => {
-        void refresh();
-      },
-      value.counts.PENDING + value.counts.PROCESSING > 0 ? 5000 : 15000,
-    );
+    workspace.invalidate(["search"]);
 });
-onScopeDispose(() => window.clearTimeout(timer));
+useVisiblePolling(refresh, () =>
+  status.value?.configured
+    ? status.value.counts.PENDING + status.value.counts.PROCESSING > 0
+      ? 5000
+      : 60000
+    : false,
+);
 
 async function enqueue() {
   if (

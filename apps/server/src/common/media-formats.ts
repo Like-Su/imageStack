@@ -1,5 +1,4 @@
 export const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
-export const IMAGE_MAX_PIXELS = 20_000_000;
 export const IMAGE_MAX_FRAMES = 1000;
 export const VIDEO_MAX_BYTES = 512 * 1024 * 1024;
 export const VIDEO_MAX_DURATION_MS = 4 * 60 * 60 * 1000;

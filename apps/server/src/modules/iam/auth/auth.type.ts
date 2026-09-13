@@ -7,11 +7,15 @@ export interface User {
   permissions: string[];
 }
 
+export interface UserProfile extends User {
+  avatar: string | null;
+}
+
 export interface RequestUser extends User {
   tokenJti: string;
   tokenExp: number;
   sessionId?: string;
-  sessionVersion?: number;
+  sessionVersion: number;
 }
 
 export type TokenType = 'access' | 'refresh';

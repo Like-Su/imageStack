@@ -60,5 +60,10 @@ export const iamApi = {
 
 type PermissionSummaryResult = Pick<
   AdminPermission,
-  "id" | "permissionCode" | "permissionName" | "parentId"
+  | "id"
+  | "permissionCode"
+  | "permissionName"
+  | "parentId"
+  | "createdAt"
+  | "updatedAt"
 >;

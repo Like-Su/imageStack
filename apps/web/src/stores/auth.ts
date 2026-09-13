@@ -8,6 +8,7 @@ import type {
   AuthUser,
   LoginPayload,
   StoredSession,
+  UpdateProfilePayload,
 } from "@/types/auth";
 
 const SESSION_KEY = "image_stack_auth";
@@ -102,6 +103,7 @@ export const useAuthStore = defineStore("auth", () => {
   let refreshVersion = -1;
   let initializePromise: Promise<void> | null = null;
   let sessionVersion = 0;
+  let profileRevision = 0;
 
   function clearSession() {
     sessionVersion += 1;
@@ -180,6 +182,7 @@ export const useAuthStore = defineStore("auth", () => {
     if (initializePromise) return initializePromise;
     if (initialized.value && !force) return Promise.resolve();
     const currentVersion = sessionVersion;
+    const currentProfileRevision = profileRevision;
     initializationError.value = "";
 
     const pending: Promise<void> = (async () => {
@@ -191,13 +194,21 @@ export const useAuthStore = defineStore("auth", () => {
         )
           return;
         const profile = await authApi.me();
-        if (currentVersion !== sessionVersion) return;
+        if (
+          currentVersion !== sessionVersion ||
+          currentProfileRevision !== profileRevision
+        )
+          return;
         if (!profile)
           throw new ApiError(translate("账户不可用，请重新登录"), 401);
         user.value = profile;
         persistSession(session.value, profile);
       } catch (error) {
-        if (currentVersion !== sessionVersion) return;
+        if (
+          currentVersion !== sessionVersion ||
+          currentProfileRevision !== profileRevision
+        )
+          return;
         if (isSessionRejected(error)) clearSession();
         initializationError.value = getErrorMessage(error);
       }
@@ -208,6 +219,30 @@ export const useAuthStore = defineStore("auth", () => {
 
     initializePromise = pending;
     return pending;
+  }
+
+  async function updateProfile(body: UpdateProfilePayload) {
+    const currentVersion = sessionVersion;
+    const userId = user.value?.id;
+    if (!session.value || !userId)
+      throw new ApiError(translate("账户不可用，请重新登录"), 401);
+    const profile = await authApi.updateProfile(body);
+    if (currentVersion !== sessionVersion || user.value?.id !== userId)
+      throw new ApiError(
+        translate("登录状态已变化，请重试"),
+        0,
+        "AUTH_CHANGED",
+      );
+    if (!profile || profile.id !== userId)
+      throw new ApiError(
+        translate("服务器返回的账户信息不完整"),
+        0,
+        "INVALID_RESPONSE",
+      );
+    profileRevision += 1;
+    user.value = profile;
+    persistSession(session.value, profile);
+    return profile;
   }
 
   async function logout(allDevices = false) {
@@ -234,6 +269,7 @@ export const useAuthStore = defineStore("auth", () => {
     login,
     logout,
     initialize,
+    updateProfile,
     refreshSession,
     clearSession,
     getSessionVersion,

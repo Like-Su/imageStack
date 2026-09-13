@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { onScopeDispose, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { RefreshCw, Sparkles } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { useVisiblePolling } from "@/composables/useVisiblePolling";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { ImageRecognition } from "@/types/media";
 
@@ -18,19 +19,18 @@ const {
 } = useRemoteData<ImageRecognition | null>(
   (signal) => mediaApi.recognition(props.assetId, signal),
   [() => props.assetId, () => props.ready],
+  { resources: ["ai"] },
 );
 const busy = ref(false);
-let timer: number | undefined;
 watch(result, (value, previous) => {
-  window.clearTimeout(timer);
-  if (value && ["PENDING", "PROCESSING"].includes(value.status))
-    timer = window.setTimeout(() => {
-      void refresh();
-    }, 5000);
   if (value?.status === "READY" && previous && previous.status !== "READY")
-    workspace.invalidate();
+    workspace.invalidate(["search"]);
 });
-onScopeDispose(() => window.clearTimeout(timer));
+useVisiblePolling(refresh, () =>
+  result.value && ["PENDING", "PROCESSING"].includes(result.value.status)
+    ? 5000
+    : false,
+);
 
 async function recognize() {
   if (busy.value || !props.ready || !workspace.can("asset:edit")) return;
@@ -48,8 +48,21 @@ async function recognize() {
     )
       return;
     if (assetId !== props.assetId) return;
-    await mediaApi.indexImages([assetId]);
-    await refresh();
+    const queued = await mediaApi.indexImages([assetId]);
+    if (assetId !== props.assetId) return;
+    if (queued.queued)
+      result.value = {
+        description: null,
+        keywords: [],
+        ocrText: null,
+        model: null,
+        attempts: 0,
+        indexedAt: null,
+        nextAttemptAt: null,
+        ...result.value,
+        status: "PENDING",
+        error: null,
+      };
   } catch (failure) {
     workspace.notify(getErrorMessage(failure), "error");
   } finally {

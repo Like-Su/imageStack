@@ -4,7 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import type { FileNode } from '../../prisma/generated/prisma/client';
+import type { MediaAsset } from './asset-media';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { THUMBNAIL_PROFILE } from '../jobs/media-processing.constants';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
@@ -24,7 +24,7 @@ export class ThumbnailsService {
   ) {}
 
   async get(
-    asset: FileNode,
+    asset: MediaAsset,
     variant: 'thumbnail' | 'preview' = 'thumbnail',
   ): Promise<ThumbnailResponse> {
     const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;

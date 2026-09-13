@@ -15,10 +15,12 @@ import {
   FolderPlus,
   RefreshCw,
   Maximize2,
+  Pencil,
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { PERSON_TAG_PREFIX, processingLabels } from "@/config/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateAssetDetail } from "@/composables/workspaceUpdates";
 import { useAssetActions } from "@/composables/useAssetActions";
 import {
   formatBytes,
@@ -35,6 +37,9 @@ import AlbumPicker from "./AlbumPicker.vue";
 import TagAssignmentDialog from "./TagAssignmentDialog.vue";
 import OriginalMediaViewer from "./OriginalMediaViewer.vue";
 import ImageRecognitionPanel from "./ImageRecognitionPanel.vue";
+import VideoSummaryPanel from "./VideoSummaryPanel.vue";
+import ShareDialog from "./ShareDialog.vue";
+import RenameAssetDialog from "./RenameAssetDialog.vue";
 
 const workspace = useWorkspaceStore();
 const assetId = computed(() => workspace.selectedAsset?.id ?? "");
@@ -53,12 +58,18 @@ const {
         )
       : Promise.resolve(null),
   [assetId],
+  { update: updateAssetDetail },
 );
+watch(asset, (value) => {
+  if (value) workspace.rememberAssets([value]);
+});
 const { busy, downloading, download, moveToTrash, restore, purge } =
-  useAssetActions();
+  useAssetActions(() => (asset.value ? [asset.value] : []));
 const albumPicker = ref(false);
 const tagPicker = ref(false);
 const originalViewer = ref(false);
+const sharing = ref(false);
+const renaming = ref(false);
 const tagBusy = ref(false);
 const imageVersion = ref(0);
 
@@ -66,6 +77,8 @@ watch(assetId, () => {
   albumPicker.value = false;
   tagPicker.value = false;
   originalViewer.value = false;
+  sharing.value = false;
+  renaming.value = false;
 });
 
 function exifValue(key: string) {
@@ -126,6 +139,7 @@ async function removeTag(tagId: string) {
     await workspace.perform(
       () => mediaApi.removeTag(id, tagId),
       translate("已移除此标签关联"),
+      (result) => workspace.updateAssetTags(id, [result.tag], 0, tagId),
     );
   } finally {
     tagBusy.value = false;
@@ -215,9 +229,16 @@ function reload() {
                 text
                 circle
                 native-type="button"
-                disabled
-                :title="$t('分享接口尚未接入')"
-                :aria-label="$t('分享功能尚未接入')"
+                :disabled="
+                  asset.type !== 'IMAGE' || !workspace.can('asset:share')
+                "
+                :title="
+                  asset.type !== 'IMAGE'
+                    ? $t('目前仅支持分享图片')
+                    : $t('短链分享')
+                "
+                :aria-label="$t('短链分享')"
+                @click="sharing = true"
               >
                 <Share2 /></el-button
               ><el-button
@@ -250,7 +271,21 @@ function reload() {
               ></template
             >
           </div>
-          <h3 class="break-words text-base font-semibold">{{ asset.name }}</h3>
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="min-w-0 break-words text-base font-semibold">
+              {{ asset.name }}
+            </h3>
+            <el-button
+              v-if="!asset.deleted && workspace.can('asset:edit')"
+              native-type="button"
+              size="small"
+              class="shrink-0"
+              :disabled="busy || tagBusy"
+              @click="renaming = true"
+            >
+              <Pencil />{{ $t("重命名") }}
+            </el-button>
+          </div>
           <p v-if="asset.deleted" class="mt-2 text-xs text-warn">
             {{
               $t("已于 {value1} 移入回收站", {
@@ -280,6 +315,11 @@ function reload() {
           :key="asset.id"
           :asset-id="asset.id"
           :ready="asset.status === 'READY'"
+        />
+        <VideoSummaryPanel
+          v-else-if="asset.type === 'VIDEO' && !asset.deleted"
+          :key="asset.id"
+          :asset-id="asset.id"
         />
         <section v-else class="mh-gradient rounded-xl border border-ai/20 p-4">
           <h4 class="flex items-center gap-2 text-xs font-semibold text-ai">
@@ -389,6 +429,12 @@ function reload() {
       </div>
     </template>
   </AppModal>
+  <RenameAssetDialog
+    v-if="renaming && asset && !asset.deleted && workspace.can('asset:edit')"
+    :key="asset.id"
+    :asset="asset"
+    @close="renaming = false"
+  />
   <OriginalMediaViewer
     v-if="originalViewer && asset && !asset.deleted"
     :asset="asset"
@@ -403,5 +449,12 @@ function reload() {
     v-if="tagPicker && asset"
     :asset-ids="[asset.id]"
     @close="tagPicker = false"
+  />
+  <ShareDialog
+    v-if="sharing && asset && !asset.deleted"
+    :key="asset.id"
+    :target="{ kind: 'asset', targetId: asset.id }"
+    :name="asset.name"
+    @close="sharing = false"
   />
 </template>

@@ -18,6 +18,7 @@ import {
   UPLOAD_VIDEO_LABEL,
   UPLOAD_LIMITS_LABEL,
 } from "@/config/workspace";
+defineProps<{ albumId?: string }>();
 const uploads = useUploadsStore();
 const labels = {
   queued: "等待上传",
@@ -94,6 +95,12 @@ const labels = {
           </span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-xs" :title="entry.name">{{ entry.name }}</p>
+            <RouterLink
+              v-if="entry.albumId"
+              :to="{ name: 'album-detail', params: { id: entry.albumId } }"
+              class="text-[10px] text-accent hover:underline"
+              >{{ $t("目标相册") }}</RouterLink
+            >
             <div class="mt-1 flex justify-between gap-2 text-[10px] text-soft">
               <span>{{ formatBytes(entry.size) }}</span
               ><span>
@@ -103,7 +110,9 @@ const labels = {
                       ? $t("计算指纹 {value1}%", { value1: entry.hashProgress })
                       : entry.phase === "verifying"
                         ? $t("合并校验中")
-                        : `${entry.resumed ? $t("续传 ") : ""}${Math.floor((entry.uploadedBytes / entry.size) * 100)}%`
+                        : entry.phase === "album"
+                          ? $t("正在加入相册")
+                          : `${entry.resumed ? $t("续传 ") : ""}${Math.floor((entry.uploadedBytes / entry.size) * 100)}%`
                     : entry.instant && entry.state === "done"
                       ? $t("秒传完成")
                       : $t(labels[entry.state])
@@ -117,10 +126,12 @@ const labels = {
               <div
                 class="h-full rounded-full bg-accent transition-[width]"
                 :class="{
-                  'mh-indeterminate w-1/3': entry.phase === 'verifying',
+                  'mh-indeterminate w-1/3': ['verifying', 'album'].includes(
+                    entry.phase,
+                  ),
                 }"
                 :style="
-                  entry.phase === 'verifying'
+                  ['verifying', 'album'].includes(entry.phase)
                     ? undefined
                     : {
                         width: `${entry.phase === 'hashing' ? entry.hashProgress : (entry.uploadedBytes / entry.size) * 100}%`,
@@ -133,16 +144,23 @@ const labels = {
             </p>
           </div>
           <button
-            v-if="['error', 'paused'].includes(entry.state) && entry.file"
+            v-if="
+              ['error', 'paused'].includes(entry.state) &&
+              (entry.file || entry.assetId)
+            "
             class="self-start text-soft hover:text-accent"
             type="button"
-            :aria-label="$t('继续上传 {value1}', { value1: entry.name })"
+            :aria-label="
+              entry.assetId
+                ? $t('重试加入相册 {value1}', { value1: entry.name })
+                : $t('继续上传 {value1}', { value1: entry.name })
+            "
             @click="uploads.retry(entry)"
           >
             <RotateCcw class="size-3.5" />
           </button>
           <button
-            v-if="entry.state === 'running'"
+            v-if="entry.state === 'running' && entry.phase !== 'album'"
             class="self-start text-[11px] text-soft hover:text-accent"
             type="button"
             :aria-label="$t('暂停上传 {value1}', { value1: entry.name })"
@@ -153,11 +171,16 @@ const labels = {
           <button
             v-if="
               ['queued', 'running', 'paused', 'error'].includes(entry.state) &&
-              entry.file
+              (entry.file || entry.assetId) &&
+              !(entry.state === 'running' && entry.phase === 'album')
             "
             class="self-start text-soft hover:text-err"
             type="button"
-            :aria-label="$t('取消上传 {value1}', { value1: entry.name })"
+            :aria-label="
+              entry.assetId
+                ? $t('停止加入相册 {value1}', { value1: entry.name })
+                : $t('取消上传 {value1}', { value1: entry.name })
+            "
             @click="uploads.cancel(entry)"
           >
             <X class="size-3.5" />
@@ -167,7 +190,7 @@ const labels = {
       <footer class="border-t border-line bg-panel2/50 p-4">
         <p class="text-[10px] leading-5 text-faint">
           {{ $t(UPLOAD_IMAGE_LABEL) }}；{{ UPLOAD_VIDEO_LABEL }}<br />{{
-            $t("{value1}，单帧 ≤ 2000 万像素、动图 ≤ 1000 帧。", {
+            $t("{value1}，不限制图片和视频像素，动图 ≤ 1000 帧。", {
               value1: $t(UPLOAD_LIMITS_LABEL),
             })
           }}<br />{{
@@ -196,8 +219,9 @@ const labels = {
           >
           <button
             type="button"
-            class="text-accent"
-            @click="uploads.chooseFiles"
+            class="text-accent disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!uploads.canUpload(albumId)"
+            @click="uploads.chooseFiles(albumId)"
           >
             {{ $t("继续上传") }}
           </button>

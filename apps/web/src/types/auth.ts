@@ -2,9 +2,15 @@ export interface AuthUser {
   id: string;
   username: string;
   email: string;
+  avatar?: string | null;
   roles: string;
   roleCode: string;
   permissions: string[];
+}
+
+export interface UpdateProfilePayload {
+  username: string;
+  avatar?: string | null;
 }
 
 export interface AuthTokens {

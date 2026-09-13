@@ -71,6 +71,14 @@ export const ContentHashAlgorithm = {
 export type ContentHashAlgorithm =
   (typeof ContentHashAlgorithm)[keyof typeof ContentHashAlgorithm];
 
+export const VideoSummaryStage = {
+  TRANSCRIBING: 'TRANSCRIBING',
+  SUMMARIZING: 'SUMMARIZING',
+} as const;
+
+export type VideoSummaryStage =
+  (typeof VideoSummaryStage)[keyof typeof VideoSummaryStage];
+
 export const FileAccess = {
   READ: 'READ',
   WRITE: 'WRITE',

@@ -10,6 +10,7 @@ import {
 import { processingLabels } from "@/config/workspace";
 import type { AssetSummary } from "@/types/media";
 import AssetImage from "./AssetImage.vue";
+import VirtualAssetRows from "./VirtualAssetRows.vue";
 
 defineProps<{
   items: AssetSummary[];
@@ -19,24 +20,19 @@ defineProps<{
 defineEmits<{ select: [id: string]; open: [asset: AssetSummary] }>();
 const preferences = usePreferencesStore();
 const workspace = useWorkspaceStore();
-
-function ratio(asset: AssetSummary) {
-  return asset.width && asset.height
-    ? Math.max(0.6, Math.min(1.85, asset.width / asset.height))
-    : 1.2;
-}
 </script>
 
 <template>
-  <div
+  <VirtualAssetRows
     v-if="preferences.values.viewMode === 'grid'"
-    class="media-grid"
-    :class="{ 'is-dense': preferences.values.denseGrid }"
+    :items="items"
+    grid
+    :dense="preferences.values.denseGrid"
+    v-slot="{ asset, active }"
   >
     <article
-      v-for="asset in items"
-      :key="asset.id"
-      class="media-card mh-enter"
+      class="media-card"
+      style="height: calc(100% - 12px)"
       :class="{
         'is-selected': selected.has(asset.id),
         'is-selecting': selecting,
@@ -45,12 +41,12 @@ function ratio(asset: AssetSummary) {
     >
       <button
         type="button"
-        class="relative block w-full"
-        :style="{ aspectRatio: ratio(asset) }"
+        class="relative block size-full"
         :aria-label="$t('查看 {value1}', { value1: asset.name })"
         @click="selecting ? $emit('select', asset.id) : $emit('open', asset)"
       >
         <AssetImage
+          v-if="active"
           :asset-id="asset.id"
           :name="asset.name"
           :trash="asset.deleted"
@@ -109,7 +105,7 @@ function ratio(asset: AssetSummary) {
         <Star class="size-3.5" :class="{ 'fill-current': asset.isFavorite }" />
       </button>
     </article>
-  </div>
+  </VirtualAssetRows>
   <div v-else class="overflow-hidden rounded-xl border border-line bg-panel">
     <div
       class="hidden grid-cols-[28px_1fr_110px_100px_70px_32px] items-center gap-3 border-b border-line bg-panel2 px-4 py-3 text-[11px] text-faint lg:grid"
@@ -120,74 +116,75 @@ function ratio(asset: AssetSummary) {
       ><span>{{ $t("大小") }}</span
       ><span />
     </div>
-    <article
-      v-for="asset in items"
-      :key="asset.id"
-      class="flex items-center gap-3 border-b border-line px-3 py-3 last:border-0 hover:bg-panel2 lg:grid lg:grid-cols-[28px_1fr_110px_100px_70px_32px] lg:px-4"
-      :class="{ 'bg-accent/5': selected.has(asset.id) }"
-    >
-      <input
-        type="checkbox"
-        class="mh-checkbox"
-        :checked="selected.has(asset.id)"
-        :aria-label="$t('选择 {value1}', { value1: asset.name })"
-        @change="$emit('select', asset.id)"
-      />
-      <button
-        type="button"
-        class="flex min-w-0 flex-1 items-center gap-3 text-left"
-        @click="selecting ? $emit('select', asset.id) : $emit('open', asset)"
+    <VirtualAssetRows :items="items" v-slot="{ asset, active }">
+      <article
+        class="flex h-full items-center gap-3 border-b border-line px-3 py-3 hover:bg-panel2 lg:grid lg:grid-cols-[28px_1fr_110px_100px_70px_32px] lg:px-4"
+        :class="{ 'bg-accent/5': selected.has(asset.id) }"
       >
-        <span class="block size-12 shrink-0 overflow-hidden rounded-lg"
-          ><AssetImage
-            :asset-id="asset.id"
-            :name="asset.name"
-            :trash="asset.deleted"
-            :version="asset.status" /></span
-        ><span class="min-w-0"
-          ><span class="block truncate text-xs">{{ asset.name }}</span
-          ><span class="mt-1 block truncate text-[10px] text-faint"
-            ><span v-if="asset.type === 'VIDEO'">{{
-              $t("视频 · {value1} ·", {
-                value1: formatDuration(asset.durationMs),
-              })
-            }}</span
-            >{{
-              asset.width && asset.height
-                ? `${asset.width} × ${asset.height}`
-                : asset.mimeType
-            }}<span class="lg:hidden">
-              · {{ formatBytes(asset.size) }}</span
-            ></span
-          ></span
+        <input
+          type="checkbox"
+          class="mh-checkbox"
+          :checked="selected.has(asset.id)"
+          :aria-label="$t('选择 {value1}', { value1: asset.name })"
+          @change="$emit('select', asset.id)"
+        />
+        <button
+          type="button"
+          class="flex min-w-0 flex-1 items-center gap-3 text-left"
+          @click="selecting ? $emit('select', asset.id) : $emit('open', asset)"
         >
-      </button>
-      <span class="hidden lg:block"
-        ><span class="mh-badge" :class="`mh-status-${asset.status}`">{{
-          $t(processingLabels[asset.status])
-        }}</span></span
-      >
-      <span class="hidden text-[11px] text-soft lg:block">{{
-        formatDate(asset.createdAt)
-      }}</span
-      ><span class="hidden text-[11px] text-soft lg:block">{{
-        formatBytes(asset.size)
-      }}</span>
-      <button
-        v-if="!asset.deleted && workspace.can('asset:edit')"
-        type="button"
-        class="shrink-0 p-1 text-faint hover:text-accent"
-        :class="{ '!text-accent': asset.isFavorite }"
-        :disabled="workspace.favoriteBusy.has(asset.id)"
-        :aria-label="asset.isFavorite ? $t('取消收藏') : $t('收藏')"
-        :aria-pressed="asset.isFavorite"
-        @click="workspace.toggleFavorite(asset)"
-      >
-        <Star
-          class="size-4"
-          :class="{ 'fill-current': asset.isFavorite }"
-        /></button
-      ><span v-else />
-    </article>
+          <span class="block size-12 shrink-0 overflow-hidden rounded-lg"
+            ><AssetImage
+              v-if="active"
+              :asset-id="asset.id"
+              :name="asset.name"
+              :trash="asset.deleted"
+              :version="asset.status" /></span
+          ><span class="min-w-0"
+            ><span class="block truncate text-xs">{{ asset.name }}</span
+            ><span class="mt-1 block truncate text-[10px] text-faint"
+              ><span v-if="asset.type === 'VIDEO'">{{
+                $t("视频 · {value1} ·", {
+                  value1: formatDuration(asset.durationMs),
+                })
+              }}</span
+              >{{
+                asset.width && asset.height
+                  ? `${asset.width} × ${asset.height}`
+                  : asset.mimeType
+              }}<span class="lg:hidden">
+                · {{ formatBytes(asset.size) }}</span
+              ></span
+            ></span
+          >
+        </button>
+        <span class="hidden lg:block"
+          ><span class="mh-badge" :class="`mh-status-${asset.status}`">{{
+            $t(processingLabels[asset.status])
+          }}</span></span
+        >
+        <span class="hidden text-[11px] text-soft lg:block">{{
+          formatDate(asset.createdAt)
+        }}</span
+        ><span class="hidden text-[11px] text-soft lg:block">{{
+          formatBytes(asset.size)
+        }}</span>
+        <button
+          v-if="!asset.deleted && workspace.can('asset:edit')"
+          type="button"
+          class="shrink-0 p-1 text-faint hover:text-accent"
+          :class="{ '!text-accent': asset.isFavorite }"
+          :disabled="workspace.favoriteBusy.has(asset.id)"
+          :aria-label="asset.isFavorite ? $t('取消收藏') : $t('收藏')"
+          :aria-pressed="asset.isFavorite"
+          @click="workspace.toggleFavorite(asset)"
+        >
+          <Star
+            class="size-4"
+            :class="{ 'fill-current': asset.isFavorite }"
+          /></button
+        ><span v-else />
+      </article>
+    </VirtualAssetRows>
   </div>
 </template>

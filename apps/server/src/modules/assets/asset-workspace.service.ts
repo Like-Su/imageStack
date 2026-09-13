@@ -8,6 +8,7 @@ import { assetWhere, requireOwnedAssets } from './asset-scope';
 import { IMAGE_MIME_TYPES } from '../../common/media-formats';
 import { Prisma } from '../../prisma/generated/prisma/client';
 import { hlsObjectKeys } from '../../common/video-stream';
+import { referencedStorageKeys } from '../storage/storage-references';
 
 interface PlaceRow {
   latitudeCell: number;
@@ -29,22 +30,20 @@ export class AssetWorkspaceService {
 
   async overview(userId: string) {
     const groupByData = this.prisma.fileNode.groupBy({
-      by: ['deleted', 'processingStatus'],
+      by: ['deleted', 'processingStatus', 'isFavorite'],
       where: assetWhere(userId, null),
       _count: { _all: true },
       _sum: { size: true },
     });
 
-    const [groups, favorites, albums, tags] = await this.prisma.$transaction([
+    const [groups, albums, tags] = await this.prisma.$transaction([
       groupByData,
-      this.prisma.fileNode.count({
-        where: { ...assetWhere(userId), isFavorite: true },
-      }),
       this.prisma.album.count({ where: { ownerId: userId } }),
       this.prisma.tag.count({ where: { ownerId: userId } }),
     ]);
     const statuses = { PENDING: 0, PROCESSING: 0, READY: 0, FAILED: 0 };
     let total = 0;
+    let favorites = 0;
     let trash = 0;
     let bytes = 0n;
     let trashBytes = 0n;
@@ -54,6 +53,7 @@ export class AssetWorkspaceService {
         trashBytes += group._sum.size ?? 0n;
       } else {
         total += group._count._all;
+        if (group.isFavorite) favorites += group._count._all;
         bytes += group._sum.size ?? 0n;
         statuses[group.processingStatus ?? 'PENDING'] += group._count._all;
       }
@@ -165,22 +165,20 @@ export class AssetWorkspaceService {
         .map((file) => [file.hlsKey, file.hlsSegmentCount]),
     );
     let cleanupPending = 0;
+    let references: Set<string>;
+    try {
+      references = await referencedStorageKeys(this.prisma, [...keys]);
+    } catch (error) {
+      for (const key of keys)
+        this.logger.error(
+          `回收站引用检查失败，保留待清理对象：${key}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      return { count: removed.length, cleanupPending: keys.size };
+    }
     for (const key of keys) {
       try {
-        const references = await this.prisma.fileNode.count({
-          where: {
-            OR: [
-              { storageKey: key },
-              { thumbnailKey: key },
-              { previewKey: key },
-              { hlsKey: key },
-            ],
-          },
-        });
-        const uploads = await this.prisma.uploadSession.count({
-          where: { storageKey: key, status: { in: ['PENDING', 'UPLOADING'] } },
-        });
-        if (references === 0 && uploads === 0) {
+        if (!references.has(key)) {
           const objects = hlsCounts.has(key)
             ? hlsObjectKeys(key, hlsCounts.get(key))
             : [key];

@@ -5,6 +5,7 @@ import { FolderPlus } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateAlbums } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
 import AppModal from "@/components/workspace/AppModal.vue";
 import DataState from "@/components/workspace/DataState.vue";
@@ -17,7 +18,10 @@ const {
   loading,
   error,
   refresh,
-} = useRemoteData(mediaApi.albums);
+} = useRemoteData(mediaApi.albums, [], {
+  resources: ["albums"],
+  update: updateAlbums,
+});
 const selected = ref("");
 const newName = ref("");
 const creating = ref(false);
@@ -35,11 +39,12 @@ async function submit() {
   try {
     if (creating.value) {
       const album = await mediaApi.createAlbum({ name: newName.value.trim() });
+      workspace.updateAlbum(album, true);
       selected.value = album.id;
       creating.value = false;
     }
     const result = await mediaApi.addToAlbum(selected.value, props.assetIds);
-    workspace.invalidate();
+    workspace.updateAlbumMembers(result.album, props.assetIds, true);
     workspace.notify(
       result.count
         ? translate("已添加 {value1} 项媒体到相册", { value1: result.count })
@@ -49,7 +54,6 @@ async function submit() {
     emit("close");
   } catch (cause) {
     formError.value = getErrorMessage(cause);
-    void refresh();
   } finally {
     busy.value = false;
   }

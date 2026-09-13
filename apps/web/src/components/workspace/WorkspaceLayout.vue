@@ -29,6 +29,8 @@ import { useAuthStore } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useUploadsStore } from "@/stores/uploads";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useVisiblePolling } from "@/composables/useVisiblePolling";
+import { useVideoSummaryEvents } from "@/composables/useVideoSummaryEvents";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 import WorkspaceFeedback from "./WorkspaceFeedback.vue";
 import UploadPanel from "./UploadPanel.vue";
@@ -38,8 +40,14 @@ const auth = useAuthStore();
 const workspace = useWorkspaceStore();
 const uploads = useUploadsStore();
 const preferences = usePreferencesStore();
+useVideoSummaryEvents();
 const route = useRoute();
 const router = useRouter();
+const uploadAlbumId = computed(() =>
+  route.name === "album-detail" && typeof route.params.id === "string"
+    ? route.params.id
+    : undefined,
+);
 const searchInput = ref<InputInstance>();
 const mobileNavigation = ref(false);
 const desktopQuery = window.matchMedia("(min-width: 48rem)");
@@ -58,7 +66,10 @@ const navigationLabel = computed(() =>
 const searchText = ref(typeof route.query.q === "string" ? route.query.q : "");
 const dragging = ref(false);
 let dragDepth = 0;
-let polling: number | undefined;
+useVisiblePolling(
+  () => workspace.loadOverview(),
+  () => (route.name === "tasks" ? false : 30000),
+);
 
 function syncNavigation() {
   desktopNavigation.value = desktopQuery.matches;
@@ -75,12 +86,6 @@ function search() {
   if (!workspace.can("asset:search")) return;
   const query = searchText.value.trim();
   void router.push({ name: "search", query: query ? { q: query } : {} });
-}
-
-function pickFiles(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (input.files) uploads.add(Array.from(input.files));
-  input.value = "";
 }
 
 function keyboard(event: KeyboardEvent) {
@@ -108,7 +113,7 @@ function beforeUnload(event: BeforeUnloadEvent) {
 function dragEnter(event: DragEvent) {
   if (
     !event.dataTransfer?.types.includes("Files") ||
-    !workspace.can("upload:create")
+    !uploads.canUpload(uploadAlbumId.value)
   )
     return;
   event.preventDefault();
@@ -125,7 +130,7 @@ function drop(event: DragEvent) {
   dragDepth = 0;
   dragging.value = false;
   if (event.dataTransfer?.files)
-    uploads.add(Array.from(event.dataTransfer.files));
+    uploads.add(Array.from(event.dataTransfer.files), uploadAlbumId.value);
 }
 
 watch(
@@ -161,19 +166,11 @@ onBeforeRouteLeave(async (to) => {
 
 onMounted(() => {
   void workspace.loadOverview();
-  polling = window.setInterval(() => {
-    if (
-      preferences.values.autoRefresh &&
-      document.visibilityState === "visible"
-    )
-      void workspace.loadOverview();
-  }, 30_000);
   window.addEventListener("keydown", keyboard);
   window.addEventListener("beforeunload", beforeUnload);
   desktopQuery.addEventListener("change", syncNavigation);
 });
 onBeforeUnmount(() => {
-  window.clearInterval(polling);
   window.removeEventListener("keydown", keyboard);
   window.removeEventListener("beforeunload", beforeUnload);
   desktopQuery.removeEventListener("change", syncNavigation);
@@ -304,10 +301,12 @@ onBeforeUnmount(() => {
           <el-button
             type="primary"
             native-type="button"
-            :disabled="!workspace.can('upload:create')"
-            @click="uploads.chooseFiles"
+            :disabled="!uploads.canUpload(uploadAlbumId)"
+            @click="uploads.chooseFiles(uploadAlbumId)"
           >
-            <Upload /><span class="hidden sm:inline">{{ $t("上传文件") }}</span>
+            <Upload /><span class="hidden sm:inline">{{
+              uploadAlbumId ? $t("上传到相册") : $t("上传文件")
+            }}</span>
           </el-button>
           <RouterLink
             :to="{ name: 'settings', hash: '#account' }"
@@ -317,6 +316,8 @@ onBeforeUnmount(() => {
             "
             ><el-avatar
               :size="32"
+              :src="auth.user?.avatar ?? ''"
+              :alt="$t('头像')"
               class="border border-line bg-linear-to-br from-accent/25 to-ai/20 !text-xs !text-ghost"
               >{{
                 auth.user?.username?.slice(0, 1).toUpperCase() || $t("我")
@@ -331,7 +332,7 @@ onBeforeUnmount(() => {
         tabindex="-1"
       >
         <RouterView v-slot="{ Component }">
-          <keep-alive>
+          <keep-alive :max="6">
             <component :is="Component" :key="String(route.name)" />
           </keep-alive>
         </RouterView>
@@ -344,21 +345,26 @@ onBeforeUnmount(() => {
       :accept="UPLOAD_ACCEPT"
       multiple
       :aria-label="$t('选择上传图片或视频')"
-      @change="pickFiles"
     />
     <div
       v-if="dragging"
       class="pointer-events-none fixed inset-3 z-[60] flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-accent bg-ink/95"
     >
       <Upload class="size-12 text-accent" />
-      <p class="text-xl font-semibold">{{ $t("松开鼠标，上传到图库") }}</p>
+      <p class="text-xl font-semibold">
+        {{
+          uploadAlbumId
+            ? $t("松开鼠标，上传到当前相册")
+            : $t("松开鼠标，上传到图库")
+        }}
+      </p>
       <p class="max-w-xl px-6 text-center text-sm leading-7 text-soft">
         {{ $t(UPLOAD_IMAGE_LABEL) }}<br />{{ UPLOAD_VIDEO_LABEL }} ·
         {{ $t(UPLOAD_LIMITS_LABEL) }}
       </p>
     </div>
     <AssetDetailDrawer />
-    <UploadPanel />
+    <UploadPanel :album-id="uploadAlbumId" />
     <WorkspaceFeedback />
   </el-container>
 </template>

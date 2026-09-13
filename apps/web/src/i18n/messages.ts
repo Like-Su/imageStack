@@ -1,4 +1,41 @@
 export const english: Record<string, string> = {
+  "本地中英文转写与视频语音摘要。":
+    "Local Chinese and English transcription with video speech summaries.",
+  "上传完成后独立进行音轨提取、分段转写与 AI 总结，保存原语言文字及时间戳。需要配置 ASR 服务和文本模型；失败可在视频详情重试。摘要不包含画面分析，当前不参与关键词搜索。":
+    "Extracts audio, transcribes segments, and summarizes speech in the background after upload. Original-language text and timestamps are saved. Requires ASR and a text model; retry failures in video details. Visual analysis and keyword indexing are not included.",
+  "视频转写与总结完成通知。":
+    "Video transcription and summary completion notifications.",
+  "通过鉴权 SSE 向视频所属用户推送总结完成或失败消息，断线后可从当前浏览器会话的游标补收。其他任务通知与 Webhook 尚未接入；SMTP 仍仅用于账户邮件。":
+    "Authenticated SSE sends video summary completion or failure events to the owner and resumes from this browser session's cursor after reconnection. Other task notifications and webhooks are not implemented; SMTP remains for account emails only.",
+  "视频总结完毕：{value1}": "Video summary complete: {value1}",
+  "视频总结失败：{value1}，可在详情中重试":
+    "Video summary failed: {value1}. Retry from its details.",
+  视频语音总结: "Video speech summary",
+  刷新视频总结: "Refresh video summary",
+  "转写并总结视频？": "Transcribe and summarize this video?",
+  "音频将发送到配置的语音转写服务，转写文字将发送到 AI 服务生成摘要，可能产生模型调用费用。":
+    "Audio is sent to the configured transcription service, then the transcript is sent to the AI service for summarization. Model usage may incur charges.",
+  开始视频总结: "Summarize video",
+  重试视频总结: "Retry video summary",
+  视频已进入后台转写与总结队列:
+    "Video queued for background transcription and summarization",
+  "语音转写完成，正在生成视频总结…":
+    "Transcription complete. Generating the video summary…",
+  "正在提取音频并转写中英文语音…":
+    "Extracting audio and transcribing Chinese and English speech…",
+  "已进入视频总结队列，等待后台处理…":
+    "Queued for background video summarization…",
+  "视频总结失败，已完成的转写会保留，可重试。":
+    "Video summarization failed. Saved transcription is retained for retry.",
+  "正在读取视频总结…": "Loading video summary…",
+  "尚未生成视频总结，可手动开始转写与总结。":
+    "No video summary yet. You can start transcription and summarization manually.",
+  "查看语音转写（保留原语言）": "View transcript (original language)",
+  "转写尚未完成，以下为已保存的部分内容。":
+    "Transcription is incomplete. Saved progress is shown below.",
+  显示更多转写内容: "Show more transcript",
+  "摘要基于视频语音，不包含画面理解；转写和 AI 总结可能有误，请以原视频为准。":
+    "This summary covers speech, not visual content. Transcription and AI summaries may contain errors; refer to the original video.",
   访问管理: "Access management",
   用户管理: "User management",
   角色管理: "Role management",
@@ -496,8 +533,56 @@ export const english: Record<string, string> = {
   下载原视频: "Download original video",
   下载原图片: "Download original image",
   取消收藏: "Remove from favorites",
-  分享接口尚未接入: "Sharing API is not connected",
-  分享功能尚未接入: "Sharing is not available yet",
+  短链分享: "Share via short link",
+  分享相册: "Share album",
+  图片分享: "Shared images",
+  目前仅支持分享图片: "Only images can be shared at this time",
+  "持有链接的人可查看原图并登录保存，请勿分享私密内容。原图可能包含位置信息。":
+    "Anyone with the link can view originals and sign in to save them. Do not share private content. Originals may contain location information.",
+  "相册仅分享其中的图片，最多 500 张。撤销或过期后无法继续访问，但不会删除对方已经保存的内容。":
+    "Only album images are shared, up to 500. Revocation or expiry prevents further access but does not delete copies already saved by others.",
+  链接有效期: "Link expiry",
+  永久有效: "Never expires",
+  生成分享链接: "Create share link",
+  分享链接: "Share link",
+  复制链接: "Copy link",
+  分享链接已复制: "Share link copied",
+  "自动复制失败，请选中链接手动复制":
+    "Automatic copy failed. Select and copy the link manually",
+  分享已撤销: "Share revoked",
+  最近的分享链接: "Recent share links",
+  尚未创建分享链接: "No share links yet",
+  已撤销: "Revoked",
+  已过期: "Expired",
+  有效: "Active",
+  "有效期至 {value1}": "Expires {value1}",
+  "撤销后此链接将无法访问，确定继续？":
+    "Revoking this link prevents further access. Continue?",
+  撤销分享: "Revoke share",
+  我的图库: "My library",
+  "{value1} 张图片": "{value1} images",
+  已保存: "Saved",
+  保存到我的图库: "Save to my library",
+  登录后保存: "Sign in to save",
+  "保存会建立属于你的独立副本，不修改原作者内容。同一链接只保存一次；相册后续新增的图片不会自动同步。":
+    "Saving creates your own copies without changing the originals. Each link is saved once; later album additions do not sync automatically.",
+  "此分享已保存过，可在图库或回收站查找。":
+    "This share was already saved. Check your library or trash.",
+  "已保存 {value1} 张图片": "Saved {value1} images",
+  查看已保存的相册: "View saved album",
+  查看我的图库: "View my library",
+  暂无可分享的图片: "No shared images available",
+  "图片可能已被分享者移除。": "The owner may have removed these images.",
+  "查看原图：{value1}": "View original: {value1}",
+  "浏览器无法显示此原图，仍可保存到你的图库。":
+    "Your browser cannot display this original, but you can still save it to your library.",
+  分享已失效或内容不可用: "The share has expired or its content is unavailable",
+  没有可分享的图片: "There are no images available to share",
+  "一次最多分享 500 张图片，请拆分相册":
+    "Share up to 500 images at a time. Split the album first",
+  "一次最多保存 500 张图片，请联系分享者拆分相册":
+    "Save up to 500 images at a time. Ask the owner to split the album",
+  分享不存在: "Share not found",
   恢复到图库: "Restore to gallery",
   "已于 {value1} 移入回收站": "Moved to trash on {value1}",
   视频封面与兼容预览: "Video cover and compatible preview",
@@ -532,6 +617,18 @@ export const english: Record<string, string> = {
   取消选择: "Deselect",
   选择: "Select",
   文件名称: "Filename",
+  重命名: "Rename",
+  重命名文件: "Rename file",
+  "仅修改名称，保留原扩展名，不影响原文件、相册和分享链接。":
+    "Change the filename only. The extension, original file, albums, and share links stay unchanged.",
+  "文件名称（不含扩展名）": "Filename (without extension)",
+  请输入文件名称: "Enter a filename",
+  请输入有效的文件名称: "Enter a valid filename",
+  文件名称不能包含路径分隔符或控制字符:
+    "Filenames cannot contain path separators or control characters",
+  "文件名称（含扩展名）不能超过 255 个字符":
+    "Filenames, including the extension, cannot exceed 255 characters",
+  文件名称已更新: "Filename updated",
   处理状态: "Processing status",
   上传日期: "Upload date",
   大小: "Size",
@@ -680,6 +777,15 @@ export const english: Record<string, string> = {
   正在从你的媒体库获取数据: "Fetching data from your library",
   上传队列: "Upload queue",
   上传文件: "Upload files",
+  上传到相册: "Upload to album",
+  目标相册: "Target album",
+  正在加入相册: "Adding to album",
+  "可直接上传到此相册，或点击「添加媒体」从图库选择。":
+    "Upload directly to this album, or select existing items with Add media.",
+  "文件已上传，加入相册未完成：{value1}。重试不会重新上传文件。":
+    "The file is uploaded, but adding it to the album is incomplete: {value1}. Retrying will not upload the file again.",
+  "已停止加入相册，文件仍保留在图库。":
+    "Stopped adding to the album. The file remains in your library.",
   展开上传队列: "Expand upload queue",
   折叠上传队列: "Collapse upload queue",
   "隐藏上传队列，上传继续": "Hide the queue and keep uploading",
@@ -690,11 +796,13 @@ export const english: Record<string, string> = {
   "续传 ": "Resuming ",
   秒传完成: "Instant upload complete",
   "继续上传 {value1}": "Resume upload: {value1}",
+  "重试加入相册 {value1}": "Retry adding to album: {value1}",
   "暂停上传 {value1}": "Pause upload: {value1}",
   暂停: "Pause",
   "取消上传 {value1}": "Cancel upload: {value1}",
-  "{value1}，单帧 ≤ 2000 万像素、动图 ≤ 1000 帧。":
-    "{value1}; up to 20 megapixels per frame and 1,000 animation frames.",
+  "停止加入相册 {value1}": "Stop adding to album: {value1}",
+  "{value1}，不限制图片和视频像素，动图 ≤ 1000 帧。":
+    "{value1}; no image or video pixel limit, up to 1,000 animation frames.",
   "动图保留动画，SVG 仅接受安全静态图形。超过 5 MiB 自动分片，支持暂停与断点续传。":
     "Animations are preserved. SVG accepts only safe, static graphics. Files over 5 MiB use resumable chunked uploads.",
   "刷新后 24 小时内重选同一文件可续传；已有文件按内容指纹秒传复用。 视频后台生成封面及 HLS 按段播放流。":
@@ -721,6 +829,7 @@ export const english: Record<string, string> = {
   我: "Me",
   选择上传图片或视频: "Choose images or videos to upload",
   "松开鼠标，上传到图库": "Drop to upload to your gallery",
+  "松开鼠标，上传到当前相册": "Drop to upload to the current album",
   "离开媒体库？": "Leave the library?",
   "仍有上传未完成。离开会停止本机上传请求，服务器可能已经接收部分文件；返回后请先查看图库。":
     "Uploads are still in progress. Leaving stops local upload requests, but the server may already have received some files. Check your gallery when you return.",
@@ -967,6 +1076,7 @@ export const english: Record<string, string> = {
   动图帧数上限: "Maximum animation frames",
   "{value1} 帧": "{value1} frames",
   单帧像素上限: "Maximum pixels per frame",
+  不限制: "Unlimited",
   "{value1} 万像素": "{value1} × 10,000 pixels",
   回收站自动清理: "Automatic trash cleanup",
   未启用: "Disabled",
@@ -992,12 +1102,37 @@ export const english: Record<string, string> = {
   "没有备份调度接口，请在部署环境备份数据。":
     "No backup scheduler API is available. Back up data in your deployment environment.",
   账户与安全: "Account and security",
+  编辑个人资料: "Edit profile",
+  个人资料已更新: "Profile updated",
+  头像: "Avatar",
+  选择头像: "Choose avatar",
+  移除头像: "Remove avatar",
+  "昵称需为 1–80 个字符": "Display name must be 1–80 characters",
+  "支持 PNG、JPEG、WebP，最大 5 MiB；自动居中裁剪并压缩，保存后生效。":
+    "PNG, JPEG, or WebP up to 5 MiB. Automatically center-cropped and compressed; applied when you save.",
+  "邮箱用于登录，如需修改请联系管理员；角色和权限不能在此修改。":
+    "Your email is used to sign in. Contact an administrator to change it; roles and permissions cannot be edited here.",
+  "请选择 PNG、JPEG 或 WebP 图片": "Choose a PNG, JPEG, or WebP image",
+  "头像文件需大于 0 且不超过 5 MiB":
+    "Avatar file must be non-empty and no larger than 5 MiB",
+  "头像图片不能超过 2000 万像素": "Avatar image must not exceed 20 megapixels",
+  当前浏览器无法处理头像: "Your browser cannot process this avatar",
+  "头像数据过大，请重新选择图片":
+    "Avatar data is too large. Choose another image",
+  "无法读取图片，请重新选择头像":
+    "Cannot read the image. Choose another avatar",
+  "头像内容无效，请选择 PNG、JPEG 或 WebP 图片":
+    "Invalid avatar content. Choose a PNG, JPEG, or WebP image",
+  "账户状态已变化，请重新登录":
+    "Your account status has changed. Sign in again",
+  服务器返回的账户信息不完整:
+    "The server returned incomplete account information",
   角色: "Role",
   退出当前设备: "Sign out this device",
   退出所有设备: "Sign out all devices",
   "查看账户权限（{value1}）": "View account permissions ({value1})",
-  "账户信息来自登录接口，当前页面不提供昵称、邮箱或权限编辑。重置密码后旧会话将失效，所有设备退出会撤销服务端会话。":
-    "Account details come from the sign-in API. This page does not edit names, emails, or permissions. Password resets invalidate old sessions; signing out all devices revokes server-side sessions.",
+  "昵称和头像可在此修改并保存到服务器。邮箱、角色和权限保持只读；重置密码后旧会话失效，退出所有设备会撤销服务端会话。":
+    "Edit your display name and avatar here and save them to the server. Email, roles, and permissions are read-only. Password resets invalidate old sessions; signing out all devices revokes server-side sessions.",
   深色: "Dark",
   浅色: "Light",
   跟随系统: "System",

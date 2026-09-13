@@ -9,6 +9,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: "/s/:token",
+      name: "share",
+      component: () => import("@/views/share/index.vue"),
+      meta: { title: "图片分享" },
+    },
+    {
       path: "/auth",
       redirect: { name: "login" },
       component: AuthLayout,

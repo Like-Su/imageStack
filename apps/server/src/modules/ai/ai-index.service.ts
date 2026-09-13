@@ -19,6 +19,18 @@ import { AiVisionService } from './ai-vision.service';
 @Injectable()
 export class AiIndexService {
   private readonly logger = new Logger(AiIndexService.name);
+  private readonly queueListeners = new Set<() => void>();
+
+  onQueued(listener: () => void) {
+    this.queueListeners.add(listener);
+    return () => {
+      this.queueListeners.delete(listener);
+    };
+  }
+
+  private notifyQueued() {
+    for (const listener of this.queueListeners) listener();
+  }
 
   constructor(
     private readonly prisma: PrismaService,
@@ -98,11 +110,13 @@ export class AiIndexService {
       where: { ...aiImageWhere, id: data.assetId, ownerId: data.ownerId },
       select: { id: true },
     });
-    if (asset)
-      await this.prisma.assetRecognition.createMany({
+    if (asset) {
+      const created = await this.prisma.assetRecognition.createMany({
         data: [{ assetId: asset.id }],
         skipDuplicates: true,
       });
+      if (created.count) this.notifyQueued();
+    }
   }
 
   async enqueue(userId: string, ids?: string[]) {
@@ -150,6 +164,7 @@ export class AiIndexService {
       });
       return created.count + retried.count;
     });
+    if (queued) this.notifyQueued();
     return { queued };
   }
 

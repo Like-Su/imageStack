@@ -2,17 +2,21 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 
 // Custom Module
-import { User as AuthUser } from '../auth/auth.type';
+import { User as AuthUser, UserProfile } from '../auth/auth.type';
 import { RedisKey, RoleCode } from 'src/common/constants';
 import { PASSWORD_RESET_INVALID_MESSAGE } from 'src/common/constants/auth';
 import { BusinessException } from 'src/common/exceptions/business.exception';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { withSerializable } from 'src/common/prisma/transaction';
 import { RedisService } from 'src/common/redis/redis.service';
 import { User, UserStatus } from 'src/prisma/generated/prisma/client';
+import { UpdateProfileDto } from './dto/user.dto';
+import { normalizeProfileAvatar } from './profile-avatar';
 
 const AUTH_USER_TTL = 30 * 60;
 @Injectable()
@@ -105,13 +109,88 @@ export class UserService {
     if (sessionVersion === null) return null;
     const key = `${RedisKey.authUser(userId)}:v${sessionVersion}`;
     const cached = await this.redisService.get(key);
-    if (cached) return JSON.parse(cached) as AuthUser;
+    if (cached) {
+      const user = JSON.parse(cached) as AuthUser & { avatar?: unknown };
+      if ('avatar' in user) {
+        delete user.avatar;
+        await this.redisService.set(key, JSON.stringify(user), AUTH_USER_TTL);
+      }
+      return user;
+    }
 
     const user = await this.loadAuthUser(userId, sessionVersion);
     if (user) {
       await this.redisService.set(key, JSON.stringify(user), AUTH_USER_TTL);
     }
     return user;
+  }
+
+  async getProfile(
+    userId: string,
+    sessionVersion: number,
+  ): Promise<UserProfile> {
+    const user = await this.getAuthUser(userId, sessionVersion);
+    if (!user) return null;
+    const profile = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+        deleted: false,
+        status: UserStatus.ACTIVE,
+        role: { status: 1 },
+        sessionVersion,
+      },
+      select: { username: true, avatar: true },
+    });
+    return profile ? { ...user, ...profile } : null;
+  }
+
+  async updateProfile(
+    userId: string,
+    sessionVersion: number,
+    body: UpdateProfileDto,
+  ) {
+    const avatar =
+      body.avatar == null
+        ? body.avatar
+        : await normalizeProfileAvatar(body.avatar);
+    const where = {
+      id: userId,
+      deleted: false,
+      status: UserStatus.ACTIVE,
+      role: { status: 1 },
+      sessionVersion,
+    };
+    await withSerializable(this.prismaService, async (transaction) => {
+      const before = await transaction.user.findUnique({
+        where,
+        select: { username: true, avatar: true },
+      });
+      if (!before)
+        throw new UnauthorizedException('账户状态已变化，请重新登录');
+      const result = await transaction.user.updateMany({
+        where,
+        data: { username: body.username, avatar },
+      });
+      if (result.count !== 1)
+        throw new UnauthorizedException('账户状态已变化，请重新登录');
+      await transaction.auditLog.create({
+        data: {
+          actorId: userId,
+          action: 'user.profile.update',
+          entityType: 'User',
+          entityId: userId,
+          beforeJson: { usernameChanged: false, avatarChanged: false },
+          afterJson: {
+            usernameChanged: before.username !== body.username,
+            avatarChanged: avatar !== undefined && before.avatar !== avatar,
+          },
+        },
+      });
+    });
+    await this.evictAuthUser(userId);
+    const profile = await this.getProfile(userId, sessionVersion);
+    if (!profile) throw new UnauthorizedException('账户状态已变化，请重新登录');
+    return profile;
   }
 
   // 用户变化后 调用(改状态, 删除, 改角色, 重置密码等)

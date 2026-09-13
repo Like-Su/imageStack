@@ -3,6 +3,7 @@ import type { TransformFnParams } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
+  ArrayUnique,
   IsArray,
   IsOptional,
   IsString,
@@ -99,4 +100,21 @@ export class AddAssetTagsDto {
   @MaxLength(100, { each: true })
   @NotContains('\u0000', { each: true })
   names: string[];
+}
+
+export class BatchAssetTagsDto extends AddAssetTagsDto {
+  @Transform(({ value }) =>
+    Array.isArray(value)
+      ? value.map((id) => (typeof id === 'string' ? id.trim() : id))
+      : value,
+  )
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @ArrayUnique()
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
+  @MaxLength(128, { each: true })
+  @NotContains('\u0000', { each: true })
+  ids: string[];
 }

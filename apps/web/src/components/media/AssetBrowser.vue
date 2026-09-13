@@ -14,6 +14,7 @@ import {
   Upload,
   X,
   RefreshCw,
+  Pencil,
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
@@ -21,11 +22,12 @@ import { useAssetFeed } from "@/composables/useAssetFeed";
 import { useAssetActions } from "@/composables/useAssetActions";
 import { useUploadsStore } from "@/stores/uploads";
 import { useWorkspaceStore } from "@/stores/workspace";
-import type { AssetQuery } from "@/types/media";
+import type { AssetQuery, AssetSummary } from "@/types/media";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetGrid from "./AssetGrid.vue";
 import AlbumPicker from "./AlbumPicker.vue";
 import TagAssignmentDialog from "./TagAssignmentDialog.vue";
+import RenameAssetDialog from "./RenameAssetDialog.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -39,7 +41,9 @@ const props = withDefaults(
 );
 const workspace = useWorkspaceStore();
 const uploads = useUploadsStore();
-const { busy, moveToTrash, restore, purge } = useAssetActions();
+const { busy, moveToTrash, restore, purge } = useAssetActions(
+  () => items.value,
+);
 const preset = ref("all");
 const currentYear = new Date().getFullYear();
 function disabledDate(date: Date) {
@@ -68,6 +72,7 @@ const selected = ref(new Set<string>());
 const selectedIds = computed(() => Array.from(selected.value));
 const albumPicker = ref(false);
 const tagPicker = ref(false);
+const renamingAsset = ref<AssetSummary | null>(null);
 const dialogIds = ref<string[]>([]);
 const collectionBusy = ref(false);
 const isBusy = computed(() => busy.value || collectionBusy.value);
@@ -152,11 +157,22 @@ function exitSelection() {
   selected.value.clear();
   selecting.value = false;
 }
+function openRenameDialog() {
+  if (isBusy.value || selected.value.size !== 1) return;
+  renamingAsset.value =
+    items.value.find((asset) => selected.value.has(asset.id)) ?? null;
+}
 function openAlbumPicker() {
+  workspace.rememberAssets(
+    items.value.filter((asset) => selected.value.has(asset.id)),
+  );
   dialogIds.value = [...selected.value];
   albumPicker.value = true;
 }
 function openTagPicker() {
+  workspace.rememberAssets(
+    items.value.filter((asset) => selected.value.has(asset.id)),
+  );
   dialogIds.value = [...selected.value];
   tagPicker.value = true;
 }
@@ -181,6 +197,7 @@ async function removeFromAlbum() {
     await workspace.perform(
       () => mediaApi.removeFromAlbum(albumId, ids),
       translate("已从相册移除，原图仍保留在图库"),
+      (result) => workspace.updateAlbumMembers(result.album, ids, false),
     );
   } finally {
     collectionBusy.value = false;
@@ -197,6 +214,7 @@ async function setCover() {
     await workspace.perform(
       () => mediaApi.updateAlbum(albumId, { coverAssetId }),
       translate("已更新相册封面"),
+      (album) => workspace.updateAlbum(album),
     );
   } finally {
     collectionBusy.value = false;
@@ -209,6 +227,7 @@ async function removeFromTag() {
   const ids = [...selectedIds.value];
   collectionBusy.value = true;
   let removed = 0;
+  workspace.beginChanges();
   try {
     if (
       !(await workspace.confirm({
@@ -221,10 +240,9 @@ async function removeFromTag() {
       }))
     )
       return;
-    for (const id of ids) {
-      await mediaApi.removeTag(id, tagId);
-      removed += 1;
-    }
+    const result = await mediaApi.removeTagBatch(ids, tagId);
+    workspace.removeAssetsTag(ids, result.tag);
+    removed = ids.length;
     workspace.notify(
       translate("已解除 {value1} 项媒体的分组关联", { value1: removed }),
     );
@@ -237,7 +255,7 @@ async function removeFromTag() {
       "error",
     );
   } finally {
-    if (removed) workspace.invalidate();
+    workspace.endChanges();
     collectionBusy.value = false;
   }
 }
@@ -394,6 +412,14 @@ async function removeFromTag() {
           >
           <template v-else>
             <el-button
+              v-if="selected.size === 1 && workspace.can('asset:edit')"
+              native-type="button"
+              :disabled="isBusy"
+              @click="openRenameDialog"
+            >
+              <Pencil />{{ $t("重命名") }}
+            </el-button>
+            <el-button
               v-if="workspace.can('asset:category')"
               native-type="button"
               :disabled="isBusy"
@@ -474,7 +500,7 @@ async function removeFromTag() {
       </p>
       <div
         v-if="loading"
-        class="media-grid"
+        class="grid grid-cols-2 items-start gap-3 xl:grid-cols-3 2xl:grid-cols-4"
         :aria-label="$t('正在加载媒体')"
         aria-busy="true"
       >
@@ -511,17 +537,18 @@ async function removeFromTag() {
           type="primary"
           v-else-if="
             !trash &&
-            !query.albumId &&
             !query.tagId &&
             !query.placeId &&
             !query.favorite &&
             search === undefined &&
-            workspace.can('upload:create')
+            uploads.canUpload(query.albumId)
           "
           native-type="button"
-          @click="uploads.chooseFiles"
+          @click="uploads.chooseFiles(query.albumId)"
         >
-          <Upload />{{ $t("上传第一张照片") }}</el-button
+          <Upload />{{
+            query.albumId ? $t("上传到相册") : $t("上传第一张照片")
+          }}</el-button
         >
       </DataState>
       <AssetGrid
@@ -562,6 +589,13 @@ async function removeFromTag() {
         }}</span>
       </div>
     </div>
+    <RenameAssetDialog
+      v-if="renamingAsset && !trash && workspace.can('asset:edit')"
+      :key="renamingAsset.id"
+      :asset="renamingAsset"
+      @close="renamingAsset = null"
+      @saved="exitSelection"
+    />
     <AlbumPicker
       v-if="albumPicker"
       :asset-ids="dialogIds"

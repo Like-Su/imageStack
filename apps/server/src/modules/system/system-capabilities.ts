@@ -1,6 +1,5 @@
 import {
   IMAGE_MAX_BYTES,
-  IMAGE_MAX_PIXELS,
   IMAGE_MAX_FRAMES,
   VIDEO_MAX_BYTES,
   VIDEO_MAX_DURATION_MS,
@@ -24,7 +23,7 @@ export const systemCapabilities = {
     imageMaxBytes: IMAGE_MAX_BYTES,
     videoMaxBytes: VIDEO_MAX_BYTES,
     videoMaxDurationMs: VIDEO_MAX_DURATION_MS,
-    maxPixels: IMAGE_MAX_PIXELS,
+    maxPixels: null,
     maxFrames: IMAGE_MAX_FRAMES,
     extensions: MEDIA_EXTENSIONS,
     mimeTypes: MEDIA_MIME_TYPES,
@@ -144,13 +143,22 @@ export const systemCapabilities = {
         '当前提供邮箱密码登录、邮箱激活及找回密码。OIDC、SSO 与 LDAP 尚未接入。',
     },
     {
+      id: 'video-summary',
+      name: '视频语音总结',
+      category: 'AI',
+      builtin: true,
+      description: '本地中英文转写与视频语音摘要。',
+      detail:
+        '上传完成后独立进行音轨提取、分段转写与 AI 总结，保存原语言文字及时间戳。需要配置 ASR 服务和文本模型；失败可在视频详情重试。摘要不包含画面分析，当前不参与关键词搜索。',
+    },
+    {
       id: 'notifications',
       name: '任务通知',
       category: '系统',
-      builtin: false,
-      description: '任务完成通知与 Webhook 扩展。',
+      builtin: true,
+      description: '视频转写与总结完成通知。',
       detail:
-        '任务通知与 Webhook 尚未接入。现有 SMTP 仅用于账户激活与找回密码，由服务器配置，不能据此认定任务通知已启用。',
+        '通过鉴权 SSE 向视频所属用户推送总结完成或失败消息，断线后可从当前浏览器会话的游标补收。其他任务通知与 Webhook 尚未接入；SMTP 仍仅用于账户邮件。',
     },
     {
       id: 'backup',

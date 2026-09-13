@@ -208,6 +208,8 @@ export type AlbumWhereInput = {
     Prisma.FileNodeWhereInput
   > | null;
   assets?: Prisma.AlbumAssetListRelationFilter;
+  shareLinks?: Prisma.ShareLinkListRelationFilter;
+  shareSaves?: Prisma.ShareSaveListRelationFilter;
 };
 
 export type AlbumOrderByWithRelationInput = {
@@ -221,6 +223,8 @@ export type AlbumOrderByWithRelationInput = {
   owner?: Prisma.UserOrderByWithRelationInput;
   coverAsset?: Prisma.FileNodeOrderByWithRelationInput;
   assets?: Prisma.AlbumAssetOrderByRelationAggregateInput;
+  shareLinks?: Prisma.ShareLinkOrderByRelationAggregateInput;
+  shareSaves?: Prisma.ShareSaveOrderByRelationAggregateInput;
 };
 
 export type AlbumWhereUniqueInput = Prisma.AtLeast<
@@ -242,6 +246,8 @@ export type AlbumWhereUniqueInput = Prisma.AtLeast<
       Prisma.FileNodeWhereInput
     > | null;
     assets?: Prisma.AlbumAssetListRelationFilter;
+    shareLinks?: Prisma.ShareLinkListRelationFilter;
+    shareSaves?: Prisma.ShareSaveListRelationFilter;
   },
   'id' | 'ownerId_name'
 >;
@@ -287,6 +293,8 @@ export type AlbumCreateInput = {
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
   coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
   assets?: Prisma.AlbumAssetCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumUncheckedCreateInput = {
@@ -298,6 +306,8 @@ export type AlbumUncheckedCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumUpdateInput = {
@@ -309,6 +319,8 @@ export type AlbumUpdateInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
   coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
   assets?: Prisma.AlbumAssetUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateInput = {
@@ -321,6 +333,8 @@ export type AlbumUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumCreateManyInput = {
@@ -400,6 +414,11 @@ export type AlbumMinOrderByAggregateInput = {
 export type AlbumScalarRelationFilter = {
   is?: Prisma.AlbumWhereInput;
   isNot?: Prisma.AlbumWhereInput;
+};
+
+export type AlbumNullableScalarRelationFilter = {
+  is?: Prisma.AlbumWhereInput | null;
+  isNot?: Prisma.AlbumWhereInput | null;
 };
 
 export type AlbumCreateNestedManyWithoutOwnerInput = {
@@ -600,6 +619,62 @@ export type AlbumUpdateOneRequiredWithoutAssetsNestedInput = {
   >;
 };
 
+export type AlbumCreateNestedOneWithoutShareLinksInput = {
+  create?: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedCreateWithoutShareLinksInput
+  >;
+  connectOrCreate?: Prisma.AlbumCreateOrConnectWithoutShareLinksInput;
+  connect?: Prisma.AlbumWhereUniqueInput;
+};
+
+export type AlbumUpdateOneWithoutShareLinksNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedCreateWithoutShareLinksInput
+  >;
+  connectOrCreate?: Prisma.AlbumCreateOrConnectWithoutShareLinksInput;
+  upsert?: Prisma.AlbumUpsertWithoutShareLinksInput;
+  disconnect?: Prisma.AlbumWhereInput | boolean;
+  delete?: Prisma.AlbumWhereInput | boolean;
+  connect?: Prisma.AlbumWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.AlbumUpdateToOneWithWhereWithoutShareLinksInput,
+      Prisma.AlbumUpdateWithoutShareLinksInput
+    >,
+    Prisma.AlbumUncheckedUpdateWithoutShareLinksInput
+  >;
+};
+
+export type AlbumCreateNestedOneWithoutShareSavesInput = {
+  create?: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedCreateWithoutShareSavesInput
+  >;
+  connectOrCreate?: Prisma.AlbumCreateOrConnectWithoutShareSavesInput;
+  connect?: Prisma.AlbumWhereUniqueInput;
+};
+
+export type AlbumUpdateOneWithoutShareSavesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedCreateWithoutShareSavesInput
+  >;
+  connectOrCreate?: Prisma.AlbumCreateOrConnectWithoutShareSavesInput;
+  upsert?: Prisma.AlbumUpsertWithoutShareSavesInput;
+  disconnect?: Prisma.AlbumWhereInput | boolean;
+  delete?: Prisma.AlbumWhereInput | boolean;
+  connect?: Prisma.AlbumWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.AlbumUpdateToOneWithWhereWithoutShareSavesInput,
+      Prisma.AlbumUpdateWithoutShareSavesInput
+    >,
+    Prisma.AlbumUncheckedUpdateWithoutShareSavesInput
+  >;
+};
+
 export type AlbumCreateWithoutOwnerInput = {
   id?: string;
   name: string;
@@ -608,6 +683,8 @@ export type AlbumCreateWithoutOwnerInput = {
   updatedAt?: Date | string;
   coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
   assets?: Prisma.AlbumAssetCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumUncheckedCreateWithoutOwnerInput = {
@@ -618,6 +695,8 @@ export type AlbumUncheckedCreateWithoutOwnerInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumCreateOrConnectWithoutOwnerInput = {
@@ -682,6 +761,8 @@ export type AlbumCreateWithoutCoverAssetInput = {
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
   assets?: Prisma.AlbumAssetCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumUncheckedCreateWithoutCoverAssetInput = {
@@ -692,6 +773,8 @@ export type AlbumUncheckedCreateWithoutCoverAssetInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumCreateOrConnectWithoutCoverAssetInput = {
@@ -745,6 +828,8 @@ export type AlbumCreateWithoutAssetsInput = {
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
   coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumUncheckedCreateWithoutAssetsInput = {
@@ -755,6 +840,8 @@ export type AlbumUncheckedCreateWithoutAssetsInput = {
   coverAssetId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAlbumInput;
 };
 
 export type AlbumCreateOrConnectWithoutAssetsInput = {
@@ -793,6 +880,8 @@ export type AlbumUpdateWithoutAssetsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
   coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateWithoutAssetsInput = {
@@ -804,6 +893,162 @@ export type AlbumUncheckedUpdateWithoutAssetsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAlbumNestedInput;
+};
+
+export type AlbumCreateWithoutShareLinksInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
+  coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
+  assets?: Prisma.AlbumAssetCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAlbumInput;
+};
+
+export type AlbumUncheckedCreateWithoutShareLinksInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  ownerId: string;
+  coverAssetId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAlbumInput;
+};
+
+export type AlbumCreateOrConnectWithoutShareLinksInput = {
+  where: Prisma.AlbumWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedCreateWithoutShareLinksInput
+  >;
+};
+
+export type AlbumUpsertWithoutShareLinksInput = {
+  update: Prisma.XOR<
+    Prisma.AlbumUpdateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedUpdateWithoutShareLinksInput
+  >;
+  create: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedCreateWithoutShareLinksInput
+  >;
+  where?: Prisma.AlbumWhereInput;
+};
+
+export type AlbumUpdateToOneWithWhereWithoutShareLinksInput = {
+  where?: Prisma.AlbumWhereInput;
+  data: Prisma.XOR<
+    Prisma.AlbumUpdateWithoutShareLinksInput,
+    Prisma.AlbumUncheckedUpdateWithoutShareLinksInput
+  >;
+};
+
+export type AlbumUpdateWithoutShareLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
+  coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
+  assets?: Prisma.AlbumAssetUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAlbumNestedInput;
+};
+
+export type AlbumUncheckedUpdateWithoutShareLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  coverAssetId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAlbumNestedInput;
+};
+
+export type AlbumCreateWithoutShareSavesInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
+  coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
+  assets?: Prisma.AlbumAssetCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAlbumInput;
+};
+
+export type AlbumUncheckedCreateWithoutShareSavesInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  ownerId: string;
+  coverAssetId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAlbumInput;
+};
+
+export type AlbumCreateOrConnectWithoutShareSavesInput = {
+  where: Prisma.AlbumWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedCreateWithoutShareSavesInput
+  >;
+};
+
+export type AlbumUpsertWithoutShareSavesInput = {
+  update: Prisma.XOR<
+    Prisma.AlbumUpdateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedUpdateWithoutShareSavesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.AlbumCreateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedCreateWithoutShareSavesInput
+  >;
+  where?: Prisma.AlbumWhereInput;
+};
+
+export type AlbumUpdateToOneWithWhereWithoutShareSavesInput = {
+  where?: Prisma.AlbumWhereInput;
+  data: Prisma.XOR<
+    Prisma.AlbumUpdateWithoutShareSavesInput,
+    Prisma.AlbumUncheckedUpdateWithoutShareSavesInput
+  >;
+};
+
+export type AlbumUpdateWithoutShareSavesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
+  coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
+  assets?: Prisma.AlbumAssetUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAlbumNestedInput;
+};
+
+export type AlbumUncheckedUpdateWithoutShareSavesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  coverAssetId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumCreateManyOwnerInput = {
@@ -823,6 +1068,8 @@ export type AlbumUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
   assets?: Prisma.AlbumAssetUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateWithoutOwnerInput = {
@@ -834,6 +1081,8 @@ export type AlbumUncheckedUpdateWithoutOwnerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateManyWithoutOwnerInput = {
@@ -863,6 +1112,8 @@ export type AlbumUpdateWithoutCoverAssetInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
   assets?: Prisma.AlbumAssetUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateWithoutCoverAssetInput = {
@@ -873,6 +1124,8 @@ export type AlbumUncheckedUpdateWithoutCoverAssetInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAlbumNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAlbumNestedInput;
 };
 
 export type AlbumUncheckedUpdateManyWithoutCoverAssetInput = {
@@ -890,6 +1143,8 @@ export type AlbumUncheckedUpdateManyWithoutCoverAssetInput = {
 
 export type AlbumCountOutputType = {
   assets: number;
+  shareLinks: number;
+  shareSaves: number;
 };
 
 export type AlbumCountOutputTypeSelect<
@@ -897,6 +1152,8 @@ export type AlbumCountOutputTypeSelect<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   assets?: boolean | AlbumCountOutputTypeCountAssetsArgs;
+  shareLinks?: boolean | AlbumCountOutputTypeCountShareLinksArgs;
+  shareSaves?: boolean | AlbumCountOutputTypeCountShareSavesArgs;
 };
 
 /**
@@ -922,6 +1179,26 @@ export type AlbumCountOutputTypeCountAssetsArgs<
   where?: Prisma.AlbumAssetWhereInput;
 };
 
+/**
+ * AlbumCountOutputType without action
+ */
+export type AlbumCountOutputTypeCountShareLinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.ShareLinkWhereInput;
+};
+
+/**
+ * AlbumCountOutputType without action
+ */
+export type AlbumCountOutputTypeCountShareSavesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.ShareSaveWhereInput;
+};
+
 export type AlbumSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -937,6 +1214,8 @@ export type AlbumSelect<
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     coverAsset?: boolean | Prisma.Album$coverAssetArgs<ExtArgs>;
     assets?: boolean | Prisma.Album$assetsArgs<ExtArgs>;
+    shareLinks?: boolean | Prisma.Album$shareLinksArgs<ExtArgs>;
+    shareSaves?: boolean | Prisma.Album$shareSavesArgs<ExtArgs>;
     _count?: boolean | Prisma.AlbumCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['album']
@@ -1008,6 +1287,8 @@ export type AlbumInclude<
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   coverAsset?: boolean | Prisma.Album$coverAssetArgs<ExtArgs>;
   assets?: boolean | Prisma.Album$assetsArgs<ExtArgs>;
+  shareLinks?: boolean | Prisma.Album$shareLinksArgs<ExtArgs>;
+  shareSaves?: boolean | Prisma.Album$shareSavesArgs<ExtArgs>;
   _count?: boolean | Prisma.AlbumCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type AlbumIncludeCreateManyAndReturn<
@@ -1034,6 +1315,8 @@ export type $AlbumPayload<
     owner: Prisma.$UserPayload<ExtArgs>;
     coverAsset: Prisma.$FileNodePayload<ExtArgs> | null;
     assets: Prisma.$AlbumAssetPayload<ExtArgs>[];
+    shareLinks: Prisma.$ShareLinkPayload<ExtArgs>[];
+    shareSaves: Prisma.$ShareSavePayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1632,6 +1915,28 @@ export interface Prisma__AlbumClient<
       >
     | Null
   >;
+  shareLinks<T extends Prisma.Album$shareLinksArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Album$shareLinksArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$ShareLinkPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  shareSaves<T extends Prisma.Album$shareSavesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Album$shareSavesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$ShareSavePayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2178,6 +2483,66 @@ export type Album$assetsArgs<
   skip?: number;
   distinct?:
     Prisma.AlbumAssetScalarFieldEnum | Prisma.AlbumAssetScalarFieldEnum[];
+};
+
+/**
+ * Album.shareLinks
+ */
+export type Album$shareLinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the ShareLink
+   */
+  select?: Prisma.ShareLinkSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the ShareLink
+   */
+  omit?: Prisma.ShareLinkOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShareLinkInclude<ExtArgs> | null;
+  where?: Prisma.ShareLinkWhereInput;
+  orderBy?:
+    | Prisma.ShareLinkOrderByWithRelationInput
+    | Prisma.ShareLinkOrderByWithRelationInput[];
+  cursor?: Prisma.ShareLinkWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.ShareLinkScalarFieldEnum | Prisma.ShareLinkScalarFieldEnum[];
+};
+
+/**
+ * Album.shareSaves
+ */
+export type Album$shareSavesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the ShareSave
+   */
+  select?: Prisma.ShareSaveSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the ShareSave
+   */
+  omit?: Prisma.ShareSaveOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShareSaveInclude<ExtArgs> | null;
+  where?: Prisma.ShareSaveWhereInput;
+  orderBy?:
+    | Prisma.ShareSaveOrderByWithRelationInput
+    | Prisma.ShareSaveOrderByWithRelationInput[];
+  cursor?: Prisma.ShareSaveWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.ShareSaveScalarFieldEnum | Prisma.ShareSaveScalarFieldEnum[];
 };
 
 /**

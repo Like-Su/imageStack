@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onDeactivated, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   Monitor,
@@ -15,6 +15,7 @@ import {
   LogOut,
   RotateCcw,
   Puzzle,
+  Pencil,
 } from "lucide-vue-next";
 import { systemApi } from "@/api/system";
 import { useRemoteData } from "@/composables/useRemoteData";
@@ -27,6 +28,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import PageHeader from "@/components/workspace/PageHeader.vue";
 import SettingRow from "@/components/workspace/SettingRow.vue";
 import LocaleSwitcher from "@/components/LocaleSwitcher.vue";
+import ProfileEditor from "@/components/workspace/ProfileEditor.vue";
 
 const auth = useAuthStore();
 const workspace = useWorkspaceStore();
@@ -42,6 +44,7 @@ const {
 } = useRemoteData(systemApi.capabilities);
 const accountSection = ref<HTMLElement | null>(null);
 const signingOut = ref<"current" | "all" | null>(null);
+const editingProfile = ref(false);
 const themeOptions = [
   { value: "dark", label: "深色", icon: Moon },
   { value: "light", label: "浅色", icon: Sun },
@@ -65,6 +68,9 @@ watch(
   },
   { immediate: true, flush: "post" },
 );
+onDeactivated(() => {
+  editingProfile.value = false;
+});
 function changeTheme(theme: ThemeMode) {
   if (!setTheme(theme))
     workspace.notify(
@@ -291,11 +297,13 @@ async function logout(allDevices = false) {
                 <dd>
                   {{
                     capabilities
-                      ? $t("{value1} 万像素", {
-                          value1: (
-                            capabilities.upload.maxPixels / 10000
-                          ).toLocaleString(),
-                        })
+                      ? capabilities.upload.maxPixels === null
+                        ? $t("不限制")
+                        : $t("{value1} 万像素", {
+                            value1: (
+                              capabilities.upload.maxPixels / 10000
+                            ).toLocaleString(),
+                          })
                       : "—"
                   }}
                 </dd>
@@ -380,9 +388,14 @@ async function logout(allDevices = false) {
         </h2>
         <div class="mt-5 flex flex-col justify-between gap-6 lg:flex-row">
           <div class="flex min-w-0 items-start gap-4">
-            <span
-              class="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-accent/20 to-ai/20 text-xl font-semibold"
-              >{{ auth.user?.username?.slice(0, 1) || $t("我") }}</span
+            <el-avatar
+              :size="56"
+              :src="auth.user?.avatar ?? ''"
+              :alt="$t('头像')"
+              class="shrink-0 !rounded-2xl bg-linear-to-br from-accent/20 to-ai/20 !text-xl !text-ghost"
+              >{{
+                auth.user?.username?.slice(0, 1).toUpperCase() || $t("我")
+              }}</el-avatar
             >
             <dl class="min-w-0 space-y-2 text-xs">
               <div class="flex gap-4">
@@ -400,6 +413,14 @@ async function logout(allDevices = false) {
             </dl>
           </div>
           <div class="flex flex-wrap items-start gap-2">
+            <el-button
+              type="primary"
+              plain
+              native-type="button"
+              :disabled="!auth.user || Boolean(signingOut)"
+              @click="editingProfile = true"
+              ><Pencil />{{ $t("编辑个人资料") }}</el-button
+            >
             <RouterLink
               :to="{
                 name: 'forgot-password',
@@ -447,11 +468,16 @@ async function logout(allDevices = false) {
         <p class="mt-4 text-[11px] leading-6 text-faint">
           {{
             $t(
-              "账户信息来自登录接口，当前页面不提供昵称、邮箱或权限编辑。重置密码后旧会话将失效，所有设备退出会撤销服务端会话。",
+              "昵称和头像可在此修改并保存到服务器。邮箱、角色和权限保持只读；重置密码后旧会话失效，退出所有设备会撤销服务端会话。",
             )
           }}
         </p>
       </section>
     </div>
+    <ProfileEditor
+      v-if="editingProfile && auth.user"
+      :key="auth.user.id"
+      @close="editingProfile = false"
+    />
   </section>
 </template>

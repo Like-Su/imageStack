@@ -34,7 +34,7 @@ export interface AdminUser {
   id: string;
   username: string;
   email: string;
-  avatar: string | null;
+  avatar?: string | null;
   status: AccountStatus;
   roleId: string;
   role: Pick<

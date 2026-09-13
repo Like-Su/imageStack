@@ -3,11 +3,7 @@ import {
   UnprocessableEntityException,
   UnsupportedMediaTypeException,
 } from '@nestjs/common';
-import {
-  IMAGE_MAX_BYTES,
-  IMAGE_MAX_FRAMES,
-  IMAGE_MAX_PIXELS,
-} from './media-formats';
+import { IMAGE_MAX_BYTES, IMAGE_MAX_FRAMES } from './media-formats';
 import type { ImageFormat } from './media-formats';
 import { sharp } from './sharp';
 import { assertSafeSvg } from './svg-validation';
@@ -136,7 +132,7 @@ export async function inspectImageContent(
   try {
     const decoder = sharp(bytes, {
       failOn: 'warning',
-      limitInputPixels: IMAGE_MAX_PIXELS,
+      limitInputPixels: false,
       page: 0,
       pages: 1,
     }).timeout({ seconds: 10 });
@@ -149,15 +145,21 @@ export async function inspectImageContent(
       (format === 'avif' && metadata.compression !== 'av1') ||
       !width ||
       !height ||
-      width * height > IMAGE_MAX_PIXELS ||
       frames < 1 ||
       frames > IMAGE_MAX_FRAMES
     )
-      throw new UnprocessableEntityException(
-        '图片格式、尺寸、帧数或像素数量不符合要求',
-      );
+      throw new UnprocessableEntityException('图片格式、尺寸或帧数不符合要求');
 
-    await decoder.clone().stats();
+    await decoder
+      .clone()
+      .resize({
+        width: 64,
+        height: 64,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .raw()
+      .toBuffer();
     const rotated =
       (metadata.orientation ?? 1) >= 5 && (metadata.orientation ?? 1) <= 8;
     return {

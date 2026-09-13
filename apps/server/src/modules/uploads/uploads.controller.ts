@@ -35,6 +35,14 @@ export class UploadsController {
     return this.uploadsService.getSession(sessionId, user.id);
   }
 
+  @Get('sessions/:id/progress')
+  getProgress(
+    @Param('id') sessionId: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.uploadsService.getProgress(sessionId, user.id);
+  }
+
   @Put('sessions/:id/content')
   async uploadContent(
     @Param('id') sessionId: string,

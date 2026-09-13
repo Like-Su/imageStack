@@ -96,6 +96,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return await this.client.get(this.prefix + key);
   }
 
+  async getMany(keys: string[]): Promise<(string | null)[]> {
+    if (!keys.length) return [];
+    return this.client.mget(...keys.map((key) => this.prefix + key));
+  }
+
   async getDel(key: string): Promise<string | null> {
     const script = `
       local value = redis.call('GET', KEYS[1])

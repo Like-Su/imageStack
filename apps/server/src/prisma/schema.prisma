@@ -30,26 +30,26 @@ enum UserStatus {
 }
 
 model User {
-  id          String     @id @default(cuid())
+  id          String           @id @default(cuid())
   // 用户名
   username    String
   // 密码
   password    String
   // 邮箱
-  email       String     @unique
+  email       String           @unique
   // 头像
   avatar      String?
   // 账户状态
-  status      UserStatus @default(ACTIVE)
+  status      UserStatus       @default(ACTIVE)
   // 创建与更新时间
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   // 最后登录事件
   lastLoginAt DateTime?
   // 账户是否删除
-  deleted     Boolean    @default(false)
+  deleted     Boolean          @default(false)
   // 一个角色 可以拥有多个用户
-  role        Role       @relation(fields: [roleId], references: [id])
+  role        Role             @relation(fields: [roleId], references: [id])
   roleId      String
   permissions UserPermission[]
 
@@ -62,6 +62,8 @@ model User {
   uploadSessions  UploadSession[]
   albums          Album[]
   tags            Tag[]
+  shareLinks      ShareLink[]
+  shareSaves      ShareSave[]
 
   // 原有字段
   auditLogs AuditLog[] @relation("AuditActor")
@@ -237,6 +239,9 @@ model FileNode {
   tags            AssetTag[]
   albumCovers     Album[]           @relation("AlbumCover")
   recognition     AssetRecognition?
+  videoSummary    VideoSummary?
+  shareLinks      ShareLink[]
+  shareSaves      ShareSave[]
 
   @@index([storageProvider, storageKey])
   @@index([ownerId, hash, size])
@@ -272,6 +277,49 @@ model AssetRecognition {
   @@index([status, leaseUntil])
 }
 
+enum VideoSummaryStage {
+  TRANSCRIBING
+  SUMMARIZING
+}
+
+model VideoSummary {
+  assetId String   @id
+  asset   FileNode @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  status            MediaProcessingStatus @default(PENDING)
+  stage             VideoSummaryStage     @default(TRANSCRIBING)
+  transcript        String?
+  segments          Json?
+  transcribedChunks Int                   @default(0)
+  language          String?
+  summary           String?
+  model             String?
+  sourceHash        String?
+  error             String?
+  attempts          Int                   @default(0)
+  leaseToken        String?
+  leaseUntil        DateTime?
+  nextAttemptAt     DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  events VideoSummaryEvent[]
+
+  @@index([status, nextAttemptAt])
+  @@index([status, leaseUntil])
+}
+
+model VideoSummaryEvent {
+  id        BigInt                @id @default(autoincrement())
+  assetId   String
+  summary   VideoSummary          @relation(fields: [assetId], references: [assetId], onDelete: Cascade)
+  status    MediaProcessingStatus
+  createdAt DateTime              @default(now())
+
+  @@index([assetId])
+}
+
 model Album {
   id          String  @id @default(cuid())
   name        String  @db.VarChar(200)
@@ -283,7 +331,9 @@ model Album {
   coverAssetId String?
   coverAsset   FileNode? @relation("AlbumCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
 
-  assets AlbumAsset[]
+  assets     AlbumAsset[]
+  shareLinks ShareLink[]
+  shareSaves ShareSave[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -379,6 +429,45 @@ model UploadPart {
   createdAt  DateTime      @default(now())
 
   @@id([sessionId, index])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  token     String    @unique @db.VarChar(22)
+  ownerId   String
+  assetId   String?
+  albumId   String?
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  owner User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  asset FileNode?   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  album Album?      @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  saves ShareSave[]
+
+  @@index([ownerId, createdAt])
+  @@index([assetId])
+  @@index([albumId])
+}
+
+model ShareSave {
+  shareId   String
+  userId    String
+  assetId   String?
+  albumId   String?
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  share ShareLink @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset FileNode? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  album Album?    @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  @@id([shareId, userId])
+  @@index([userId])
+  @@index([assetId])
+  @@index([albumId])
 }
 
 model FileShare {

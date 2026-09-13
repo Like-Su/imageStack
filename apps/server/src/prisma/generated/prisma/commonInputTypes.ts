@@ -576,6 +576,66 @@ export type EnumMediaProcessingStatusWithAggregatesFilter<
   _max?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
 };
 
+export type EnumVideoSummaryStageFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.VideoSummaryStage
+    | Prisma.EnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>
+    | $Enums.VideoSummaryStage;
+};
+
+export type EnumVideoSummaryStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.VideoSummaryStage
+    | Prisma.EnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumVideoSummaryStageWithAggregatesFilter<$PrismaModel>
+    | $Enums.VideoSummaryStage;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>;
+};
+
+export type BigIntFilter<$PrismaModel = never> = {
+  equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  notIn?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  lt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  lte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBigIntFilter<$PrismaModel> | bigint | number;
+};
+
+export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  notIn?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  lt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  lte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>;
+  _sum?: Prisma.NestedBigIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedBigIntFilter<$PrismaModel>;
+  _max?: Prisma.NestedBigIntFilter<$PrismaModel>;
+};
+
 export type EnumUploadStatusFilter<$PrismaModel = never> = {
   equals?:
     $Enums.UploadStatus | Prisma.EnumUploadStatusFieldRefInput<$PrismaModel>;
@@ -1168,6 +1228,68 @@ export type NestedEnumMediaProcessingStatusWithAggregatesFilter<
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumMediaProcessingStatusFilter<$PrismaModel>;
+};
+
+export type NestedEnumVideoSummaryStageFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.VideoSummaryStage
+    | Prisma.EnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>
+    | $Enums.VideoSummaryStage;
+};
+
+export type NestedEnumVideoSummaryStageWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.VideoSummaryStage
+    | Prisma.EnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.VideoSummaryStage[]
+    | Prisma.ListEnumVideoSummaryStageFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumVideoSummaryStageWithAggregatesFilter<$PrismaModel>
+    | $Enums.VideoSummaryStage;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumVideoSummaryStageFilter<$PrismaModel>;
+};
+
+export type NestedBigIntFilter<$PrismaModel = never> = {
+  equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  notIn?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  lt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  lte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBigIntFilter<$PrismaModel> | bigint | number;
+};
+
+export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  in?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  notIn?: bigint[] | number[] | Prisma.ListBigIntFieldRefInput<$PrismaModel>;
+  lt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  lte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gt?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  gte?: bigint | number | Prisma.BigIntFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>;
+  _sum?: Prisma.NestedBigIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedBigIntFilter<$PrismaModel>;
+  _max?: Prisma.NestedBigIntFilter<$PrismaModel>;
 };
 
 export type NestedEnumUploadStatusFilter<$PrismaModel = never> = {

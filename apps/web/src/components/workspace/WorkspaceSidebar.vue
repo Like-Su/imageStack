@@ -153,7 +153,7 @@ function activateMenuItem(event: KeyboardEvent) {
           size="small"
           native-type="button"
           :title="workspace.overviewError"
-          @click="workspace.loadOverview"
+          @click="workspace.loadOverview(true)"
         >
           {{ $t("统计获取失败，点击重试") }}
         </el-button>

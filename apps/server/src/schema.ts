@@ -137,6 +137,41 @@ export const envSchema = z.object({
     .default(60000),
   AI_INDEX_CONCURRENCY: z.coerce.number().int().min(1).max(4).default(1),
 
+  ASR_BASE_URL: z
+    .string()
+    .trim()
+    .url()
+    .refine((value) => {
+      const url = new URL(value);
+      return (
+        ['http:', 'https:'].includes(url.protocol) &&
+        !url.username &&
+        !url.password &&
+        !url.search &&
+        !url.hash &&
+        !/\/(?:docs|asr|openapi\.json)\/?$/i.test(url.pathname)
+      );
+    }, 'ASR_BASE_URL 必须是语音服务根地址，不是 /docs 或 /asr 接口')
+    .default('http://127.0.0.1:9000'),
+  ASR_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(7200000)
+    .default(1800000),
+  VIDEO_SUMMARY_AUTO: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
+  VIDEO_SUMMARY_MODEL: z.string().trim().max(200).optional(),
+  VIDEO_SUMMARY_CONCURRENCY: z.coerce.number().int().min(1).max(4).default(1),
+  VIDEO_SUMMARY_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(600000)
+    .default(120000),
+
   // 邮箱配置
   MAIL_HOST: z.string().min(1),
   MAIL_PORT: z.string(),

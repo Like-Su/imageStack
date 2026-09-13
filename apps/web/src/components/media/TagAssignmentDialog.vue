@@ -41,11 +41,11 @@ async function submit() {
   busy.value = true;
   error.value = "";
   completed.value = 0;
+  workspace.beginChanges();
   try {
-    for (const id of assetIds) {
-      await mediaApi.addTags(id, names);
-      completed.value += 1;
-    }
+    const result = await mediaApi.addTagsBatch(assetIds, names);
+    workspace.applyTagBatch(result);
+    completed.value = result.assets.length;
     workspace.notify(
       translate("已为 {value1} 项媒体添加{value2}", {
         value1: completed.value,
@@ -60,7 +60,7 @@ async function submit() {
       { value1: completed.value, value2: getErrorMessage(cause) },
     );
   } finally {
-    workspace.invalidate();
+    workspace.endChanges();
     busy.value = false;
   }
 }

@@ -7,6 +7,7 @@ import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { PERSON_TAG_PREFIX } from "@/config/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateTags } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { Tag } from "@/types/media";
 import PageHeader from "@/components/workspace/PageHeader.vue";
@@ -29,17 +30,18 @@ const {
   refresh,
 } = useRemoteData(
   async (signal) => {
-    const tags = await mediaApi.tags(signal);
-    const found = tags.find(
-      (item) =>
-        item.id === tagId.value &&
-        (!props.people || item.name.startsWith(PERSON_TAG_PREFIX)),
-    );
-    if (!found)
+    const found = await mediaApi.tag(tagId.value, signal);
+    if (props.people && !found.name.startsWith(PERSON_TAG_PREFIX))
       throw new Error(translate("分组不存在或已被合并，请返回分组列表。"));
     return found;
   },
   [tagId],
+  {
+    resources: ["tags"],
+    update: (current, change) =>
+      updateTags([current], change).find((entry) => entry.id === current.id) ??
+      current,
+  },
 );
 const label = computed(() =>
   tag.value
@@ -63,10 +65,10 @@ async function addAssets(ids: string[]) {
   const name = tag.value.name;
   let completed = 0;
   try {
-    for (const id of ids) {
-      await mediaApi.addTags(id, [name]);
-      completed += 1;
-    }
+    workspace.beginChanges();
+    const result = await mediaApi.addTagsBatch(ids, [name]);
+    workspace.applyTagBatch(result);
+    completed = result.assets.length;
     workspace.notify(
       translate("已关联 {value1} 项媒体", { value1: completed }),
     );
@@ -77,7 +79,7 @@ async function addAssets(ids: string[]) {
       { value1: completed, value2: getErrorMessage(cause) },
     );
   } finally {
-    workspace.invalidate();
+    workspace.endChanges();
     busy.value = false;
   }
 }
@@ -101,6 +103,7 @@ async function remove() {
       await workspace.perform(
         () => mediaApi.deleteTag(current.id),
         translate("分组已删除"),
+        () => workspace.deleteTag(current.id),
       )
     )
       await router.replace({ name: props.people ? "people" : "tags" });

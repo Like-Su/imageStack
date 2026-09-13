@@ -16,6 +16,7 @@ import {
 import { mediaApi } from "@/api/media";
 import { PERSON_TAG_PREFIX } from "@/config/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateTags } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { Tag } from "@/types/media";
 import PageHeader from "@/components/workspace/PageHeader.vue";
@@ -26,7 +27,15 @@ import TagMergeDialog from "./TagMergeDialog.vue";
 
 const props = defineProps<{ people?: boolean }>();
 const workspace = useWorkspaceStore();
-const { data: tags, loading, error, refresh } = useRemoteData(mediaApi.tags);
+const {
+  data: tags,
+  loading,
+  error,
+  refresh,
+} = useRemoteData(mediaApi.tags, [], {
+  resources: ["tags"],
+  update: updateTags,
+});
 const text = ref("");
 const managing = ref(false);
 const formOpen = ref(false);
@@ -78,6 +87,7 @@ async function remove(tag: Tag) {
     await workspace.perform(
       () => mediaApi.deleteTag(tag.id),
       translate("分组已删除，原文件已保留"),
+      () => workspace.deleteTag(tag.id),
     );
   } finally {
     deleting.value = false;

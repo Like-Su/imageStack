@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -23,6 +24,7 @@ import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 import { ListAssetsDto, ThumbnailQueryDto } from './dto/assets-query.dto';
 import { AssetIdsDto } from './dto/asset-ids.dto';
+import { RenameAssetDto } from './dto/rename-asset.dto';
 import { AssetsService } from './assets.service';
 import { AssetWorkspaceService } from './asset-workspace.service';
 import { streamStoredMedia } from './asset-file-response';
@@ -117,6 +119,16 @@ export class AssetsController {
   @Header('Cache-Control', 'no-store')
   detail(@Param('id') assetId: string, @CurrentUser() user: RequestUser) {
     return this.assets.detail(assetId, user.id);
+  }
+
+  @Patch(':id')
+  @RequirePermission(PermissionCode.ASSET_EDIT)
+  rename(
+    @Param('id') assetId: string,
+    @CurrentUser() user: RequestUser,
+    @Body() body: RenameAssetDto,
+  ) {
+    return this.assets.rename(assetId, user.id, body.name);
   }
 
   @Post(':id/favorite')

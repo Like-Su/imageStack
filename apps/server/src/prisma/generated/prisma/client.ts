@@ -85,6 +85,16 @@ export type FileNode = Prisma.FileNodeModel;
  */
 export type AssetRecognition = Prisma.AssetRecognitionModel;
 /**
+ * Model VideoSummary
+ *
+ */
+export type VideoSummary = Prisma.VideoSummaryModel;
+/**
+ * Model VideoSummaryEvent
+ *
+ */
+export type VideoSummaryEvent = Prisma.VideoSummaryEventModel;
+/**
  * Model Album
  *
  */
@@ -114,6 +124,16 @@ export type UploadSession = Prisma.UploadSessionModel;
  *
  */
 export type UploadPart = Prisma.UploadPartModel;
+/**
+ * Model ShareLink
+ *
+ */
+export type ShareLink = Prisma.ShareLinkModel;
+/**
+ * Model ShareSave
+ *
+ */
+export type ShareSave = Prisma.ShareSaveModel;
 /**
  * Model FileShare
  *

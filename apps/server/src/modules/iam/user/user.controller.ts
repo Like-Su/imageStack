@@ -16,6 +16,7 @@ import {
   CreateUserDto,
   DeleteUserDto,
   ListUsersDto,
+  UpdateProfileDto,
   UpdateUserDto,
 } from './dto/user.dto';
 import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
@@ -31,7 +32,15 @@ export class UserController {
 
   @Post('me')
   me(@CurrentUser() user: RequestUser) {
-    return this.userService.getAuthUser(user.id, user.sessionVersion);
+    return this.userService.getProfile(user.id, user.sessionVersion);
+  }
+
+  @Patch('me')
+  updateProfile(
+    @CurrentUser() user: RequestUser,
+    @Body() body: UpdateProfileDto,
+  ) {
+    return this.userService.updateProfile(user.id, user.sessionVersion, body);
   }
 
   @RequireRole(RoleCode.ADMIN)
