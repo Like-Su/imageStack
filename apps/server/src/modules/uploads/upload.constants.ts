@@ -1,7 +1,5 @@
 // 上传最大字节数
 export { VIDEO_MAX_BYTES as UPLOAD_MAX_BYTES } from '../../common/media-formats';
-// 上传最大像素数
-export { IMAGE_MAX_PIXELS as UPLOAD_MAX_PIXELS } from '../../common/media-formats';
 // 上传会话过期时间
 export const UPLOAD_SESSION_TTL_MS = 30 * 60 * 1000;
 // 上传读取超时时间

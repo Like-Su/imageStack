@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, ref, watch } from "vue";
+import { computed, onDeactivated, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Plus, RefreshCw, Search, ShieldCheck } from "lucide-vue-next";
 import { iamApi } from "@/api/iam";
@@ -8,6 +8,7 @@ import { translate } from "@/i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateAdminData, type AdminData } from "@/composables/adminUpdates";
 import { formatDate } from "@/composables/mediaFormat";
 import type {
   AccountStatus,
@@ -50,7 +51,13 @@ const createLabel = computed(() =>
     ],
   ),
 );
-const { data, loading, error, refresh } = useRemoteData(
+let catalog: Pick<AdminData, "roles" | "permissions"> | null = null;
+const {
+  data,
+  loading,
+  error,
+  refresh: reload,
+} = useRemoteData(
   async (signal) => {
     if (!administrator.value) return null;
     const [users, roles, permissions] = await Promise.all([
@@ -66,13 +73,42 @@ const { data, loading, error, refresh } = useRemoteData(
             signal,
           )
         : Promise.resolve(null),
-      iamApi.roles(signal),
-      iamApi.permissions(signal),
+      catalog ? Promise.resolve(catalog.roles) : iamApi.roles(signal),
+      catalog
+        ? Promise.resolve(catalog.permissions)
+        : iamApi.permissions(signal),
     ]);
-    return { users, roles, permissions };
+    if (!signal.aborted) catalog ??= { roles, permissions };
+    return {
+      users,
+      roles: catalog?.roles ?? roles,
+      permissions: catalog?.permissions ?? permissions,
+    };
   },
   [page, appliedSearch, status, roleId, administrator, () => props.section],
+  {
+    resources: ["admin"],
+    invalidate: () => {
+      catalog = null;
+    },
+    update: (current, change) => {
+      if (!current) return current;
+      const updated = updateAdminData(current, change, {
+        page: page.value,
+        limit: pageSize,
+        search: appliedSearch.value,
+        status: status.value || undefined,
+        roleId: roleId.value || undefined,
+      });
+      catalog = { roles: updated.roles, permissions: updated.permissions };
+      return updated;
+    },
+  },
 );
+function refresh() {
+  catalog = null;
+  return reload();
+}
 const records = computed<AdminRecord[]>(() => {
   if (props.section === "users") return data.value?.users?.items ?? [];
   const entries =
@@ -106,11 +142,6 @@ const permissionNames = computed(
 watch([status, roleId], () => {
   page.value = 1;
 });
-let activated = false;
-onActivated(() => {
-  if (activated) void refresh();
-  activated = true;
-});
 onDeactivated(() => {
   editor.value = null;
 });
@@ -125,7 +156,8 @@ function changeTab(value: string | number) {
     void router.push({ name: `admin-${value}` });
 }
 
-async function saved(relogin: boolean) {
+async function saved(relogin: boolean, record?: AdminRecord) {
+  if (record) workspace.updateAdmin(editor.value?.record ?? null, record);
   editor.value = null;
   if (relogin) {
     auth.clearSession();
@@ -133,7 +165,6 @@ async function saved(relogin: boolean) {
     return;
   }
   workspace.notify(translate("管理更改已保存"));
-  await refresh();
 }
 
 function cannotDelete(record: AdminRecord) {
@@ -189,9 +220,10 @@ async function remove(record: AdminRecord) {
       );
     }
     if (session !== auth.getSessionVersion()) return;
+    workspace.updateAdmin(record, null);
     if (
       props.section === "users" &&
-      records.value.length === 1 &&
+      records.value.length === 0 &&
       page.value > 1
     )
       page.value -= 1;

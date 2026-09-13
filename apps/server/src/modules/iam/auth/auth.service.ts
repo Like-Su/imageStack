@@ -68,7 +68,7 @@ export class AuthService {
     const captchaId = randomUUID();
 
     const captcha = svgCaptcha.create({
-      size: 4,
+      size: 6,
       ignoreChars: '0oO1ilI',
       noise: 3,
       color: true,

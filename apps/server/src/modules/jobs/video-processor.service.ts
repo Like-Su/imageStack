@@ -4,7 +4,6 @@ import { execFile } from 'node:child_process';
 import { mkdir, open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
-  IMAGE_MAX_PIXELS,
   VIDEO_MAX_BYTES,
   VIDEO_MAX_DURATION_MS,
 } from '../../common/media-formats';
@@ -124,13 +123,12 @@ export class VideoProcessorService {
       !Number.isInteger(height) ||
       width < 1 ||
       height < 1 ||
-      width * height > IMAGE_MAX_PIXELS ||
       !Number.isSafeInteger(durationMs) ||
       durationMs < 1 ||
       durationMs > VIDEO_MAX_DURATION_MS
     )
       throw new MediaProcessingError(
-        '视频须含有效画面，单帧不超过 2000 万像素，时长不超过 4 小时',
+        '视频须含有效画面，时长不超过 4 小时',
         true,
       );
 
@@ -326,6 +324,83 @@ export class VideoProcessorService {
     return { thumbnail, previewPath, hls };
   }
 
+  async hasAudio(path: string, format: VideoFormat, signal: AbortSignal) {
+    const output = await this.run(
+      VIDEO_PROCESSING_COMMAND.FFPROBE,
+      [
+        '-v',
+        'error',
+        '-max_alloc',
+        '268435456',
+        ...this.inputOptions(format),
+        '-select_streams',
+        'a:0',
+        '-show_entries',
+        'stream=index',
+        '-of',
+        'json',
+        path,
+      ],
+      signal,
+    );
+    try {
+      const result = JSON.parse(output) as ProbeResult;
+      if (!Array.isArray(result.streams)) throw new Error('Invalid streams');
+      return result.streams.length > 0;
+    } catch {
+      throw new MediaProcessingError('无法读取视频音轨信息', true);
+    }
+  }
+
+  async extractAudio(
+    path: string,
+    audioPath: string,
+    format: VideoFormat,
+    start: number,
+    duration: number,
+    signal: AbortSignal,
+  ) {
+    await this.run(
+      VIDEO_PROCESSING_COMMAND.FFMPEG,
+      [
+        '-hide_banner',
+        '-loglevel',
+        'error',
+        '-nostdin',
+        '-y',
+        '-max_alloc',
+        '268435456',
+        '-threads',
+        '2',
+        ...this.inputOptions(format),
+        '-ss',
+        String(start),
+        '-i',
+        path,
+        '-t',
+        String(duration),
+        '-map',
+        '0:a:0',
+        '-vn',
+        '-sn',
+        '-dn',
+        '-ac',
+        '1',
+        '-ar',
+        '16000',
+        '-c:a',
+        'pcm_s16le',
+        '-map_metadata',
+        '-1',
+        '-threads',
+        '2',
+        audioPath,
+      ],
+      signal,
+      '视频音轨提取失败，请检查原视频音轨及服务器音频解码器',
+    );
+  }
+
   private inputOptions(format: VideoFormat) {
     return [
       '-protocol_whitelist',
@@ -342,7 +417,12 @@ export class VideoProcessorService {
     ];
   }
 
-  private run(tool: VideoProcessingCommand, args: string[]): Promise<string> {
+  private run(
+    tool: VideoProcessingCommand,
+    args: string[],
+    signal?: AbortSignal,
+    failureMessage?: string,
+  ): Promise<string> {
     const isProbe = tool === VIDEO_PROCESSING_COMMAND.FFPROBE;
     const executable = this.config.get<string>(
       isProbe ? 'FFPROBE_PATH' : 'FFMPEG_PATH',
@@ -364,8 +444,13 @@ export class VideoProcessorService {
           maxBuffer: 1024 * 1024,
           windowsHide: true,
           shell: false,
+          signal,
         },
         (error, stdout) => {
+          if (signal?.aborted) {
+            reject(signal.reason);
+            return;
+          }
           if (!error) {
             resolve(stdout);
             return;
@@ -380,7 +465,8 @@ export class VideoProcessorService {
                   ? '视频处理超时，请稍后重试或缩短视频'
                   : isProbe
                     ? '视频损坏、容器无效或不含可解码的视频流'
-                    : '视频封面或兼容预览生成失败，请检查服务器编码器及原视频',
+                    : (failureMessage ??
+                      '视频封面或兼容预览生成失败，请检查服务器编码器及原视频'),
               !unavailable && !error.killed && isProbe,
             ),
           );

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,6 +14,7 @@ import { buildAssetFilters } from './asset-filters';
 import { ListAssetsDto } from './dto/assets-query.dto';
 import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
 import { ThumbnailsService } from './thumbnails.service';
+import { assetMediaSelect, type MediaAsset } from './asset-media';
 
 const listSelect = {
   id: true,
@@ -168,6 +170,43 @@ export class AssetsService {
     };
   }
 
+  async rename(assetId: string, userId: string, name: string) {
+    const asset = await this.prisma.fileNode.findFirst({
+      where: { ...assetWhere(userId), id: assetId },
+      select: { name: true, updatedAt: true },
+    });
+
+    if (!asset) {
+      throw new NotFoundException('资产不存在');
+    }
+
+    const extension = asset.name.match(/\.[^.]+$/u)?.[0] ?? '';
+    const nextExtension = name.match(/\.[^.]+$/u)?.[0] ?? '';
+    if (extension.toLowerCase() !== nextExtension.toLowerCase()) {
+      throw new BadRequestException('重命名不能更改文件扩展名');
+    }
+    const baseName = extension ? name.slice(0, -extension.length) : name;
+    if (!baseName.trim() || baseName === '.' || baseName === '..') {
+      throw new BadRequestException('请输入有效的文件名称');
+    }
+
+    if (name === asset.name) {
+      return { id: assetId, name, updatedAt: asset.updatedAt.toISOString() };
+    }
+
+    const updatedAt = new Date();
+    const result = await this.prisma.fileNode.updateMany({
+      where: { ...assetWhere(userId), id: assetId, name: asset.name },
+      data: { name, updatedAt },
+    });
+
+    if (result.count !== 1) {
+      throw new ConflictException('文件状态或名称已变化，请刷新后重试');
+    }
+
+    return { id: assetId, name, updatedAt: updatedAt.toISOString() };
+  }
+
   async setFavorite(assetId: string, userId: string, isFavorite: boolean) {
     const result = await this.prisma.fileNode.updateMany({
       where: { ...assetWhere(userId), id: assetId },
@@ -191,7 +230,10 @@ export class AssetsService {
 
   async original(assetId: string, userId: string) {
     const asset = await this.findOwned(assetId, userId);
+    return this.originalResource(asset);
+  }
 
+  private originalResource(asset: MediaAsset) {
     if (!asset.storageKey || !asset.mimeType) {
       throw new InternalServerErrorException('资产存储信息不完整');
     }
@@ -223,6 +265,16 @@ export class AssetsService {
     return this.thumbnails.get(asset, 'preview');
   }
 
+  async sharedMedia(
+    assetId: string,
+    userId: string,
+    scope: Prisma.FileNodeWhereInput,
+    original: boolean,
+  ) {
+    const asset = await this.findOwned(assetId, userId, false, scope);
+    return original ? this.originalResource(asset) : this.thumbnails.get(asset);
+  }
+
   thumbnailUrl(assetId: string, deleted = false) {
     const path = deleted ? 'assets/trash' : 'assets';
     return `${this.apiPrefix}/${path}/${encodeURIComponent(assetId)}/thumbnail?size=sm`;
@@ -239,12 +291,19 @@ export class AssetsService {
     });
   }
 
-  private async findOwned(assetId: string, userId: string, deleted = false) {
+  private async findOwned(
+    assetId: string,
+    userId: string,
+    deleted = false,
+    scope?: Prisma.FileNodeWhereInput,
+  ) {
     const asset = await this.prisma.fileNode.findFirst({
       where: {
         ...assetWhere(userId, deleted),
         id: assetId,
+        ...(scope ? { AND: [scope] } : {}),
       },
+      select: assetMediaSelect,
     });
 
     if (!asset) {

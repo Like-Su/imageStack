@@ -51,7 +51,7 @@ export class AlbumsService {
     return albums.map((album) => this.summary(album));
   }
 
-  async detail(albumId: string, userId: string, query: CursorPaginationDto) {
+  async getSummary(albumId: string, userId: string) {
     const album = await this.prisma.album.findFirst({
       where: { id: albumId, ownerId: userId },
       include: albumInclude(userId),
@@ -61,8 +61,12 @@ export class AlbumsService {
       throw new NotFoundException('相册不存在');
     }
 
+    return this.summary(album);
+  }
+
+  async detail(albumId: string, userId: string, query: CursorPaginationDto) {
     return {
-      ...this.summary(album),
+      ...(await this.getSummary(albumId, userId)),
       assets: await this.assets.list(userId, { ...query, albumId }),
     };
   }
@@ -144,14 +148,19 @@ export class AlbumsService {
         skipDuplicates: true,
       });
 
-      if (result.count > 0) {
-        await transaction.album.update({
-          where: { id: albumId, ownerId: userId },
-          data: { updatedAt: new Date() },
-        });
-      }
+      const album =
+        result.count > 0
+          ? await transaction.album.update({
+              where: { id: albumId, ownerId: userId },
+              data: { updatedAt: new Date() },
+              include: albumInclude(userId),
+            })
+          : await transaction.album.findUniqueOrThrow({
+              where: { id: albumId, ownerId: userId },
+              include: albumInclude(userId),
+            });
 
-      return result;
+      return { ...result, album: this.summary(album) };
     });
   }
 
@@ -164,17 +173,24 @@ export class AlbumsService {
         where: { albumId, assetId: { in: ids } },
       });
 
-      if (result.count > 0) {
-        await transaction.album.update({
-          where: { id: albumId, ownerId: userId },
-          data: {
-            updatedAt: new Date(),
-            ...(ids.includes(album.coverAssetId) ? { coverAssetId: null } : {}),
-          },
-        });
-      }
+      const updated =
+        result.count > 0
+          ? await transaction.album.update({
+              where: { id: albumId, ownerId: userId },
+              data: {
+                updatedAt: new Date(),
+                ...(ids.includes(album.coverAssetId)
+                  ? { coverAssetId: null }
+                  : {}),
+              },
+              include: albumInclude(userId),
+            })
+          : await transaction.album.findUniqueOrThrow({
+              where: { id: albumId, ownerId: userId },
+              include: albumInclude(userId),
+            });
 
-      return result;
+      return { ...result, album: this.summary(updated) };
     });
   }
 

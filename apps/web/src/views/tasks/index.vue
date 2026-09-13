@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { ref } from "vue";
 import {
   Clock3,
   LoaderCircle,
@@ -17,6 +17,7 @@ import { getErrorMessage } from "@/api/request";
 import { processingLabels } from "@/config/workspace";
 import { useAssetFeed } from "@/composables/useAssetFeed";
 import { formatDate } from "@/composables/mediaFormat";
+import { useVisiblePolling } from "@/composables/useVisiblePolling";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { ProcessingStatus } from "@/types/media";
@@ -36,7 +37,6 @@ const states = [
   { key: "READY", title: "已完成", icon: CircleCheck, color: "text-ok" },
   { key: "FAILED", title: "失败", icon: CircleAlert, color: "text-err" },
 ] as const;
-let polling: number | undefined;
 function refresh() {
   void feed.reload();
   void workspace.loadOverview();
@@ -46,7 +46,13 @@ async function retry(id: string) {
   retrying.value.add(id);
   try {
     const result = await mediaApi.retry(id);
-    workspace.invalidate();
+    workspace.rememberAssets(items.value.filter((asset) => asset.id === id));
+    workspace.updateAssets([result.id], {
+      status: result.status,
+      processingError: null,
+      processingAttempts: 0,
+      nextAttemptAt: null,
+    });
     workspace.notify(
       result.enqueued
         ? translate("任务已重新投递到处理队列")
@@ -59,21 +65,19 @@ async function retry(id: string) {
     retrying.value.delete(id);
   }
 }
-onMounted(() => {
-  polling = window.setInterval(() => {
-    if (
-      preferences.values.autoRefresh &&
-      document.visibilityState === "visible" &&
+useVisiblePolling(
+  async () => {
+    await Promise.all([
       items.value.length <= 40 &&
       !retrying.value.size &&
       !workspace.selectedAsset
-    ) {
-      void feed.poll();
-      void workspace.loadOverview();
-    }
-  }, 10_000);
-});
-onBeforeUnmount(() => window.clearInterval(polling));
+        ? feed.poll()
+        : Promise.resolve(),
+      workspace.loadOverview(),
+    ]);
+  },
+  () => (workspace.pendingTasks ? 10000 : 30000),
+);
 </script>
 
 <template>

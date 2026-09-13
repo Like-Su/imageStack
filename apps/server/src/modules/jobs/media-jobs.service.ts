@@ -32,6 +32,7 @@ export class MediaJobsService
 {
   private readonly logger = new Logger(MediaJobsService.name);
   private readonly active = new Set<Promise<void>>();
+  private readonly enqueues = new Map<string, Promise<boolean>>();
   private readonly publications = new Map<string, { returned: boolean }>();
   private connection: AmqpConnectionManager;
   private publisher: ChannelWrapper;
@@ -187,7 +188,21 @@ export class MediaJobsService
     }
   }
 
-  async enqueue(assetId: string, ownerId: string): Promise<boolean> {
+  enqueue(assetId: string, ownerId: string): Promise<boolean> {
+    const key = JSON.stringify([ownerId, assetId]);
+    const existing = this.enqueues.get(key);
+    if (existing) return existing;
+    const pending = this.enqueueOnce(assetId, ownerId).finally(() => {
+      if (this.enqueues.get(key) === pending) this.enqueues.delete(key);
+    });
+    if (this.enqueues.size < 1000) this.enqueues.set(key, pending);
+    return pending;
+  }
+
+  private async enqueueOnce(
+    assetId: string,
+    ownerId: string,
+  ): Promise<boolean> {
     if (!this.producerReady || this.brokerBlocked || this.closing) return false;
 
     try {
@@ -247,14 +262,20 @@ export class MediaJobsService
         take: batchSize,
       });
 
-      for (const asset of assets) {
+      for (let offset = 0; offset < assets.length; offset += 4) {
         if (!this.producerReady || this.brokerBlocked || this.closing) return;
-
-        await this.publish(this.settings.queueName, {
-          assetId: asset.id,
-          ownerId: asset.ownerId,
-        });
-        this.afterId = asset.id;
+        const batch = assets.slice(offset, offset + 4);
+        const results = await Promise.allSettled(
+          batch.map((asset) =>
+            this.publish(this.settings.queueName, {
+              assetId: asset.id,
+              ownerId: asset.ownerId,
+            }),
+          ),
+        );
+        const failure = results.find((result) => result.status === 'rejected');
+        if (failure?.status === 'rejected') throw failure.reason;
+        this.afterId = batch[batch.length - 1].id;
       }
 
       if (assets.length < batchSize) this.afterId = undefined;

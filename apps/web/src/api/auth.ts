@@ -9,6 +9,7 @@ import type {
   RegisterResponse,
   ResetMailPayload,
   ResetMailResponse,
+  UpdateProfilePayload,
 } from "@/types/auth";
 
 export const authApi = {
@@ -50,6 +51,8 @@ export const authApi = {
       body: { refreshToken },
     }),
   logoutAll: () => request<boolean>("/auth/logout-all", { method: "POST" }),
+  updateProfile: (body: UpdateProfilePayload) =>
+    request<AuthUser>("/user/me", { method: "PATCH", body }),
   me: (accessToken?: string) =>
     request<AuthUser | null>("/user/me", {
       method: "POST",

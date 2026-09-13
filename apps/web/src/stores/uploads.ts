@@ -9,7 +9,7 @@ import {
   uploadMediaKind,
 } from "@/config/workspace";
 import { useWorkspaceStore } from "./workspace";
-import type { UploadedFile, UploadSession } from "@/types/media";
+import type { UploadSession } from "@/types/media";
 import { hashFile } from "@/uploads/hash-file";
 import type { FileDigest } from "@/uploads/hash-file";
 import { uploadDelay, uploadParts } from "@/uploads/upload-parts";
@@ -20,7 +20,7 @@ interface UploadEntry {
   size: number;
   file: File | null;
   state: "queued" | "running" | "paused" | "done" | "error" | "cancelled";
-  phase: "hashing" | "uploading" | "verifying";
+  phase: "hashing" | "uploading" | "verifying" | "album";
   uploadedBytes: number;
   hashProgress: number;
   digest?: FileDigest;
@@ -28,6 +28,7 @@ interface UploadEntry {
   resumed?: boolean;
   sessionId?: string;
   assetId?: string;
+  albumId?: string;
   error?: string;
 }
 
@@ -49,15 +50,31 @@ export const useUploadsStore = defineStore("uploads", () => {
   let nextId = 0;
   let generation = 0;
 
-  function chooseFiles() {
-    if (!workspace.can("upload:create")) return;
-    (
-      document.getElementById("media-upload-input") as HTMLInputElement | null
-    )?.click();
+  function canUpload(albumId?: string) {
+    return (
+      workspace.can("upload:create") &&
+      (!albumId || workspace.can("asset:category"))
+    );
   }
 
-  function add(files: File[]) {
-    if (!workspace.can("upload:create")) return;
+  function chooseFiles(albumId?: string) {
+    if (!canUpload(albumId)) return;
+    const input = document.getElementById(
+      "media-upload-input",
+    ) as HTMLInputElement | null;
+    if (!input) return;
+    const version = generation;
+    input.onchange = () => {
+      const files = Array.from(input.files ?? []);
+      input.value = "";
+      input.onchange = null;
+      if (version === generation && files.length) add(files, albumId);
+    };
+    input.click();
+  }
+
+  function add(files: File[], albumId?: string) {
+    if (!canUpload(albumId)) return;
     const available = Math.max(0, 100 - entries.value.length);
     if (files.length > available)
       workspace.notify(
@@ -82,6 +99,7 @@ export const useUploadsStore = defineStore("uploads", () => {
         name: file.name,
         size: file.size,
         file: error ? null : file,
+        albumId,
         state: error ? "error" : "queued",
         phase: "hashing",
         uploadedBytes: 0,
@@ -94,14 +112,46 @@ export const useUploadsStore = defineStore("uploads", () => {
     pump();
   }
 
-  function finish(entry: UploadEntry, file: UploadedFile) {
-    entry.state = "done";
-    entry.assetId = file.id;
+  function rememberUploaded(entry: UploadEntry, assetId: string) {
+    const newlyUploaded = !entry.assetId;
+    entry.assetId = assetId;
     entry.file = null;
     entry.digest = undefined;
     entry.uploadedBytes = entry.size;
-    entry.error = undefined;
-    workspace.invalidate();
+    return newlyUploaded;
+  }
+
+  function invalidateUploaded() {
+    workspace.invalidate(["assets", "overview"]);
+    workspace.invalidate(["places", "ai"], true);
+  }
+
+  async function finish(
+    entry: UploadEntry,
+    assetId: string,
+    signal: AbortSignal,
+    version: number,
+  ) {
+    if (signal.aborted || version !== generation) return;
+    const newlyUploaded = rememberUploaded(entry, assetId);
+    try {
+      if (entry.albumId) {
+        entry.phase = "album";
+        const result = await mediaApi.addToAlbum(
+          entry.albumId,
+          [assetId],
+          signal,
+        );
+        if (signal.aborted || version !== generation) return;
+        workspace.updateAlbumMembers(result.album, [assetId], true);
+        if (!newlyUploaded && !workspace.knownAssets([assetId]).length)
+          workspace.invalidate(["assets"]);
+      }
+      entry.state = "done";
+      entry.error = undefined;
+    } finally {
+      if (newlyUploaded && version === generation) invalidateUploaded();
+    }
   }
 
   async function process(entry: UploadEntry) {
@@ -111,6 +161,10 @@ export const useUploadsStore = defineStore("uploads", () => {
     entry.state = "running";
     entry.error = undefined;
     try {
+      if (entry.assetId) {
+        await finish(entry, entry.assetId, controller.signal, version);
+        return;
+      }
       let session: UploadSession | undefined;
       if (entry.sessionId) {
         try {
@@ -131,7 +185,7 @@ export const useUploadsStore = defineStore("uploads", () => {
                 "服务器已完成此会话，但对应文件已不可用，请重新选择文件。",
               ),
             );
-          finish(entry, session.file);
+          await finish(entry, session.file.id, controller.signal, version);
           return;
         }
         if (
@@ -166,14 +220,14 @@ export const useUploadsStore = defineStore("uploads", () => {
       }
       if (session.status === "COMPLETED" && session.file) {
         entry.instant = session.instant;
-        finish(entry, session.file);
+        await finish(entry, session.file.id, controller.signal, version);
         return;
       }
       if (session.merging) {
         entry.phase = "verifying";
         session = await waitForMerge(session, controller.signal);
         if (session.status === "COMPLETED" && session.file) {
-          finish(entry, session.file);
+          await finish(entry, session.file.id, controller.signal, version);
           return;
         }
       }
@@ -197,10 +251,11 @@ export const useUploadsStore = defineStore("uploads", () => {
         session.mode === "CHUNKED"
           ? await mediaApi.completeUpload(session.id, controller.signal)
           : await mediaApi.upload(session.id, entry.file, controller.signal);
-      if (version === generation) finish(entry, result.file);
+      await finish(entry, result.file.id, controller.signal, version);
     } catch (error) {
       if (version !== generation || controller.signal.aborted) return;
-      if (entry.sessionId) {
+      let failure = error;
+      if (entry.sessionId && !entry.assetId) {
         try {
           const session = await mediaApi.uploadSession(
             entry.sessionId,
@@ -208,14 +263,22 @@ export const useUploadsStore = defineStore("uploads", () => {
           );
           if (version !== generation) return;
           if (session.status === "COMPLETED" && session.file) {
-            finish(entry, session.file);
+            await finish(entry, session.file.id, controller.signal, version);
             return;
           }
-        } catch {}
+        } catch (cause) {
+          if (entry.assetId) failure = cause;
+        }
       }
-      if (version === generation) {
+      if (version === generation && !controller.signal.aborted) {
         entry.state = "error";
-        entry.error = getErrorMessage(error);
+        entry.error =
+          entry.assetId && entry.albumId
+            ? translate(
+                "文件已上传，加入相册未完成：{value1}。重试不会重新上传文件。",
+                { value1: getErrorMessage(failure) },
+              )
+            : getErrorMessage(failure);
       }
     } finally {
       if (controllers.get(entry.id) === controller)
@@ -234,7 +297,12 @@ export const useUploadsStore = defineStore("uploads", () => {
           ),
         );
       await uploadDelay(3000, signal);
-      session = await mediaApi.uploadSession(session.id, signal);
+      const progress = await mediaApi.uploadProgress(session.id, signal);
+      session = { ...session, ...progress };
+      if (session.status === "COMPLETED")
+        return { ...session, uploadedBytes: Number(session.size ?? 0) };
+      if (!session.merging || session.expired)
+        return mediaApi.uploadSession(session.id, signal);
     }
     return session;
   }
@@ -250,18 +318,30 @@ export const useUploadsStore = defineStore("uploads", () => {
   }
 
   function retry(entry: UploadEntry) {
-    if (!["error", "paused"].includes(entry.state) || !entry.file) return;
+    if (
+      !["error", "paused"].includes(entry.state) ||
+      (!entry.file && !entry.assetId)
+    )
+      return;
     entry.state = "queued";
     pump();
   }
 
   function cancel(entry: UploadEntry) {
-    if (!["queued", "running", "paused", "error"].includes(entry.state)) return;
+    if (
+      !["queued", "running", "paused", "error"].includes(entry.state) ||
+      (entry.state === "running" && entry.phase === "album")
+    )
+      return;
     controllers.get(entry.id)?.abort();
     entry.state = "cancelled";
     entry.file = null;
     entry.digest = undefined;
-    if (entry.sessionId) {
+    entry.error =
+      entry.assetId && entry.albumId
+        ? translate("已停止加入相册，文件仍保留在图库。")
+        : undefined;
+    if (entry.sessionId && !entry.assetId) {
       const sessionId = entry.sessionId;
       const version = generation;
       void mediaApi.cancelUpload(sessionId).catch(async (error: unknown) => {
@@ -273,8 +353,12 @@ export const useUploadsStore = defineStore("uploads", () => {
             version === generation &&
             session?.status === "COMPLETED" &&
             session.file
-          )
-            finish(entry, session.file);
+          ) {
+            if (rememberUploaded(entry, session.file.id)) invalidateUploaded();
+            if (entry.albumId)
+              entry.error = translate("已停止加入相册，文件仍保留在图库。");
+            else entry.state = "done";
+          }
         }
       });
     }
@@ -282,7 +366,11 @@ export const useUploadsStore = defineStore("uploads", () => {
   }
 
   function pause(entry: UploadEntry) {
-    if (!["queued", "running"].includes(entry.state)) return;
+    if (
+      !["queued", "running"].includes(entry.state) ||
+      (entry.state === "running" && entry.phase === "album")
+    )
+      return;
     entry.state = "paused";
     controllers.get(entry.id)?.abort();
     pump();
@@ -292,7 +380,7 @@ export const useUploadsStore = defineStore("uploads", () => {
     entries.value = entries.value.filter(
       (entry) =>
         ["queued", "running", "paused"].includes(entry.state) ||
-        (entry.state === "error" && entry.file),
+        (entry.state === "error" && (entry.file || entry.assetId)),
     );
   }
   function reset() {
@@ -309,6 +397,7 @@ export const useUploadsStore = defineStore("uploads", () => {
     collapsed,
     active,
     completed,
+    canUpload,
     chooseFiles,
     add,
     retry,

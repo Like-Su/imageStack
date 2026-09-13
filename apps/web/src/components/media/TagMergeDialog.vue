@@ -6,6 +6,7 @@ import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { PERSON_TAG_PREFIX } from "@/config/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateTags } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { Tag } from "@/types/media";
 import AppModal from "@/components/workspace/AppModal.vue";
@@ -19,7 +20,10 @@ const {
   loading,
   error: loadError,
   refresh,
-} = useRemoteData(mediaApi.tags);
+} = useRemoteData(mediaApi.tags, [], {
+  resources: ["tags"],
+  update: updateTags,
+});
 const targets = computed(() =>
   (tags.value ?? []).filter(
     (tag) =>
@@ -52,7 +56,7 @@ async function submit() {
     const result = await mediaApi.updateTag(props.tag.id, {
       mergeIntoId: target.id,
     });
-    workspace.invalidate();
+    workspace.updateTag(result, false, props.tag.id);
     workspace.notify(translate("分组已合并，媒体文件保持不变"));
     emit("merged", result);
     emit("close");

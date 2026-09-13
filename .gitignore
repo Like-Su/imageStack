@@ -67,6 +67,9 @@ config.yaml
 # custom
 design
 docs
+!/docs/
+/docs/*
+!/docs/性能优化.md
 dump.rdb
 .claude/*
 .tmp

@@ -1,5 +1,34 @@
 # 项目架构说明
 
+## 按性能清单实施的优化
+
+- 新增 `GET /albums/:id/summary`、`GET /tags/:id`，详情页只读取所需摘要；原有列表及相册详情接口继续兼容。
+- `POST /tags/assets` 接受 `{ ids, names }`，返回 `{ assets: [{ id, tagIds }], tags, createdCount }`；`DELETE /tags/:id/assets` 接受 `{ ids }`，返回 `{ count, tag }`。每批最多 100 个不同资产、50 个标签名，整批校验与写入在串行化事务中完成，任一无效/越权资产会整批回滚，旧单资产接口保留。
+- 标签合并使用数据库集合操作；管理用户列表不再返回未使用的内联头像。JWT 黑名单与会话撤销用一次 Redis `MGET`；媒体票据校验复用已读取的会话版本，不放宽停用或撤销规则。
+- 媒体读取只 select 传输所需字段；分享成员条件并入资产查询，重复保存优先读取幂等回执。存储清理按一批键查询全部文件和活动上传引用，查询失败则保留对象，不跳过共享存储保护。
+- 媒体补投并发上限为 4，一组全部发布成功才推进游标；同一进程的并发 enqueue 可复用在途任务。AI 空闲时退避至 30 秒并加最多 1 秒抖动，本地入队/完成会唤醒，跨进程变化由兜底扫描处理。
+- 新增 `GET /uploads/sessions/:id/progress` 返回 `{ status, expired, merging, file }`，合并等待不读取/检查全部分片；完整会话接口仍做续传校验。终态上传分片清理每轮最多 25 个会话、2 个会话并发。
+- 本批性能改造无数据库模型变更，按要求未运行测试或迁移。先部署服务端，再发布依赖新接口的前端；已实施、部分实施和待处理项见 [性能优化清单](../../docs/性能优化.md)。
+
+## 图片与相册短链分享
+
+新增迁移 `20260912130000_short_link_sharing`，部署时执行 `pnpm --dir apps/server run db:migrate`、`pnpm --dir apps/server run db:generate` 后重启服务。不会修改已有图库和旧 `FileShare` 数据。
+
+| 接口                                                    | 权限与行为                                                                                                                        |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /shares`                                          | 需 `asset:share` 且拥有目标；JSON 为 `{ kind: "asset" 或 "album", targetId, expiresInDays: 7 }`，有效期支持 1/7/30 天或 0（永久） |
+| `GET /shares?kind=album&targetId=...`                   | 需 `asset:share`，仅返回当前用户为该目标创建的最近 50 条链接                                                                      |
+| `DELETE /shares/:id`                                    | 分享者撤销自己的链接；失去分享权限后仍可撤销                                                                                      |
+| `GET /shares/:token`                                    | 无需登录，返回当前可分享图片、相册说明和有效期；`cursor` / `limit` 分页，默认 24、最大 100                                        |
+| `GET /shares/:token/assets/:assetId/thumbnail` / `file` | 无需登录，但每次检查短链状态、所有者状态和图片成员关系；缩略图处理中返回 202，原图沿用流式读取                                    |
+| `POST /shares/:token/save`                              | 登录的启用账户可保存，受 CSRF 保护；返回 `alreadySaved`、`count`、`assetId` / `albumId`                                           |
+
+- 使用 128 位安全随机令牌生成 `/s/<22 字符>` 短链，不包含登录令牌。持有短链即有查看、读取原图和登录转存权限，请勿分享不希望公开的私密图片；原图可能包含 EXIF 位置。公开响应不返回存储路径、账户邮箱、哈希或 EXIF JSON，审计记录不写入短链令牌。
+- 仅支持图片，相册链接实时反映未删除图片（不包含视频），一次最多分享/保存 500 张。过期、撤销、源文件/相册删除、分享者停用或分享权限撤销后不可访问。已获取的图片无法追溯收回。
+- 转存属于接收者的独立 `FileNode` / `Album`，不复制收藏、标签、权限或原相册关系；原文件和派生文件复用不可变存储对象，现有引用计数负责最终删除，不重复上传或复制文件字节。接收者无需上传权限；转存不授予额外的编辑、删除、下载或分享权限。
+- 保存、回执和审计在可串行化事务内完成；按短链和接收者唯一回执防止重复点击产生副本。读取源记录后使用共享行锁，避免并发删除或替换派生文件导致转存悬空。同一链接仅保存一次当时的内容，之后相册新增内容不会自动同步；删除已保存的副本不清除回执，重新导入需新分享链接。
+- 相册转存创建带唯一后缀的新相册，避免覆盖同名相册；保存后原作者撤销短链、删除原资源都不影响接收者的副本。未完成处理的图片进入 `PENDING`，由现有后台补投机制继续处理。
+
 ## 用户、角色与权限管理
 
 管理员可在侧栏「访问管理」进入 `/admin/users`、`/admin/roles`、`/admin/permissions` 管理账户和授权，点击「编辑与授权」修改用户角色、额外权限或角色权限。沿用现有单角色模型：每个用户关联一个角色，实际权限为角色权限与用户额外权限的并集。`ROLE_ADMIN` 保持全部操作权限；普通账户即使持有 `system:*` 权限，也不能调用管理员管理接口。
@@ -28,7 +57,9 @@ pnpm --dir apps/server run db:generate
 | GET / POST     | `/permission`                                   | 列出 / 创建权限                                                                  |
 | PATCH / DELETE | `/permission/:id`                               | 修改 / 删除权限，支持 `parentId: null` 移至根层级                                |
 
-`POST /user/me` 仍供所有已登录用户使用。旧的 `POST /user/create`、`POST /user/delete` 保留为同等校验的别名；`GET /user/list-users` 使用新的 `page`、`limit` 参数与分页返回结构。列表和写接口均不返回密码哈希。
+`POST /user/me` 仍供所有已登录用户使用，复用基础认证信息缓存，并单独查询最新 `username` / `avatar`，避免重复关联授权表或返回缓存中的旧昵称。头像仅出现在资料返回类型中，不进入认证缓存或 `req.user`；读取历史缓存时会移除其中的头像字段。旧的 `POST /user/create`、`POST /user/delete` 保留为同等校验的别名；`GET /user/list-users` 使用新的 `page`、`limit` 参数与分页返回结构。列表和写接口均不返回密码哈希。
+
+个人资料修改使用 `PATCH /user/me`，所有已登录且启用的账户均可调用，无需管理员权限。JSON 仅接受 `username`（去除首尾空白，1–80 个字符）及可选 `avatar`；省略头像表示保持原头像，`null` 表示移除。头像只接受 PNG/JPEG/WebP 的 Base64 data URL（整个字符串不超过 65536 字符），拒绝远程地址与 SVG，服务端核对实际格式并转码为最大 256px 的 WebP 后存入现有头像字段。接口从当前令牌取得用户 ID，并校验会话版本、账户和角色状态，不接受用户 ID、邮箱、密码或授权字段。返回更新后的完整登录资料并清除认证资料缓存，不更改会话版本或中断现有登录，无需数据库迁移。资料修改与 `user.profile.update` 审计记录在同一可串行化事务中完成；`beforeJson` / `afterJson` 只包含 `usernameChanged`、`avatarChanged` 布尔标记，不记录昵称或头像内容，日志写入失败会回滚修改。
 
 - 管理员创建的账户默认启用，无需发送激活邮件；密码至少 8 位、最多 72 字节。修改时省略 `password` 表示保持原密码。
 - 禁止管理员删除/停用自己或撤销自己的管理员角色，并通过可串行化事务保护最后一个有效管理员。所有管理写入在事务内重新核验操作者身份并记录审计日志，不记录密码内容。
@@ -48,9 +79,10 @@ pnpm --dir apps/server run db:generate
 | SVG                         | `.svg`                                     | 10 MiB，仅安全静态图形和内联样式 |
 | 视频                        | `.mp4`、`.mov`、`.mkv`（不区分大小写）     | 512 MiB、4 小时                  |
 
-图片和视频单帧最多 2000 万像素，存储层 `STORAGE_MAX_FILE_BYTES` 可以进一步限制上传大小。文件扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
+图片和视频上传不限制像素或分辨率；图片校验、缩略图和 AI 识别均不设置输入像素上限，`GET /system/capabilities` 的 `upload.maxPixels` 返回 `null` 表示不限制。文件大小、动图帧数、视频时长和解码超时保护仍保留，存储层 `STORAGE_MAX_FILE_BYTES` 可以进一步限制上传大小。文件扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
 
 - 原文件字节保持不变，BLAKE3 校验覆盖完整内容。图片缩略图取首帧并纠正 EXIF 方向，不将 GIF/APNG 原文件转为静态图；地点聚合仍只使用图片已有 GPS。
+- `PATCH /api/assets/:id` 修改图片或视频名称，请求体为 `{ "name": "新的名称.jpg" }`，返回 `id`、`name` 和 `updatedAt`。需要 `asset:edit` 权限，仅可修改未删除的自有媒体；名称去除首尾空白后最多 255 个字符，禁止路径分隔符和控制字符，并须保留原扩展名（不区分大小写）。只更新已有 `FileNode.name`，不修改原文件、存储路径、相册或分享链接，无需数据库迁移。
 - SVG 使用 `sax` 严格 XML 解析与静态元素限制，拒绝 DTD、脚本、事件、外链、`foreignObject`、SMIL、嵌入图片和样式表。允许本地片段引用及受限内联样式；限制节点数与嵌套深度。原 SVG 响应增加沙箱 CSP，前端仅作为图片显示，不注入 DOM。
 - 视频通过私有临时文件流式接收与计算哈希，不将大视频整体放入 Node 内存。后台同样流式读取，生成最长边 1024px、质量 90 的 WebP 封面和不超过 1920×1080 的 H.264/AAC MP4 兼容预览；若预览超出 512 MiB、超时或解码失败，任务会重试/失败，原文件仍可下载。
 - `GET /api/assets/:id/file` 始终返回原文件；新增 `GET /api/assets/:id/preview` 返回视频兼容预览。二者均要求登录、`asset:download` 权限和未删除的自有资源，支持单段 Range。预览未就绪返回 `202` 与 `Retry-After: 3`，失败返回 `422`，不会返回原视频冒充兼容文件。
@@ -268,11 +300,11 @@ JSON 响应沿用 `{ success, data, timestamp }`。
 | GET / POST     | `/albums`                             | 相册数组 / 新建 `{ name, description? }`                                |
 | GET            | `/albums/:id?cursor&limit`            | 相册信息和 `assets: { items, nextCursor, hasMore }`                     |
 | PATCH / DELETE | `/albums/:id`                         | 更新 `{ name?, description?, coverAssetId? }` / 删除相册                |
-| POST / DELETE  | `/albums/:id/assets`                  | `{ ids }` 添加 / 移出相册成员                                           |
+| POST / DELETE  | `/albums/:id/assets`                  | `{ ids }` 添加 / 移出相册成员，返回 `{ count, album }`                  |
 | GET / POST     | `/tags`                               | 手动标签云 / 新建 `{ name }`                                            |
 | PATCH / DELETE | `/tags/:id`                           | 改名 `{ name }` 或手动合并 `{ mergeIntoId }` / 删除标签                 |
-| POST           | `/assets/:id/tags`                    | `{ names }` 自动创建并关联当前用户的手动标签                            |
-| DELETE         | `/assets/:id/tags/:tagId`             | 仅解除该资产与标签的关联                                                |
+| POST           | `/assets/:id/tags`                    | `{ names }` 自动创建并关联手动标签，返回 `{ tags, createdCount }`       |
+| DELETE         | `/assets/:id/tags/:tagId`             | 解除该资产与标签的关联，返回 `{ count, tag }`                           |
 
 资产分页默认 `limit=24`，范围为 1～100，按 `createdAt DESC, id DESC` 排序。
 切换视图或筛选条件时清空 `cursor`；`favorite` 只接受 `true` / `false`。
@@ -283,7 +315,8 @@ JSON 响应沿用 `{ success, data, timestamp }`。
 
 - 所有资源按当前用户隔离，包括管理员；他人资源与不存在的资源均返回 404。
 - 批量 `{ ids }` 接受 1～100 个不重复 ID；整个批次先校验，再在可重试的串行化事务中写入。
-  只要存在无效或他人 ID，整批回滚。回收/恢复、添加/移出相册返回 `{ count }`，表示实际变化数。
+  只要存在无效或他人 ID，整批回滚。回收/恢复返回 `{ count }`，表示实际变化数；添加/移出相册额外返回更新后的 `album` 摘要，供前端直接更新计数及封面。
+- 添加资产标签返回当前全部标签摘要 `tags`（包含计数及封面）和新建标签数 `createdCount`；移除关联返回实际变化数 `count` 及该标签更新后的摘要 `tag`。前端不必再请求整份集合列表；新前端依赖这些字段，部署时先更新服务端。详见 [性能优化清单](../../docs/性能优化.md)。
 - 收藏、回收/恢复和关联添加/移除可重复执行；重复回收不会改变首次删除时间。
   回收不删除原图、缩略图、收藏或集合关系；恢复重新显示这些关系。
 - 回收站资产不出现在普通图库、收藏、相册成员及标签计数中；普通详情、原图和缩略图接口返回 404。

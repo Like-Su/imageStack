@@ -33,6 +33,13 @@ function toggle(id: string) {
   if (selected.value.has(id)) selected.value.delete(id);
   else if (selected.value.size < 100) selected.value.add(id);
 }
+
+function submit() {
+  workspace.rememberAssets(
+    items.value.filter((asset) => selected.value.has(asset.id)),
+  );
+  emit("submit", [...selected.value]);
+}
 </script>
 
 <template>
@@ -126,7 +133,7 @@ function toggle(id: string) {
           :loading="busy"
           native-type="button"
           :disabled="busy || !selected.size"
-          @click="emit('submit', Array.from(selected))"
+          @click="submit"
           >{{ $t("添加所选媒体") }}</el-button
         >
       </div>

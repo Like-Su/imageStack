@@ -5,12 +5,20 @@ import { ApiError, getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { AssetSummary } from "@/types/media";
 
-export function useAssetActions() {
+export function useAssetActions(source?: () => AssetSummary[]) {
   const workspace = useWorkspaceStore();
   const busy = ref(false);
   const downloading = ref(false);
   let downloadController: AbortController | null = null;
   const urls = new Set<string>();
+
+  function remember(ids: string[]) {
+    if (!source) return;
+    const selected = new Set(ids);
+    workspace.rememberAssets(
+      source().filter((asset) => selected.has(asset.id)),
+    );
+  }
 
   function closeDeleted(ids: string[]) {
     if (workspace.selectedAsset && ids.includes(workspace.selectedAsset.id))
@@ -38,6 +46,13 @@ export function useAssetActions() {
         () => mediaApi.trash(ids),
         (result) =>
           translate("已将 {value1} 项媒体移入回收站", { value1: result.count }),
+        () => {
+          remember(ids);
+          workspace.updateAssets(ids, {
+            deleted: true,
+            deletedAt: new Date().toISOString(),
+          });
+        },
       );
       if (success) closeDeleted(ids);
       return success;
@@ -55,6 +70,10 @@ export function useAssetActions() {
         () => mediaApi.restore(ids),
         (result) =>
           translate("已恢复 {value1} 项媒体", { value1: result.count }),
+        () => {
+          remember(ids);
+          workspace.updateAssets(ids, { deleted: false, deletedAt: null });
+        },
       );
       if (success) closeDeleted(ids);
       return success;
@@ -81,8 +100,9 @@ export function useAssetActions() {
       )
         return false;
       const result = await mediaApi.purge(ids);
+      remember(ids);
       closeDeleted(ids);
-      workspace.invalidate();
+      workspace.updateAssets(ids, {}, true);
       workspace.notify(
         result.cleanupPending
           ? translate(

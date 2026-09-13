@@ -23,6 +23,7 @@ import {
   StorageError,
 } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
+import { referencedStorageKeys } from '../storage/storage-references';
 import { extractExif } from './exif-metadata';
 import { VideoProcessorService } from './video-processor.service';
 import type { PreparedHls } from './video-processor.service';
@@ -564,27 +565,17 @@ export class MediaProcessorService {
       asset.previewKey !== previewKey ? asset.previewKey : null,
     ].filter((key): key is string => Boolean(key));
     try {
+      const retiredHls =
+        asset.hlsKey && asset.hlsKey !== hlsKey ? asset.hlsKey : null;
+      const references = await referencedStorageKeys(this.prisma, [
+        ...retired,
+        ...(retiredHls ? [retiredHls] : []),
+      ]);
       for (const key of retired) {
-        const references = await this.prisma.fileNode.count({
-          where: {
-            OR: [
-              { thumbnailKey: key },
-              { previewKey: key },
-              { storageKey: key },
-            ],
-          },
-        });
-        if (!references) await this.discard(key);
+        if (!references.has(key)) await this.discard(key);
       }
-      if (asset.hlsKey && asset.hlsKey !== hlsKey) {
-        const references = await this.prisma.fileNode.count({
-          where: { hlsKey: asset.hlsKey },
-        });
-        if (!references)
-          await this.discardAll(
-            hlsObjectKeys(asset.hlsKey, asset.hlsSegmentCount),
-          );
-      }
+      if (retiredHls && !references.has(retiredHls))
+        await this.discardAll(hlsObjectKeys(retiredHls, asset.hlsSegmentCount));
     } catch (error) {
       this.logger.warn(`旧派生文件清理暂缓：${String(error)}`);
     }

@@ -39,7 +39,16 @@ const userSelect = {
   permissions: { select: { permission: { select: permissionSelect } } },
 } satisfies Prisma.UserSelect;
 
-function summary(user: Prisma.UserGetPayload<{ select: typeof userSelect }>) {
+const userListSelect = {
+  ...userSelect,
+  avatar: false,
+} satisfies Prisma.UserSelect;
+
+function summary(
+  user: Prisma.UserGetPayload<{ select: typeof userListSelect }> & {
+    avatar?: string | null;
+  },
+) {
   const { permissions, role, ...fields } = user;
   const directPermissions = permissions.map((entry) => entry.permission);
   const rolePermissions = role.permissions.map((entry) => entry.permission);
@@ -84,7 +93,7 @@ export class UserManagementService {
         this.prisma.user.count({ where }),
         this.prisma.user.findMany({
           where,
-          select: userSelect,
+          select: userListSelect,
           skip: (query.page - 1) * query.limit,
           take: query.limit,
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],

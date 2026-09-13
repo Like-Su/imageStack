@@ -1,6 +1,28 @@
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
 
+export interface VideoSummary {
+  status: ProcessingStatus;
+  stage: "TRANSCRIBING" | "SUMMARIZING";
+  transcript: string | null;
+  segments: { start: number; end: number; text: string }[] | null;
+  transcribedChunks: number;
+  language: string | null;
+  summary: string | null;
+  model: string | null;
+  error: string | null;
+  attempts: number;
+  nextAttemptAt: string | null;
+  completedAt: string | null;
+}
+
+export interface VideoSummaryDetail {
+  configured: boolean;
+  configurationError: string | null;
+  autoSummarize: boolean;
+  result: VideoSummary | null;
+}
+
 export interface ImageRecognition {
   status: ProcessingStatus;
   description: string | null;
@@ -115,6 +137,12 @@ export interface AlbumDetail extends Album {
 export interface Tag extends AssetTag {
   count: number;
   coverAssetId: string | null;
+}
+
+export interface AssetTagBatch {
+  assets: { id: string; tagIds: string[] }[];
+  tags: Tag[];
+  createdCount: number;
 }
 
 export interface SearchResult extends CursorPage<{

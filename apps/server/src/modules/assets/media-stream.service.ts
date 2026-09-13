@@ -24,7 +24,7 @@ import {
   hlsSegmentKey,
   hlsSegmentName,
 } from '../../common/video-stream';
-import type { FileNode } from '../../prisma/generated/prisma/client';
+import { assetMediaSelect, type MediaAsset } from './asset-media';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { UserService } from '../iam/user/user.service';
 import { MediaJobsService } from '../jobs/media-jobs.service';
@@ -169,17 +169,24 @@ export class MediaStreamService {
   }
 
   private async authorize(ticket: StreamTicket) {
-    const [version, user, blacklisted, revoked] = await Promise.all([
+    const [version, [blacklisted, revoked]] = await Promise.all([
       this.users.getSessionVersion(ticket.userId),
-      this.users.getAuthUser(ticket.userId),
-      this.redis.get(RedisKey.blacklist(ticket.tokenJti)),
-      ticket.sessionId
-        ? this.redis.get(
-            RedisKey.sessionRevoked(ticket.userId, ticket.sessionId),
-          )
-        : null,
+      this.redis.getMany([
+        RedisKey.blacklist(ticket.tokenJti),
+        ...(ticket.sessionId
+          ? [RedisKey.sessionRevoked(ticket.userId, ticket.sessionId)]
+          : []),
+      ]),
     ]);
-    if (!user || version !== ticket.sessionVersion || blacklisted || revoked)
+    if (
+      version === null ||
+      version !== ticket.sessionVersion ||
+      blacklisted ||
+      revoked
+    )
+      throw new UnauthorizedException('登录状态已失效，请重新打开媒体');
+    const user = await this.users.getAuthUser(ticket.userId, version);
+    if (!user)
       throw new UnauthorizedException('登录状态已失效，请重新打开媒体');
     if (
       user.roleCode !== RoleCode.ADMIN &&
@@ -191,12 +198,13 @@ export class MediaStreamService {
   private async findOwned(assetId: string, userId: string) {
     const asset = await this.prisma.fileNode.findFirst({
       where: { ...assetWhere(userId), id: assetId },
+      select: assetMediaSelect,
     });
     if (!asset) throw new NotFoundException('媒体文件不存在');
     return asset;
   }
 
-  private async ensureHls(asset: FileNode) {
+  private async ensureHls(asset: MediaAsset) {
     if (asset.mediaType !== 'VIDEO')
       throw new BadRequestException('HLS 播放仅用于视频');
     if (
@@ -240,7 +248,7 @@ export class MediaStreamService {
     );
   }
 
-  private async playlist(asset: FileNode, ticket: string) {
+  private async playlist(asset: MediaAsset, ticket: string) {
     const opened = await this.storage.read(asset.hlsKey);
     const chunks: Buffer[] = [];
     let size = 0;

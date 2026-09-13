@@ -12,7 +12,9 @@ import AssetBrowser from "@/components/media/AssetBrowser.vue";
 
 const route = useRoute();
 const router = useRouter();
-const { data, loading, error, refresh } = useRemoteData(mediaApi.places);
+const { data, loading, error, refresh } = useRemoteData(mediaApi.places, [], {
+  resources: ["places"],
+});
 const selected = computed(() => {
   const value = route.query.place;
   if (typeof value !== "string" || !/^-?\d{1,4}:-?\d{1,4}$/.test(value))

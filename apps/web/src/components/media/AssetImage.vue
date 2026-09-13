@@ -2,7 +2,11 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ImageOff, Image, LoaderCircle } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
+import { sharesApi } from "@/api/shares";
 import { ApiError, getErrorMessage } from "@/api/request";
+import { useAuthStore } from "@/stores/auth";
+import { cachedThumbnail, cacheThumbnail } from "@/composables/thumbnailCache";
+import { sharedRead } from "@/api/sharedRead";
 
 const props = withDefaults(
   defineProps<{
@@ -11,10 +15,12 @@ const props = withDefaults(
     trash?: boolean;
     version?: string;
     contain?: boolean;
+    shareToken?: string;
   }>(),
   { name: "媒体预览", trash: false },
 );
 const host = ref<HTMLElement | null>(null);
+const auth = useAuthStore();
 const visible = ref(false);
 const source = ref("");
 const state = ref<"loading" | "processing" | "error" | "ready">("loading");
@@ -32,12 +38,26 @@ function clear() {
 
 async function retrieve(current: AbortController, attempt = 0) {
   try {
-    const blob = await mediaApi.thumbnail(
+    const { assetId, trash, shareToken } = props;
+    const key = JSON.stringify([
+      auth.user?.id,
+      auth.getSessionVersion(),
       props.assetId,
       props.trash,
-      current.signal,
-    );
+      props.version,
+    ]);
+    const cached = shareToken ? null : cachedThumbnail(key);
+    const blob =
+      cached ??
+      (await (shareToken
+        ? sharesApi.thumbnail(shareToken, assetId, current.signal)
+        : sharedRead(
+            `thumbnail:${key}`,
+            (signal) => mediaApi.thumbnail(assetId, trash, signal),
+            current.signal,
+          )));
     if (current.signal.aborted) return;
+    if (!shareToken && !cached) cacheThumbnail(key, blob);
     source.value = URL.createObjectURL(blob);
     state.value = "ready";
   } catch (error) {
@@ -64,16 +84,40 @@ async function retrieve(current: AbortController, attempt = 0) {
   }
 }
 
+function loadVisible() {
+  if (
+    !visible.value ||
+    !props.assetId ||
+    source.value ||
+    state.value === "error" ||
+    (controller && !controller.signal.aborted)
+  )
+    return;
+  controller = new AbortController();
+  void retrieve(controller);
+}
+
+watch(visible, (shown) => {
+  if (shown) loadVisible();
+  else {
+    clear();
+    controller = null;
+  }
+});
+
 watch(
-  [visible, () => props.assetId, () => props.trash, () => props.version],
+  [
+    () => props.assetId,
+    () => props.trash,
+    () => props.version,
+    () => props.shareToken,
+  ],
   () => {
     clear();
+    controller = null;
     state.value = "loading";
     errorMessage.value = "";
-    if (visible.value && props.assetId) {
-      controller = new AbortController();
-      void retrieve(controller);
-    }
+    loadVisible();
   },
 );
 

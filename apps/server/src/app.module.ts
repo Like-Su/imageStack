@@ -17,6 +17,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { LibrariesModule } from './modules/libraries/libraries.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { SystemModule } from './modules/system/system.module';
+import { SharesModule } from './modules/shares/shares.module';
 import { CommonModule } from './common/common.module';
 import { envSchema } from './schema';
 import { redisConfig } from './common/redis/redis.config';
@@ -65,6 +66,7 @@ import { redisConfig } from './common/redis/redis.config';
     LibrariesModule,
     PluginsModule,
     SystemModule,
+    SharesModule,
     CommonModule,
   ],
   controllers: [AppController],

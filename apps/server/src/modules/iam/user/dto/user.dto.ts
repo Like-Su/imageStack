@@ -13,6 +13,20 @@ import {
 import { UserStatus } from '../../../../prisma/generated/prisma/enums';
 import { IamPageDto, PermissionCodesDto, trimString } from '../../dto/iam.dto';
 
+export class UpdateProfileDto {
+  @Transform(({ obj }: { obj: { username?: unknown } }) =>
+    trimString({ value: obj.username }),
+  )
+  @IsString({ message: '昵称需为 1–80 个字符' })
+  @Length(1, 80, { message: '昵称需为 1–80 个字符' })
+  username: string;
+
+  @ValidateIf((_object, value) => value !== undefined && value !== null)
+  @IsString()
+  @MaxLength(65536, { message: '头像数据过大，请重新选择图片' })
+  avatar?: string | null;
+}
+
 export class CreateUserDto extends PartialType(PermissionCodesDto, {
   skipNullProperties: false,
 }) {

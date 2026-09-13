@@ -56,6 +56,15 @@ export class TagsService {
     return this.summary(tag);
   }
 
+  async detail(tagId: string, userId: string) {
+    const tag = await this.prisma.tag.findFirst({
+      where: { id: tagId, ownerId: userId },
+      include: tagInclude(userId),
+    });
+    if (!tag) throw new NotFoundException('标签不存在');
+    return this.summary(tag);
+  }
+
   update(tagId: string, userId: string, body: UpdateTagDto) {
     if ((body.name !== undefined) === (body.mergeIntoId !== undefined)) {
       throw new BadRequestException('请选择标签改名或合并中的一个操作');
@@ -83,17 +92,14 @@ export class TagsService {
         body.mergeIntoId,
         userId,
       );
-      const links = await transaction.assetTag.findMany({
-        where: { tagId, asset: { ownerId: userId } },
-        select: { assetId: true },
-      });
-
-      if (links.length > 0) {
-        await transaction.assetTag.createMany({
-          data: links.map(({ assetId }) => ({ assetId, tagId: target.id })),
-          skipDuplicates: true,
-        });
-      }
+      await transaction.$executeRaw`
+        INSERT INTO "AssetTag" ("assetId", "tagId", "addedAt")
+        SELECT link."assetId", ${target.id}, CURRENT_TIMESTAMP
+        FROM "AssetTag" link
+        JOIN "FileNode" asset ON asset."id" = link."assetId"
+        WHERE link."tagId" = ${tagId} AND asset."ownerId" = ${userId}
+        ON CONFLICT ("assetId", "tagId") DO NOTHING
+      `;
 
       await transaction.tag.delete({
         where: { id: tagId, ownerId: userId },
@@ -119,13 +125,18 @@ export class TagsService {
     }).catch((error: unknown) => rethrowCollectionError(error, '标签'));
   }
 
-  addToAsset(assetId: string, userId: string, names: string[]) {
+  async addToAsset(assetId: string, userId: string, names: string[]) {
+    const result = await this.addToAssets([assetId], userId, names);
+    return { tags: result.tags, createdCount: result.createdCount };
+  }
+
+  addToAssets(assetIds: string[], userId: string, names: string[]) {
     const uniqueNames = [...new Set(names)];
 
     return withSerializable(this.prisma, async (transaction) => {
-      await requireOwnedAssets(transaction, userId, [assetId]);
+      await requireOwnedAssets(transaction, userId, assetIds);
 
-      await transaction.tag.createMany({
+      const created = await transaction.tag.createMany({
         data: uniqueNames.map((name) => ({ ownerId: userId, name })),
         skipDuplicates: true,
       });
@@ -136,30 +147,53 @@ export class TagsService {
       });
 
       await transaction.assetTag.createMany({
-        data: selected.map(({ id }) => ({ assetId, tagId: id })),
+        data: assetIds.flatMap((assetId) =>
+          selected.map(({ id }) => ({ assetId, tagId: id })),
+        ),
         skipDuplicates: true,
       });
 
       const tags = await transaction.tag.findMany({
-        where: { ownerId: userId, assets: { some: { assetId } } },
-        select: { id: true, name: true },
+        where: {
+          ownerId: userId,
+          assets: { some: { assetId: { in: assetIds } } },
+        },
+        include: tagInclude(userId),
         orderBy: [{ name: 'asc' }, { id: 'asc' }],
       });
 
+      const links = await transaction.assetTag.findMany({
+        where: { assetId: { in: assetIds }, tag: { ownerId: userId } },
+        select: { assetId: true, tagId: true },
+        orderBy: { tag: { name: 'asc' } },
+      });
+      const memberships = new Map(assetIds.map((id) => [id, [] as string[]]));
+      for (const link of links) memberships.get(link.assetId)!.push(link.tagId);
       return {
-        tags: tags.map((tag) => ({ ...tag, source: 'MANUAL' as const })),
+        assets: assetIds.map((id) => ({ id, tagIds: memberships.get(id)! })),
+        tags: tags.map((tag) => this.summary(tag)),
+        createdCount: created.count,
       };
     });
   }
 
   removeFromAsset(assetId: string, tagId: string, userId: string) {
+    return this.removeFromAssets([assetId], tagId, userId);
+  }
+
+  removeFromAssets(assetIds: string[], tagId: string, userId: string) {
     return withSerializable(this.prisma, async (transaction) => {
-      await requireOwnedAssets(transaction, userId, [assetId]);
+      await requireOwnedAssets(transaction, userId, assetIds);
       await this.requireOwned(transaction, tagId, userId);
 
-      return transaction.assetTag.deleteMany({
-        where: { assetId, tagId },
+      const result = await transaction.assetTag.deleteMany({
+        where: { assetId: { in: assetIds }, tagId },
       });
+      const tag = await transaction.tag.findUniqueOrThrow({
+        where: { id: tagId, ownerId: userId },
+        include: tagInclude(userId),
+      });
+      return { ...result, tag: this.summary(tag) };
     });
   }
 

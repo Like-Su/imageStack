@@ -32,7 +32,7 @@ async function submit() {
     const album = props.album
       ? await mediaApi.updateAlbum(props.album.id, body)
       : await mediaApi.createAlbum(body);
-    workspace.invalidate();
+    workspace.updateAlbum(album, !props.album);
     workspace.notify(
       props.album
         ? translate("相册已更新")

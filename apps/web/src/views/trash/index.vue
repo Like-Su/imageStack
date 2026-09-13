@@ -19,6 +19,7 @@ async function emptyTrash() {
   clearing.value = true;
   deletedCount.value = 0;
   let cleanupPending = 0;
+  workspace.beginChanges();
   try {
     const ids: string[] = [];
     let cursor: string | undefined;
@@ -28,6 +29,7 @@ async function emptyTrash() {
         controller.signal,
         true,
       );
+      workspace.rememberAssets(page.items);
       ids.push(...page.items.map((asset) => asset.id));
       cursor = page.hasMore ? (page.nextCursor ?? undefined) : undefined;
     } while (cursor && !controller.signal.aborted);
@@ -50,6 +52,7 @@ async function emptyTrash() {
     for (let offset = 0; offset < ids.length; offset += 100) {
       if (controller.signal.aborted) return;
       const result = await mediaApi.purge(ids.slice(offset, offset + 100));
+      workspace.updateAssets(ids.slice(offset, offset + 100), {}, true);
       deletedCount.value += result.count;
       cleanupPending += result.cleanupPending;
     }
@@ -82,8 +85,8 @@ async function emptyTrash() {
         "error",
       );
   } finally {
+    workspace.endChanges();
     clearing.value = false;
-    if (!controller.signal.aborted) workspace.invalidate();
   }
 }
 onBeforeUnmount(() => controller.abort());

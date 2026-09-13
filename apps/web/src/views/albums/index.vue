@@ -13,6 +13,7 @@ import {
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { useRemoteData } from "@/composables/useRemoteData";
+import { updateAlbums } from "@/composables/workspaceUpdates";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { Album } from "@/types/media";
 import PageHeader from "@/components/workspace/PageHeader.vue";
@@ -27,7 +28,10 @@ const {
   loading,
   error,
   refresh,
-} = useRemoteData(mediaApi.albums);
+} = useRemoteData(mediaApi.albums, [], {
+  resources: ["albums"],
+  update: updateAlbums,
+});
 const text = ref("");
 const order = ref("recent");
 const formOpen = ref(false);
@@ -74,6 +78,7 @@ async function remove(album: Album) {
     await workspace.perform(
       () => mediaApi.deleteAlbum(album.id),
       translate("相册已删除，原图仍保留在图库"),
+      () => workspace.deleteAlbum(album.id),
     );
   } finally {
     deleting.value = false;

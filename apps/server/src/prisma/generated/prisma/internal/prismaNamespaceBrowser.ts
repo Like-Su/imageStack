@@ -62,12 +62,16 @@ export const ModelName = {
   UserPermission: 'UserPermission',
   FileNode: 'FileNode',
   AssetRecognition: 'AssetRecognition',
+  VideoSummary: 'VideoSummary',
+  VideoSummaryEvent: 'VideoSummaryEvent',
   Album: 'Album',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
   AssetTag: 'AssetTag',
   UploadSession: 'UploadSession',
   UploadPart: 'UploadPart',
+  ShareLink: 'ShareLink',
+  ShareSave: 'ShareSave',
   FileShare: 'FileShare',
   FilePermission: 'FilePermission',
 } as const;
@@ -224,6 +228,40 @@ export const AssetRecognitionScalarFieldEnum = {
 export type AssetRecognitionScalarFieldEnum =
   (typeof AssetRecognitionScalarFieldEnum)[keyof typeof AssetRecognitionScalarFieldEnum];
 
+export const VideoSummaryScalarFieldEnum = {
+  assetId: 'assetId',
+  status: 'status',
+  stage: 'stage',
+  transcript: 'transcript',
+  segments: 'segments',
+  transcribedChunks: 'transcribedChunks',
+  language: 'language',
+  summary: 'summary',
+  model: 'model',
+  sourceHash: 'sourceHash',
+  error: 'error',
+  attempts: 'attempts',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  nextAttemptAt: 'nextAttemptAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type VideoSummaryScalarFieldEnum =
+  (typeof VideoSummaryScalarFieldEnum)[keyof typeof VideoSummaryScalarFieldEnum];
+
+export const VideoSummaryEventScalarFieldEnum = {
+  id: 'id',
+  assetId: 'assetId',
+  status: 'status',
+  createdAt: 'createdAt',
+} as const;
+
+export type VideoSummaryEventScalarFieldEnum =
+  (typeof VideoSummaryEventScalarFieldEnum)[keyof typeof VideoSummaryEventScalarFieldEnum];
+
 export const AlbumScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -298,6 +336,32 @@ export const UploadPartScalarFieldEnum = {
 
 export type UploadPartScalarFieldEnum =
   (typeof UploadPartScalarFieldEnum)[keyof typeof UploadPartScalarFieldEnum];
+
+export const ShareLinkScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  ownerId: 'ownerId',
+  assetId: 'assetId',
+  albumId: 'albumId',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+} as const;
+
+export type ShareLinkScalarFieldEnum =
+  (typeof ShareLinkScalarFieldEnum)[keyof typeof ShareLinkScalarFieldEnum];
+
+export const ShareSaveScalarFieldEnum = {
+  shareId: 'shareId',
+  userId: 'userId',
+  assetId: 'assetId',
+  albumId: 'albumId',
+  count: 'count',
+  createdAt: 'createdAt',
+} as const;
+
+export type ShareSaveScalarFieldEnum =
+  (typeof ShareSaveScalarFieldEnum)[keyof typeof ShareSaveScalarFieldEnum];
 
 export const FileShareScalarFieldEnum = {
   id: 'id',

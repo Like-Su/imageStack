@@ -503,6 +503,12 @@ export type FileNodeWhereInput = {
     Prisma.AssetRecognitionNullableScalarRelationFilter,
     Prisma.AssetRecognitionWhereInput
   > | null;
+  videoSummary?: Prisma.XOR<
+    Prisma.VideoSummaryNullableScalarRelationFilter,
+    Prisma.VideoSummaryWhereInput
+  > | null;
+  shareLinks?: Prisma.ShareLinkListRelationFilter;
+  shareSaves?: Prisma.ShareSaveListRelationFilter;
 };
 
 export type FileNodeOrderByWithRelationInput = {
@@ -550,6 +556,9 @@ export type FileNodeOrderByWithRelationInput = {
   tags?: Prisma.AssetTagOrderByRelationAggregateInput;
   albumCovers?: Prisma.AlbumOrderByRelationAggregateInput;
   recognition?: Prisma.AssetRecognitionOrderByWithRelationInput;
+  videoSummary?: Prisma.VideoSummaryOrderByWithRelationInput;
+  shareLinks?: Prisma.ShareLinkOrderByRelationAggregateInput;
+  shareSaves?: Prisma.ShareSaveOrderByRelationAggregateInput;
 };
 
 export type FileNodeWhereUniqueInput = Prisma.AtLeast<
@@ -624,6 +633,12 @@ export type FileNodeWhereUniqueInput = Prisma.AtLeast<
       Prisma.AssetRecognitionNullableScalarRelationFilter,
       Prisma.AssetRecognitionWhereInput
     > | null;
+    videoSummary?: Prisma.XOR<
+      Prisma.VideoSummaryNullableScalarRelationFilter,
+      Prisma.VideoSummaryWhereInput
+    > | null;
+    shareLinks?: Prisma.ShareLinkListRelationFilter;
+    shareSaves?: Prisma.ShareSaveListRelationFilter;
   },
   'id'
 >;
@@ -802,6 +817,9 @@ export type FileNodeCreateInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateInput = {
@@ -847,6 +865,9 @@ export type FileNodeUncheckedCreateInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUpdateInput = {
@@ -914,6 +935,9 @@ export type FileNodeUpdateInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateInput = {
@@ -981,6 +1005,9 @@ export type FileNodeUncheckedUpdateInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateManyInput = {
@@ -1555,6 +1582,32 @@ export type FileNodeUpdateOneRequiredWithoutRecognitionNestedInput = {
   >;
 };
 
+export type FileNodeCreateNestedOneWithoutVideoSummaryInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedCreateWithoutVideoSummaryInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutVideoSummaryInput;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+};
+
+export type FileNodeUpdateOneRequiredWithoutVideoSummaryNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedCreateWithoutVideoSummaryInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutVideoSummaryInput;
+  upsert?: Prisma.FileNodeUpsertWithoutVideoSummaryInput;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.FileNodeUpdateToOneWithWhereWithoutVideoSummaryInput,
+      Prisma.FileNodeUpdateWithoutVideoSummaryInput
+    >,
+    Prisma.FileNodeUncheckedUpdateWithoutVideoSummaryInput
+  >;
+};
+
 export type FileNodeCreateNestedOneWithoutAlbumCoversInput = {
   create?: Prisma.XOR<
     Prisma.FileNodeCreateWithoutAlbumCoversInput,
@@ -1663,6 +1716,62 @@ export type FileNodeUpdateOneWithoutUploadSessionNestedInput = {
   >;
 };
 
+export type FileNodeCreateNestedOneWithoutShareLinksInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareLinksInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutShareLinksInput;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+};
+
+export type FileNodeUpdateOneWithoutShareLinksNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareLinksInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutShareLinksInput;
+  upsert?: Prisma.FileNodeUpsertWithoutShareLinksInput;
+  disconnect?: Prisma.FileNodeWhereInput | boolean;
+  delete?: Prisma.FileNodeWhereInput | boolean;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.FileNodeUpdateToOneWithWhereWithoutShareLinksInput,
+      Prisma.FileNodeUpdateWithoutShareLinksInput
+    >,
+    Prisma.FileNodeUncheckedUpdateWithoutShareLinksInput
+  >;
+};
+
+export type FileNodeCreateNestedOneWithoutShareSavesInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareSavesInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutShareSavesInput;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+};
+
+export type FileNodeUpdateOneWithoutShareSavesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareSavesInput
+  >;
+  connectOrCreate?: Prisma.FileNodeCreateOrConnectWithoutShareSavesInput;
+  upsert?: Prisma.FileNodeUpsertWithoutShareSavesInput;
+  disconnect?: Prisma.FileNodeWhereInput | boolean;
+  delete?: Prisma.FileNodeWhereInput | boolean;
+  connect?: Prisma.FileNodeWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.FileNodeUpdateToOneWithWhereWithoutShareSavesInput,
+      Prisma.FileNodeUpdateWithoutShareSavesInput
+    >,
+    Prisma.FileNodeUncheckedUpdateWithoutShareSavesInput
+  >;
+};
+
 export type FileNodeCreateNestedOneWithoutFileSharesInput = {
   create?: Prisma.XOR<
     Prisma.FileNodeCreateWithoutFileSharesInput,
@@ -1757,6 +1866,9 @@ export type FileNodeCreateWithoutOwnerInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutOwnerInput = {
@@ -1801,6 +1913,9 @@ export type FileNodeUncheckedCreateWithoutOwnerInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutOwnerInput = {
@@ -1939,6 +2054,9 @@ export type FileNodeCreateWithoutChildrenInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutChildrenInput = {
@@ -1983,6 +2101,9 @@ export type FileNodeUncheckedCreateWithoutChildrenInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutChildrenInput = {
@@ -2035,6 +2156,9 @@ export type FileNodeCreateWithoutParentInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutParentInput = {
@@ -2079,6 +2203,9 @@ export type FileNodeUncheckedCreateWithoutParentInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutParentInput = {
@@ -2180,6 +2307,9 @@ export type FileNodeUpdateWithoutChildrenInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutChildrenInput = {
@@ -2246,6 +2376,9 @@ export type FileNodeUncheckedUpdateWithoutChildrenInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUpsertWithWhereUniqueWithoutParentInput = {
@@ -2318,6 +2451,9 @@ export type FileNodeCreateWithoutRecognitionInput = {
   albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutRecognitionInput = {
@@ -2362,6 +2498,9 @@ export type FileNodeUncheckedCreateWithoutRecognitionInput = {
   albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutRecognitionInput = {
@@ -2456,6 +2595,9 @@ export type FileNodeUpdateWithoutRecognitionInput = {
   albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutRecognitionInput = {
@@ -2522,6 +2664,269 @@ export type FileNodeUncheckedUpdateWithoutRecognitionInput = {
   albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeCreateWithoutVideoSummaryInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
+  children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
+  owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
+  fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeUncheckedCreateWithoutVideoSummaryInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  parentId?: string | null;
+  ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
+  fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeCreateOrConnectWithoutVideoSummaryInput = {
+  where: Prisma.FileNodeWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedCreateWithoutVideoSummaryInput
+  >;
+};
+
+export type FileNodeUpsertWithoutVideoSummaryInput = {
+  update: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedUpdateWithoutVideoSummaryInput
+  >;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedCreateWithoutVideoSummaryInput
+  >;
+  where?: Prisma.FileNodeWhereInput;
+};
+
+export type FileNodeUpdateToOneWithWhereWithoutVideoSummaryInput = {
+  where?: Prisma.FileNodeWhereInput;
+  data: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutVideoSummaryInput,
+    Prisma.FileNodeUncheckedUpdateWithoutVideoSummaryInput
+  >;
+};
+
+export type FileNodeUpdateWithoutVideoSummaryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
+  children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
+  owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
+  fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeUncheckedUpdateWithoutVideoSummaryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
+  fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutAlbumCoversInput = {
@@ -2566,6 +2971,9 @@ export type FileNodeCreateWithoutAlbumCoversInput = {
   albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutAlbumCoversInput = {
@@ -2610,6 +3018,9 @@ export type FileNodeUncheckedCreateWithoutAlbumCoversInput = {
   albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutAlbumCoversInput = {
@@ -2704,6 +3115,9 @@ export type FileNodeUpdateWithoutAlbumCoversInput = {
   albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutAlbumCoversInput = {
@@ -2770,6 +3184,9 @@ export type FileNodeUncheckedUpdateWithoutAlbumCoversInput = {
   albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutAlbumsInput = {
@@ -2814,6 +3231,9 @@ export type FileNodeCreateWithoutAlbumsInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutAlbumsInput = {
@@ -2858,6 +3278,9 @@ export type FileNodeUncheckedCreateWithoutAlbumsInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutAlbumsInput = {
@@ -2952,6 +3375,9 @@ export type FileNodeUpdateWithoutAlbumsInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutAlbumsInput = {
@@ -3018,6 +3444,9 @@ export type FileNodeUncheckedUpdateWithoutAlbumsInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutTagsInput = {
@@ -3062,6 +3491,9 @@ export type FileNodeCreateWithoutTagsInput = {
   albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutTagsInput = {
@@ -3106,6 +3538,9 @@ export type FileNodeUncheckedCreateWithoutTagsInput = {
   albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutTagsInput = {
@@ -3200,6 +3635,9 @@ export type FileNodeUpdateWithoutTagsInput = {
   albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutTagsInput = {
@@ -3266,6 +3704,9 @@ export type FileNodeUncheckedUpdateWithoutTagsInput = {
   albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutUploadSessionInput = {
@@ -3310,6 +3751,9 @@ export type FileNodeCreateWithoutUploadSessionInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutUploadSessionInput = {
@@ -3354,6 +3798,9 @@ export type FileNodeUncheckedCreateWithoutUploadSessionInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutUploadSessionInput = {
@@ -3448,6 +3895,9 @@ export type FileNodeUpdateWithoutUploadSessionInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutUploadSessionInput = {
@@ -3514,6 +3964,529 @@ export type FileNodeUncheckedUpdateWithoutUploadSessionInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeCreateWithoutShareLinksInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
+  children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
+  owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
+  fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeUncheckedCreateWithoutShareLinksInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  parentId?: string | null;
+  ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
+  fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeCreateOrConnectWithoutShareLinksInput = {
+  where: Prisma.FileNodeWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareLinksInput
+  >;
+};
+
+export type FileNodeUpsertWithoutShareLinksInput = {
+  update: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedUpdateWithoutShareLinksInput
+  >;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareLinksInput
+  >;
+  where?: Prisma.FileNodeWhereInput;
+};
+
+export type FileNodeUpdateToOneWithWhereWithoutShareLinksInput = {
+  where?: Prisma.FileNodeWhereInput;
+  data: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutShareLinksInput,
+    Prisma.FileNodeUncheckedUpdateWithoutShareLinksInput
+  >;
+};
+
+export type FileNodeUpdateWithoutShareLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
+  children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
+  owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
+  fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeUncheckedUpdateWithoutShareLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
+  fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeCreateWithoutShareSavesInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  parent?: Prisma.FileNodeCreateNestedOneWithoutChildrenInput;
+  children?: Prisma.FileNodeCreateNestedManyWithoutParentInput;
+  owner: Prisma.UserCreateNestedOneWithoutFileNodesInput;
+  fileShares?: Prisma.FileShareCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeUncheckedCreateWithoutShareSavesInput = {
+  id?: string;
+  name: string;
+  type: $Enums.FileType;
+  parentId?: string | null;
+  ownerId: string;
+  storageProvider?: $Enums.StorageProviderType | null;
+  storageBucket?: string | null;
+  storageKey?: string | null;
+  size?: bigint | number | null;
+  mimeType?: string | null;
+  hashAlgorithm?: $Enums.ContentHashAlgorithm | null;
+  hash?: string | null;
+  mediaType?: $Enums.MediaType | null;
+  processingStatus?: $Enums.MediaProcessingStatus | null;
+  processingError?: string | null;
+  processingAttempts?: number;
+  processingToken?: string | null;
+  processingLeaseUntil?: Date | string | null;
+  processingNextAttemptAt?: Date | string | null;
+  width?: number | null;
+  height?: number | null;
+  durationMs?: bigint | number | null;
+  takenAt?: Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?: string | null;
+  thumbnailVersion?: number;
+  previewKey?: string | null;
+  hlsKey?: string | null;
+  hlsSegmentCount?: number;
+  isFavorite?: boolean;
+  deleted?: boolean;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  children?: Prisma.FileNodeUncheckedCreateNestedManyWithoutParentInput;
+  fileShares?: Prisma.FileShareUncheckedCreateNestedManyWithoutFileInput;
+  filePermissions?: Prisma.FilePermissionUncheckedCreateNestedManyWithoutFileInput;
+  uploadSession?: Prisma.UploadSessionUncheckedCreateNestedOneWithoutFileInput;
+  albums?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAssetInput;
+  tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
+  albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
+  recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+};
+
+export type FileNodeCreateOrConnectWithoutShareSavesInput = {
+  where: Prisma.FileNodeWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareSavesInput
+  >;
+};
+
+export type FileNodeUpsertWithoutShareSavesInput = {
+  update: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedUpdateWithoutShareSavesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.FileNodeCreateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedCreateWithoutShareSavesInput
+  >;
+  where?: Prisma.FileNodeWhereInput;
+};
+
+export type FileNodeUpdateToOneWithWhereWithoutShareSavesInput = {
+  where?: Prisma.FileNodeWhereInput;
+  data: Prisma.XOR<
+    Prisma.FileNodeUpdateWithoutShareSavesInput,
+    Prisma.FileNodeUncheckedUpdateWithoutShareSavesInput
+  >;
+};
+
+export type FileNodeUpdateWithoutShareSavesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  parent?: Prisma.FileNodeUpdateOneWithoutChildrenNestedInput;
+  children?: Prisma.FileNodeUpdateManyWithoutParentNestedInput;
+  owner?: Prisma.UserUpdateOneRequiredWithoutFileNodesNestedInput;
+  fileShares?: Prisma.FileShareUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+};
+
+export type FileNodeUncheckedUpdateWithoutShareSavesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType;
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.NullableEnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType
+    | null;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  size?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hashAlgorithm?:
+    | Prisma.NullableEnumContentHashAlgorithmFieldUpdateOperationsInput
+    | $Enums.ContentHashAlgorithm
+    | null;
+  hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mediaType?:
+    | Prisma.NullableEnumMediaTypeFieldUpdateOperationsInput
+    | $Enums.MediaType
+    | null;
+  processingStatus?:
+    | Prisma.NullableEnumMediaProcessingStatusFieldUpdateOperationsInput
+    | $Enums.MediaProcessingStatus
+    | null;
+  processingError?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
+  processingToken?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  processingLeaseUntil?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  processingNextAttemptAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+  durationMs?:
+    Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null;
+  takenAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  exif?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+  thumbnailKey?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  thumbnailVersion?: Prisma.IntFieldUpdateOperationsInput | number;
+  previewKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  hlsSegmentCount?: Prisma.IntFieldUpdateOperationsInput | number;
+  isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  children?: Prisma.FileNodeUncheckedUpdateManyWithoutParentNestedInput;
+  fileShares?: Prisma.FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  filePermissions?: Prisma.FilePermissionUncheckedUpdateManyWithoutFileNestedInput;
+  uploadSession?: Prisma.UploadSessionUncheckedUpdateOneWithoutFileNestedInput;
+  albums?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAssetNestedInput;
+  tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
+  albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
+  recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutFileSharesInput = {
@@ -3558,6 +4531,9 @@ export type FileNodeCreateWithoutFileSharesInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutFileSharesInput = {
@@ -3602,6 +4578,9 @@ export type FileNodeUncheckedCreateWithoutFileSharesInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutFileSharesInput = {
@@ -3696,6 +4675,9 @@ export type FileNodeUpdateWithoutFileSharesInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
@@ -3762,6 +4744,9 @@ export type FileNodeUncheckedUpdateWithoutFileSharesInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateWithoutFilePermissionsInput = {
@@ -3806,6 +4791,9 @@ export type FileNodeCreateWithoutFilePermissionsInput = {
   tags?: Prisma.AssetTagCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
@@ -3850,6 +4838,9 @@ export type FileNodeUncheckedCreateWithoutFilePermissionsInput = {
   tags?: Prisma.AssetTagUncheckedCreateNestedManyWithoutAssetInput;
   albumCovers?: Prisma.AlbumUncheckedCreateNestedManyWithoutCoverAssetInput;
   recognition?: Prisma.AssetRecognitionUncheckedCreateNestedOneWithoutAssetInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedCreateNestedOneWithoutAssetInput;
+  shareLinks?: Prisma.ShareLinkUncheckedCreateNestedManyWithoutAssetInput;
+  shareSaves?: Prisma.ShareSaveUncheckedCreateNestedManyWithoutAssetInput;
 };
 
 export type FileNodeCreateOrConnectWithoutFilePermissionsInput = {
@@ -3944,6 +4935,9 @@ export type FileNodeUpdateWithoutFilePermissionsInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
@@ -4010,6 +5004,9 @@ export type FileNodeUncheckedUpdateWithoutFilePermissionsInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeCreateManyOwnerInput = {
@@ -4112,6 +5109,9 @@ export type FileNodeUpdateWithoutOwnerInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutOwnerInput = {
@@ -4178,6 +5178,9 @@ export type FileNodeUncheckedUpdateWithoutOwnerInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateManyWithoutOwnerInput = {
@@ -4338,6 +5341,9 @@ export type FileNodeUpdateWithoutParentInput = {
   tags?: Prisma.AssetTagUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateWithoutParentInput = {
@@ -4404,6 +5410,9 @@ export type FileNodeUncheckedUpdateWithoutParentInput = {
   tags?: Prisma.AssetTagUncheckedUpdateManyWithoutAssetNestedInput;
   albumCovers?: Prisma.AlbumUncheckedUpdateManyWithoutCoverAssetNestedInput;
   recognition?: Prisma.AssetRecognitionUncheckedUpdateOneWithoutAssetNestedInput;
+  videoSummary?: Prisma.VideoSummaryUncheckedUpdateOneWithoutAssetNestedInput;
+  shareLinks?: Prisma.ShareLinkUncheckedUpdateManyWithoutAssetNestedInput;
+  shareSaves?: Prisma.ShareSaveUncheckedUpdateManyWithoutAssetNestedInput;
 };
 
 export type FileNodeUncheckedUpdateManyWithoutParentInput = {
@@ -4475,6 +5484,8 @@ export type FileNodeCountOutputType = {
   albums: number;
   tags: number;
   albumCovers: number;
+  shareLinks: number;
+  shareSaves: number;
 };
 
 export type FileNodeCountOutputTypeSelect<
@@ -4487,6 +5498,8 @@ export type FileNodeCountOutputTypeSelect<
   albums?: boolean | FileNodeCountOutputTypeCountAlbumsArgs;
   tags?: boolean | FileNodeCountOutputTypeCountTagsArgs;
   albumCovers?: boolean | FileNodeCountOutputTypeCountAlbumCoversArgs;
+  shareLinks?: boolean | FileNodeCountOutputTypeCountShareLinksArgs;
+  shareSaves?: boolean | FileNodeCountOutputTypeCountShareSavesArgs;
 };
 
 /**
@@ -4562,6 +5575,26 @@ export type FileNodeCountOutputTypeCountAlbumCoversArgs<
   where?: Prisma.AlbumWhereInput;
 };
 
+/**
+ * FileNodeCountOutputType without action
+ */
+export type FileNodeCountOutputTypeCountShareLinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.ShareLinkWhereInput;
+};
+
+/**
+ * FileNodeCountOutputType without action
+ */
+export type FileNodeCountOutputTypeCountShareSavesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.ShareSaveWhereInput;
+};
+
 export type FileNodeSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -4611,6 +5644,9 @@ export type FileNodeSelect<
     tags?: boolean | Prisma.FileNode$tagsArgs<ExtArgs>;
     albumCovers?: boolean | Prisma.FileNode$albumCoversArgs<ExtArgs>;
     recognition?: boolean | Prisma.FileNode$recognitionArgs<ExtArgs>;
+    videoSummary?: boolean | Prisma.FileNode$videoSummaryArgs<ExtArgs>;
+    shareLinks?: boolean | Prisma.FileNode$shareLinksArgs<ExtArgs>;
+    shareSaves?: boolean | Prisma.FileNode$shareSavesArgs<ExtArgs>;
     _count?: boolean | Prisma.FileNodeCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['fileNode']
@@ -4797,6 +5833,9 @@ export type FileNodeInclude<
   tags?: boolean | Prisma.FileNode$tagsArgs<ExtArgs>;
   albumCovers?: boolean | Prisma.FileNode$albumCoversArgs<ExtArgs>;
   recognition?: boolean | Prisma.FileNode$recognitionArgs<ExtArgs>;
+  videoSummary?: boolean | Prisma.FileNode$videoSummaryArgs<ExtArgs>;
+  shareLinks?: boolean | Prisma.FileNode$shareLinksArgs<ExtArgs>;
+  shareSaves?: boolean | Prisma.FileNode$shareSavesArgs<ExtArgs>;
   _count?: boolean | Prisma.FileNodeCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type FileNodeIncludeCreateManyAndReturn<
@@ -4830,6 +5869,9 @@ export type $FileNodePayload<
     tags: Prisma.$AssetTagPayload<ExtArgs>[];
     albumCovers: Prisma.$AlbumPayload<ExtArgs>[];
     recognition: Prisma.$AssetRecognitionPayload<ExtArgs> | null;
+    videoSummary: Prisma.$VideoSummaryPayload<ExtArgs> | null;
+    shareLinks: Prisma.$ShareLinkPayload<ExtArgs>[];
+    shareSaves: Prisma.$ShareSavePayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -5535,6 +6577,41 @@ export interface Prisma__FileNodeClient<
     null,
     ExtArgs,
     GlobalOmitOptions
+  >;
+  videoSummary<T extends Prisma.FileNode$videoSummaryArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.FileNode$videoSummaryArgs<ExtArgs>>,
+  ): Prisma.Prisma__VideoSummaryClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$VideoSummaryPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
+  shareLinks<T extends Prisma.FileNode$shareLinksArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.FileNode$shareLinksArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$ShareLinkPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  shareSaves<T extends Prisma.FileNode$shareSavesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.FileNode$shareSavesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$ShareSavePayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
   >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6316,6 +7393,88 @@ export type FileNode$recognitionArgs<
    */
   include?: Prisma.AssetRecognitionInclude<ExtArgs> | null;
   where?: Prisma.AssetRecognitionWhereInput;
+};
+
+/**
+ * FileNode.videoSummary
+ */
+export type FileNode$videoSummaryArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the VideoSummary
+   */
+  select?: Prisma.VideoSummarySelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the VideoSummary
+   */
+  omit?: Prisma.VideoSummaryOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VideoSummaryInclude<ExtArgs> | null;
+  where?: Prisma.VideoSummaryWhereInput;
+};
+
+/**
+ * FileNode.shareLinks
+ */
+export type FileNode$shareLinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the ShareLink
+   */
+  select?: Prisma.ShareLinkSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the ShareLink
+   */
+  omit?: Prisma.ShareLinkOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShareLinkInclude<ExtArgs> | null;
+  where?: Prisma.ShareLinkWhereInput;
+  orderBy?:
+    | Prisma.ShareLinkOrderByWithRelationInput
+    | Prisma.ShareLinkOrderByWithRelationInput[];
+  cursor?: Prisma.ShareLinkWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.ShareLinkScalarFieldEnum | Prisma.ShareLinkScalarFieldEnum[];
+};
+
+/**
+ * FileNode.shareSaves
+ */
+export type FileNode$shareSavesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the ShareSave
+   */
+  select?: Prisma.ShareSaveSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the ShareSave
+   */
+  omit?: Prisma.ShareSaveOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShareSaveInclude<ExtArgs> | null;
+  where?: Prisma.ShareSaveWhereInput;
+  orderBy?:
+    | Prisma.ShareSaveOrderByWithRelationInput
+    | Prisma.ShareSaveOrderByWithRelationInput[];
+  cursor?: Prisma.ShareSaveWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.ShareSaveScalarFieldEnum | Prisma.ShareSaveScalarFieldEnum[];
 };
 
 /**

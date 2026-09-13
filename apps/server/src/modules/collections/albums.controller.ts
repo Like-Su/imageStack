@@ -43,6 +43,13 @@ export class AlbumsController {
     return this.albums.detail(albumId, user.id, query);
   }
 
+  @Get(':id/summary')
+  @Header('Cache-Control', 'no-store')
+  @RequirePermission(PermissionCode.ASSET_LIST)
+  summary(@Param('id') albumId: string, @CurrentUser() user: RequestUser) {
+    return this.albums.getSummary(albumId, user.id);
+  }
+
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: CreateAlbumDto) {
     return this.albums.create(user.id, body);

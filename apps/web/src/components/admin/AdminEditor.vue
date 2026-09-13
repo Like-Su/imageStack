@@ -25,7 +25,10 @@ const props = defineProps<{
   roles: AdminRole[];
   permissions: AdminPermission[];
 }>();
-const emit = defineEmits<{ close: []; saved: [relogin: boolean] }>();
+const emit = defineEmits<{
+  close: [];
+  saved: [relogin: boolean, record: AdminRecord];
+}>();
 const auth = useAuthStore();
 const form = ref<FormInstance>();
 const busy = ref(false);
@@ -181,6 +184,7 @@ async function submit() {
   error.value = "";
   const session = auth.getSessionVersion();
   let relogin = false;
+  let savedRecord: AdminRecord;
   try {
     if (!(await form.value?.validate().catch(() => false))) return;
     if (
@@ -199,12 +203,12 @@ async function submit() {
       };
       if (user) {
         const { password, ...fields } = body;
-        await iamApi.updateUser(user.id, {
+        savedRecord = await iamApi.updateUser(user.id, {
           ...fields,
           ...(password ? { password } : {}),
         });
         relogin = ownAccount;
-      } else await iamApi.createUser(body);
+      } else savedRecord = await iamApi.createUser(body);
     } else if (props.section === "roles") {
       const body: SaveRole = {
         roleName: model.roleName.trim(),
@@ -214,23 +218,34 @@ async function submit() {
         permissionCodes: model.permissionCodes,
       };
       if (role) {
-        await iamApi.updateRole(role.id, body);
+        savedRecord = await iamApi.updateRole(role.id, body);
         relogin = role.roleCode === auth.user?.roleCode;
-      } else await iamApi.createRole(body);
+      } else savedRecord = await iamApi.createRole(body);
     } else {
       const body: SavePermission = {
         permissionName: model.permissionName.trim(),
         permissionCode: model.permissionCode.trim(),
         parentId: model.parentId || null,
       };
+      const updated = permission
+        ? await iamApi.updatePermission(permission.id, body)
+        : await iamApi.createPermission(body);
+      savedRecord = {
+        builtin: false,
+        roleCount: 0,
+        userCount: 0,
+        childCount: 0,
+        ...permission,
+        ...updated,
+      };
       if (permission) {
-        await iamApi.updatePermission(permission.id, body);
         relogin =
           permission.permissionCode !== body.permissionCode &&
           Boolean(auth.user?.permissions.includes(permission.permissionCode));
-      } else await iamApi.createPermission(body);
+      }
     }
-    if (session === auth.getSessionVersion()) emit("saved", relogin);
+    if (session === auth.getSessionVersion())
+      emit("saved", relogin, savedRecord);
   } catch (cause) {
     if (session === auth.getSessionVersion())
       error.value = translate(getErrorMessage(cause));

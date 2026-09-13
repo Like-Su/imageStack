@@ -32,6 +32,7 @@ import type {
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { MediaProcessingError } from '../jobs/media-processing.constants';
 import { VideoProcessorService } from '../jobs/video-processor.service';
+import { VideoSummariesService } from '../video-summaries/video-summaries.service';
 import {
   createStorageKey,
   STORAGE_PROVIDER,
@@ -70,6 +71,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     private readonly videos: VideoProcessorService,
     private readonly parts: UploadPartsService,
     private readonly config: ConfigService,
+    private readonly videoSummaries: VideoSummariesService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -166,6 +168,15 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
 
   async getSession(sessionId: string, userId: string) {
     return this.sessionView(await this.findOwnedSession(sessionId, userId));
+  }
+
+  async getProgress(sessionId: string, userId: string) {
+    const { status, expired, merging, file } = await this.sessionView(
+      await this.findOwnedSession(sessionId, userId),
+      false,
+      false,
+    );
+    return { status, expired, merging, file };
   }
 
   async uploadContent(sessionId: string, userId: string, request: Request) {
@@ -305,6 +316,9 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
             height: media.height,
             durationMs:
               media.durationMs === null ? null : BigInt(media.durationMs),
+            ...(media.mediaType === 'VIDEO' && this.videoSummaries.autoSummarize
+              ? { videoSummary: { create: { sourceHash: media.hash } } }
+              : {}),
           },
         });
         const completed = await transaction.uploadSession.updateMany({
@@ -462,6 +476,9 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async enqueue(file: FileNode) {
+    await this.videoSummaries.enqueueAutomatic(file).catch(() => {
+      this.logger.warn(`视频 ${file.id} 的总结入队暂缓，可在视频详情中重试`);
+    });
     if (['READY', 'FAILED'].includes(file.processingStatus)) return;
     await this.mediaJobs
       .enqueue(file.id, file.ownerId)
@@ -478,13 +495,17 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async sessionView(session: OwnedSession, instant = false) {
+  private async sessionView(
+    session: OwnedSession,
+    instant = false,
+    verifyParts = true,
+  ) {
     const ttl = session.chunkSize
       ? UPLOAD_MULTIPART_TTL_MS
       : UPLOAD_SESSION_TTL_MS;
     const expiresAt = new Date(session.createdAt.getTime() + ttl);
     const storedParts =
-      session.chunkSize && session.status !== 'COMPLETED'
+      verifyParts && session.chunkSize && session.status !== 'COMPLETED'
         ? await this.prisma.uploadPart.findMany({
             where: { sessionId: session.id },
             select: { index: true, size: true, storageKey: true },
@@ -589,6 +610,11 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       take: 25,
       orderBy: { createdAt: 'asc' },
     });
-    for (const session of sessions) await this.cleanupParts(session.id);
+    for (let offset = 0; offset < sessions.length; offset += 2)
+      await Promise.all(
+        sessions
+          .slice(offset, offset + 2)
+          .map((session) => this.cleanupParts(session.id)),
+      );
   }
 }

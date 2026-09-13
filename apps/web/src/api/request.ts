@@ -13,6 +13,7 @@ interface RequestOptions {
   retryCsrf?: boolean;
   responseType?: "json" | "blob";
   timeoutMs?: number;
+  referrerPolicy?: ReferrerPolicy;
 }
 
 interface RequestAuth {
@@ -28,6 +29,10 @@ let csrfPromise: Promise<string> | null = null;
 
 export function configureRequestAuth(auth: RequestAuth) {
   requestAuth = auth;
+}
+
+export function requestScope() {
+  return requestAuth?.getSessionVersion() ?? 0;
 }
 
 export class ApiError extends Error {
@@ -188,6 +193,7 @@ export async function request<Data>(
       signal: controller.signal,
       credentials: "include",
       cache: "no-store",
+      referrerPolicy: options.referrerPolicy,
     });
 
     if (

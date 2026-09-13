@@ -4,7 +4,6 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
 import { inspectImageContent } from '../../common/image-inspection';
-import { IMAGE_MAX_PIXELS } from '../../common/media-formats';
 import { sharp } from '../../common/sharp';
 import {
   AI_IMAGE_MAX_BYTES,
@@ -85,7 +84,7 @@ export class AiVisionService {
       throw new AiRecognitionError('图片内容无效或不适合安全识别', true);
     }
     const image = await sharp(bytes, {
-      limitInputPixels: IMAGE_MAX_PIXELS,
+      limitInputPixels: false,
       animated: false,
     })
       .rotate()

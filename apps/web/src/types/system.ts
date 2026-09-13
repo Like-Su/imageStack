@@ -18,7 +18,7 @@ export interface SystemCapabilities {
     imageMaxBytes: number;
     videoMaxBytes: number;
     videoMaxDurationMs: number;
-    maxPixels: number;
+    maxPixels: number | null;
     maxFrames: number;
     extensions: string[];
     mimeTypes: string[];

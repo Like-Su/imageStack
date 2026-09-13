@@ -34,7 +34,7 @@ async function submit() {
     const tag = props.tag
       ? await mediaApi.updateTag(props.tag.id, { name: nextName })
       : await mediaApi.createTag(nextName);
-    workspace.invalidate();
+    workspace.updateTag(tag, !props.tag);
     workspace.notify(
       translate("{value1}已{value2}", {
         value1: props.people ? translate("人物") : translate("标签"),

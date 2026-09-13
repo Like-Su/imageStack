@@ -183,14 +183,6 @@
   background: color-mix(in srgb, var(--app-err) 10%, transparent);
 }
 
-.media-grid {
-  column-count: 2;
-  column-gap: 12px;
-}
-.media-grid > * {
-  break-inside: avoid;
-  margin-bottom: 12px;
-}
 .media-card {
   position: relative;
   width: 100%;
@@ -261,30 +253,6 @@
   }
 }
 
-@media (min-width: 900px) {
-  .media-grid {
-    column-count: 3;
-  }
-  .media-grid.is-dense {
-    column-count: 4;
-  }
-}
-@media (min-width: 1280px) {
-  .media-grid {
-    column-count: 4;
-  }
-  .media-grid.is-dense {
-    column-count: 5;
-  }
-}
-@media (min-width: 1700px) {
-  .media-grid {
-    column-count: 5;
-  }
-  .media-grid.is-dense {
-    column-count: 6;
-  }
-}
 @media (hover: none) {
   .media-card-caption,
   .media-card-selector {
