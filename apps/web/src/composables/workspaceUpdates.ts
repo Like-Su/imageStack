@@ -1,13 +1,28 @@
 import type { Album, AssetDetail, AssetSummary, Tag } from "@/types/media";
 import type { WorkspaceChange } from "@/types/workspace";
 
+const changedAssetIds = new WeakMap<WorkspaceChange, ReadonlySet<string>>();
+
+export function assetChangeIds(change: WorkspaceChange) {
+  if (!("ids" in change) && change.type !== "asset-tags") return undefined;
+  let ids = changedAssetIds.get(change);
+  if (!ids) {
+    ids = new Set(change.type === "asset-tags" ? [change.id] : change.ids);
+    changedAssetIds.set(change, ids);
+  }
+  return ids;
+}
+
 export function updateAsset<Value extends AssetSummary>(
   asset: Value,
   change: WorkspaceChange,
 ): Value {
-  if (change.type === "assets" && change.ids.includes(asset.id))
+  if (change.type === "assets" && assetChangeIds(change)!.has(asset.id))
     return { ...asset, ...change.patch };
-  if (change.type === "asset-tags-batch" && change.ids.includes(asset.id)) {
+  if (
+    change.type === "asset-tags-batch" &&
+    assetChangeIds(change)!.has(asset.id)
+  ) {
     const tags = change.removedTagId
       ? asset.tags.filter((tag) => tag.id !== change.removedTagId)
       : change.assignments?.[asset.id];
@@ -37,7 +52,7 @@ export function updateAssetDetail(
   if (
     change.type === "assets" &&
     change.removed &&
-    change.ids.includes(asset.id)
+    assetChangeIds(change)!.has(asset.id)
   )
     return null;
   const updated = updateAsset(asset, change);
@@ -54,7 +69,10 @@ export function updateAssetDetail(
     );
     return { ...updated, albums };
   }
-  if (change.type === "album-members" && change.ids.includes(asset.id)) {
+  if (
+    change.type === "album-members" &&
+    assetChangeIds(change)!.has(asset.id)
+  ) {
     const albums = asset.albums.filter((album) => album.id !== change.album.id);
     if (change.added)
       albums.push({ id: change.album.id, name: change.album.name });

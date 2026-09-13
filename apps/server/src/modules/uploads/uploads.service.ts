@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   GoneException,
   Inject,
   Injectable,
@@ -15,6 +16,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PermissionCode, RoleCode } from '../../common/constants';
 import type { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
@@ -25,14 +27,20 @@ import {
   mediaFormat,
 } from '../../common/media-formats';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { withSerializable } from '../../common/prisma/transaction';
+import { requireAlbumAccess } from '../collections/album-scope';
+import { AlbumsService } from '../collections/albums.service';
+import { requireOwnedAssets } from '../assets/asset-scope';
 import type {
   FileNode,
+  Prisma,
   UploadSession,
 } from '../../prisma/generated/prisma/client';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { MediaProcessingError } from '../jobs/media-processing.constants';
 import { VideoProcessorService } from '../jobs/video-processor.service';
 import { VideoSummariesService } from '../video-summaries/video-summaries.service';
+import { recordVideoSummaryEvent } from '../video-summaries/video-summary-state';
 import {
   createStorageKey,
   STORAGE_PROVIDER,
@@ -64,6 +72,11 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   private activeUploads = 0;
   private cleanupTimer?: NodeJS.Timeout;
   private cleanupWork?: Promise<void>;
+  private cleanupWake?: NodeJS.Timeout;
+  private cleanupRequested = false;
+  private cleanupStopped = false;
+  private cleanupCursor?: { id: string; createdAt: Date };
+  private lastExpirySweepAt = 0;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -72,6 +85,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     private readonly parts: UploadPartsService,
     private readonly config: ConfigService,
     private readonly videoSummaries: VideoSummariesService,
+    private readonly albums: AlbumsService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -85,11 +99,15 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    this.cleanupStopped = true;
     clearInterval(this.cleanupTimer);
+    clearTimeout(this.cleanupWake);
     await this.cleanupWork;
   }
 
   async createSession(userId: string, dto: CreateUploadSessionDto) {
+    if (dto.albumId)
+      await this.requireAlbumUpload(this.prisma, dto.albumId, userId);
     const format = mediaFormat(dto.fileName);
     if (!format) throw new UnsupportedMediaTypeException('不支持此文件扩展名');
     const limit = Math.min(
@@ -130,14 +148,26 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       if (existing?.file?.storageKey) {
         const metadata = await this.storage.stat(existing.file.storageKey);
         if (metadata?.size === existing.file.size) {
+          const albumId = dto.albumId ?? null;
+          const fileId = existing.file.id;
+          const album = albumId
+            ? await withSerializable(this.prisma, (transaction) =>
+                this.attachToAlbum(transaction, albumId, userId, fileId),
+              )
+            : null;
           await this.enqueue(existing.file);
-          return this.sessionView(existing, true);
+          return {
+            ...(await this.sessionView(existing, true)),
+            albumId,
+            album,
+          };
         }
       }
       if (chunked) {
         const resumable = await this.prisma.uploadSession.findFirst({
           where: {
             userId,
+            albumId: dto.albumId ?? null,
             hash: dto.hash,
             size: BigInt(dto.size),
             fileName: dto.fileName,
@@ -154,6 +184,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     const session = await this.prisma.uploadSession.create({
       data: {
         userId,
+        albumId: dto.albumId ?? null,
         fileName: dto.fileName,
         size: BigInt(dto.size),
         hash: dto.hash ?? null,
@@ -171,16 +202,18 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getProgress(sessionId: string, userId: string) {
-    const { status, expired, merging, file } = await this.sessionView(
+    const { status, expired, merging, file, albumId } = await this.sessionView(
       await this.findOwnedSession(sessionId, userId),
       false,
       false,
     );
-    return { status, expired, merging, file };
+    return { status, expired, merging, file, albumId };
   }
 
   async uploadContent(sessionId: string, userId: string, request: Request) {
     const session = await this.findOwnedSession(sessionId, userId);
+    if (session.albumId)
+      await this.requireAlbumUpload(this.prisma, session.albumId, userId);
     if (session.status === 'COMPLETED') return this.completedSession(session);
     this.assertUsable(session);
     if (Number(session.size) > UPLOAD_CHUNK_BYTES)
@@ -198,12 +231,16 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     request: Request,
   ) {
     const session = await this.findOwnedSession(sessionId, userId);
+    if (session.albumId)
+      await this.requireAlbumUpload(this.prisma, session.albumId, userId);
     this.assertUsable(session);
     return this.parts.put(session, index, request);
   }
 
   async complete(sessionId: string, userId: string) {
     const session = await this.findOwnedSession(sessionId, userId);
+    if (session.albumId)
+      await this.requireAlbumUpload(this.prisma, session.albumId, userId);
     if (session.status === 'COMPLETED') return this.completedSession(session);
     this.assertUsable(session);
     if (!session.chunkSize) throw new BadRequestException('此会话不是分片上传');
@@ -223,7 +260,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       data: { status: 'CANCELLED', mergeToken: null, mergeLeaseUntil: null },
     });
     if (cancelled.count !== 1) throw new ConflictException('会话状态已变化');
-    await this.cleanupParts(session.id);
+    this.scheduleCleanup();
     return { id: session.id, status: 'CANCELLED' as const };
   }
 
@@ -298,54 +335,73 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       if (stored.size !== BigInt(expectedBytes))
         throw new InternalServerErrorException('存储结果大小不一致');
       linkAttempted = true;
-      const file = await this.prisma.$transaction(async (transaction) => {
-        const createdFile = await transaction.fileNode.create({
-          data: {
-            name: session.fileName,
-            type: 'FILE',
-            ownerId: session.userId,
-            storageProvider: 'LOCAL_FS',
-            storageKey,
-            size: stored.size,
-            mimeType: media.mimeType,
-            hashAlgorithm: 'BLAKE3',
-            hash: media.hash,
-            mediaType: media.mediaType,
-            processingStatus: 'PENDING',
-            width: media.width,
-            height: media.height,
-            durationMs:
-              media.durationMs === null ? null : BigInt(media.durationMs),
-            ...(media.mediaType === 'VIDEO' && this.videoSummaries.autoSummarize
-              ? { videoSummary: { create: { sourceHash: media.hash } } }
-              : {}),
-          },
-        });
-        const completed = await transaction.uploadSession.updateMany({
-          where: {
-            id: session.id,
-            userId: session.userId,
-            status: 'UPLOADING',
-            mergeToken,
-            fileId: null,
-          },
-          data: {
-            status: 'COMPLETED',
-            fileId: createdFile.id,
-            storageKey,
-            mimeType: media.mimeType,
-            hash: media.hash,
-            mergeToken: null,
-            mergeLeaseUntil: null,
-          },
-        });
-        if (completed.count !== 1)
-          throw new ConflictException('会话已取消或合并租约已变化');
-        return createdFile;
-      });
-      await this.cleanupParts(session.id);
+      const { file, album } = await withSerializable(
+        this.prisma,
+        async (transaction) => {
+          const createdFile = await transaction.fileNode.create({
+            data: {
+              name: session.fileName,
+              type: 'FILE',
+              ownerId: session.userId,
+              storageProvider: 'LOCAL_FS',
+              storageKey,
+              size: stored.size,
+              mimeType: media.mimeType,
+              hashAlgorithm: 'BLAKE3',
+              hash: media.hash,
+              mediaType: media.mediaType,
+              processingStatus: 'PENDING',
+              width: media.width,
+              height: media.height,
+              durationMs:
+                media.durationMs === null ? null : BigInt(media.durationMs),
+              ...(media.mediaType === 'VIDEO' &&
+              this.videoSummaries.autoSummarize
+                ? { videoSummary: { create: { sourceHash: media.hash } } }
+                : {}),
+            },
+          });
+          const completed = await transaction.uploadSession.updateMany({
+            where: {
+              id: session.id,
+              userId: session.userId,
+              status: 'UPLOADING',
+              mergeToken,
+              fileId: null,
+            },
+            data: {
+              status: 'COMPLETED',
+              fileId: createdFile.id,
+              storageKey,
+              mimeType: media.mimeType,
+              hash: media.hash,
+              mergeToken: null,
+              mergeLeaseUntil: null,
+            },
+          });
+          if (completed.count !== 1)
+            throw new ConflictException('会话已取消或合并租约已变化');
+          const album = session.albumId
+            ? await this.attachToAlbum(
+                transaction,
+                session.albumId,
+                session.userId,
+                createdFile.id,
+              )
+            : null;
+          if (media.mediaType === 'VIDEO' && this.videoSummaries.autoSummarize)
+            await recordVideoSummaryEvent(
+              transaction,
+              createdFile.id,
+              session.userId,
+              'PENDING',
+            );
+          return { file: createdFile, album };
+        },
+      );
+      this.scheduleCleanup();
       await this.enqueue(file);
-      return this.completedResult(session.id, file);
+      return this.completedResult(session.id, file, session.albumId, album);
     } catch (error) {
       if (linkAttempted) {
         const current = await this.findOwnedSession(
@@ -401,6 +457,69 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
           this.logger.warn(`上传临时文件清理失败：${String(error)}`),
         );
     }
+  }
+
+  private async attachToAlbum(
+    transaction: Prisma.TransactionClient,
+    albumId: string,
+    userId: string,
+    fileId: string,
+  ) {
+    await this.requireAlbumUpload(transaction, albumId, userId);
+    await requireOwnedAssets(transaction, userId, [fileId]);
+    const result = await transaction.albumAsset.createMany({
+      data: [{ albumId, assetId: fileId }],
+      skipDuplicates: true,
+    });
+    if (result.count)
+      await transaction.album.update({
+        where: { id: albumId },
+        data: { updatedAt: new Date() },
+      });
+    return this.albums.getSummary(albumId, userId, transaction);
+  }
+
+  private async requireAlbumUpload(
+    transaction: Prisma.TransactionClient,
+    albumId: string,
+    userId: string,
+  ) {
+    const album = await requireAlbumAccess(
+      transaction,
+      albumId,
+      userId,
+      'addAssets',
+    );
+    if (album.shared) return;
+    const user = await transaction.user.findFirst({
+      where: {
+        id: userId,
+        deleted: false,
+        status: 'ACTIVE',
+        role: { status: 1 },
+        OR: [
+          { role: { roleCode: RoleCode.ADMIN } },
+          {
+            role: {
+              permissions: {
+                some: {
+                  permission: { permissionCode: PermissionCode.ASSET_CATEGORY },
+                },
+              },
+            },
+          },
+          {
+            permissions: {
+              some: {
+                permission: { permissionCode: PermissionCode.ASSET_CATEGORY },
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!user) throw new ForbiddenException('没有私人相册的归档权限');
   }
 
   private maintainLease(sessionId: string, mergeToken: string) {
@@ -472,7 +591,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     )
       throw new GoneException('上传对应的文件已不可用');
     await this.enqueue(session.file);
-    return this.completedResult(session.id, session.file);
+    return this.completedResult(session.id, session.file, session.albumId);
   }
 
   private async enqueue(file: FileNode) {
@@ -487,11 +606,18 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       });
   }
 
-  private completedResult(sessionId: string, file: FileNode) {
+  private completedResult(
+    sessionId: string,
+    file: FileNode,
+    albumId: string | null,
+    album: Awaited<ReturnType<AlbumsService['getSummary']>> | null = null,
+  ) {
     return {
       sessionId,
       status: 'COMPLETED' as const,
       file: this.fileView(file),
+      albumId,
+      album,
     };
   }
 
@@ -524,6 +650,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     }
     return {
       id: session.id,
+      albumId: session.albumId,
       status: session.status,
       fileName: session.fileName,
       size: session.size?.toString() ?? null,
@@ -577,44 +704,72 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private scheduleCleanup() {
-    if (this.cleanupWork) return;
+    if (this.cleanupStopped) return;
+    this.cleanupRequested = true;
+    if (this.cleanupWork || this.cleanupWake) return;
+    this.cleanupRequested = false;
     this.cleanupWork = this.cleanupExpired()
+      .then((more) => {
+        this.cleanupRequested ||= more;
+      })
       .catch((error: unknown) => {
         this.logger.warn(`过期上传清理暂缓：${String(error)}`);
       })
       .finally(() => {
         this.cleanupWork = undefined;
+        if (this.cleanupRequested && !this.cleanupStopped) {
+          this.cleanupWake = setTimeout(() => {
+            this.cleanupWake = undefined;
+            this.scheduleCleanup();
+          }, 1000);
+          this.cleanupWake.unref();
+        }
       });
   }
 
   private async cleanupExpired() {
     const now = new Date();
-    await this.prisma.uploadSession.updateMany({
-      where: {
-        chunkSize: { not: null },
-        createdAt: { lte: new Date(now.getTime() - UPLOAD_MULTIPART_TTL_MS) },
-        OR: [
-          { status: 'PENDING' },
-          { status: 'UPLOADING', mergeLeaseUntil: { lte: now } },
-          { status: 'UPLOADING', mergeLeaseUntil: null },
-        ],
-      },
-      data: { status: 'CANCELLED', mergeToken: null, mergeLeaseUntil: null },
-    });
+    if (now.getTime() - this.lastExpirySweepAt >= UPLOAD_CLEANUP_INTERVAL_MS) {
+      await this.prisma.uploadSession.updateMany({
+        where: {
+          chunkSize: { not: null },
+          createdAt: { lte: new Date(now.getTime() - UPLOAD_MULTIPART_TTL_MS) },
+          OR: [
+            { status: 'PENDING' },
+            { status: 'UPLOADING', mergeLeaseUntil: { lte: now } },
+            { status: 'UPLOADING', mergeLeaseUntil: null },
+          ],
+        },
+        data: { status: 'CANCELLED', mergeToken: null, mergeLeaseUntil: null },
+      });
+      this.lastExpirySweepAt = now.getTime();
+    }
+    const cursor = this.cleanupCursor;
     const sessions = await this.prisma.uploadSession.findMany({
       where: {
         status: { in: ['COMPLETED', 'FAILED', 'CANCELLED'] },
         parts: { some: {} },
+        ...(cursor
+          ? {
+              OR: [
+                { createdAt: { gt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, id: { gt: cursor.id } },
+              ],
+            }
+          : {}),
       },
-      select: { id: true },
+      select: { id: true, createdAt: true },
       take: 25,
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
+    this.cleanupCursor =
+      sessions.length === 25 ? sessions[sessions.length - 1] : undefined;
     for (let offset = 0; offset < sessions.length; offset += 2)
       await Promise.all(
         sessions
           .slice(offset, offset + 2)
           .map((session) => this.cleanupParts(session.id)),
       );
+    return this.cleanupCursor !== undefined;
   }
 }

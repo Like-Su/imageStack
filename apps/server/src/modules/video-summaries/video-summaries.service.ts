@@ -7,13 +7,17 @@ import { MediaProcessingError } from '../jobs/media-processing.constants';
 import { VideoSummaryLlmService } from './video-summary-llm.service';
 import { VideoTranscriptionService } from './video-transcription.service';
 import {
-  VIDEO_SUMMARY_EVENT_LOCK,
   VIDEO_SUMMARY_LEASE_MS,
   VIDEO_SUMMARY_MAX_ATTEMPTS,
   VideoSummaryError,
   runnableVideoSummaryWhere,
   summaryVideoWhere,
 } from './video-summary.constants';
+import {
+  recordVideoSummaryEvent,
+  serializeVideoSummaryState,
+  videoSummaryStateSelect,
+} from './video-summary-state';
 import type {
   TranscriptSegment,
   VideoTranscript,
@@ -61,7 +65,7 @@ export class VideoSummariesService {
     for (const listener of this.listeners) listener();
   }
 
-  async detail(assetId: string, ownerId: string) {
+  async detail(assetId: string, ownerId: string, includeTranscript = true) {
     const asset = await this.prisma.fileNode.findFirst({
       where: {
         id: assetId,
@@ -73,18 +77,9 @@ export class VideoSummariesService {
       select: {
         videoSummary: {
           select: {
-            status: true,
-            stage: true,
-            transcript: true,
-            segments: true,
-            transcribedChunks: true,
-            language: true,
-            summary: true,
-            model: true,
-            error: true,
-            attempts: true,
-            nextAttemptAt: true,
-            completedAt: true,
+            ...videoSummaryStateSelect,
+            transcript: includeTranscript,
+            segments: includeTranscript,
           },
         },
       },
@@ -94,7 +89,13 @@ export class VideoSummariesService {
       configured: this.enabled,
       configurationError: this.configurationError,
       autoSummarize: this.autoSummarize,
-      result: asset.videoSummary,
+      result: asset.videoSummary
+        ? {
+            ...serializeVideoSummaryState(asset.videoSummary),
+            transcript: asset.videoSummary.transcript ?? null,
+            segments: asset.videoSummary.segments ?? null,
+          }
+        : null,
     };
   }
 
@@ -105,9 +106,19 @@ export class VideoSummariesService {
       select: { id: true, hash: true },
     });
     if (!asset) return;
-    await this.prisma.videoSummary.createMany({
-      data: [{ assetId: asset.id, sourceHash: asset.hash }],
-      skipDuplicates: true,
+    await this.prisma.$transaction(async (transaction) => {
+      const created = await transaction.videoSummary.createMany({
+        data: [{ assetId: asset.id, sourceHash: asset.hash }],
+        skipDuplicates: true,
+      });
+      if (created.count)
+        await recordVideoSummaryEvent(
+          transaction,
+          asset.id,
+          file.ownerId,
+          'PENDING',
+        );
+      return created.count;
     });
     this.wake();
   }
@@ -140,10 +151,13 @@ export class VideoSummariesService {
           nextAttemptAt: null,
         },
       });
-      return created.count + retried.count;
+      const count = created.count + retried.count;
+      if (count)
+        await recordVideoSummaryEvent(transaction, assetId, ownerId, 'PENDING');
+      return count;
     });
     if (queued) this.wake();
-    return { queued };
+    return { queued, detail: await this.detail(assetId, ownerId, false) };
   }
 
   runnable(limit: number) {
@@ -180,7 +194,7 @@ export class VideoSummariesService {
       },
     };
     if (record.attempts >= VIDEO_SUMMARY_MAX_ATTEMPTS) {
-      await this.finish(claimWhere, assetId, 'FAILED', {
+      await this.finish(claimWhere, assetId, ownerId, 'FAILED', {
         error: '视频总结重试次数已耗尽，可在视频详情中手动重试',
       });
       return;
@@ -188,9 +202,12 @@ export class VideoSummariesService {
     const leaseToken = randomUUID();
     const attempt = record.attempts + 1;
     const resume = record.sourceHash === record.asset.hash;
-    const claimed = await this.prisma.videoSummary.updateMany({
-      where: claimWhere,
-      data: {
+    const claimed = await this.updateState(
+      claimWhere,
+      assetId,
+      ownerId,
+      'PROCESSING',
+      {
         status: 'PROCESSING',
         attempts: { increment: 1 },
         leaseToken,
@@ -210,8 +227,8 @@ export class VideoSummariesService {
             }
           : {}),
       },
-    });
-    if (claimed.count !== 1) return;
+    );
+    if (claimed !== 1) return;
     const processingWhere: Prisma.VideoSummaryWhereInput = {
       assetId,
       status: 'PROCESSING',
@@ -260,11 +277,14 @@ export class VideoSummariesService {
           transcript,
           async (progress) => {
             controller.signal.throwIfAborted();
-            const updated = await this.prisma.videoSummary.updateMany({
-              where: processingWhere,
-              data: transcriptData(progress),
-            });
-            if (updated.count !== 1) {
+            const updated = await this.updateState(
+              processingWhere,
+              assetId,
+              ownerId,
+              'PROCESSING',
+              transcriptData(progress),
+            );
+            if (updated !== 1) {
               abort();
               controller.signal.throwIfAborted();
             }
@@ -272,11 +292,17 @@ export class VideoSummariesService {
           controller.signal,
         );
         controller.signal.throwIfAborted();
-        const updated = await this.prisma.videoSummary.updateMany({
-          where: processingWhere,
-          data: { ...transcriptData(transcript), stage: 'SUMMARIZING' },
-        });
-        if (updated.count !== 1) {
+        const updated = await this.updateState(
+          processingWhere,
+          assetId,
+          ownerId,
+          'PROCESSING',
+          {
+            ...(transcript.transcribedChunks ? {} : transcriptData(transcript)),
+            stage: 'SUMMARIZING',
+          },
+        );
+        if (updated !== 1) {
           abort();
           controller.signal.throwIfAborted();
         }
@@ -286,7 +312,7 @@ export class VideoSummariesService {
         controller.signal,
       );
       controller.signal.throwIfAborted();
-      await this.finish(processingWhere, assetId, 'READY', {
+      await this.finish(processingWhere, assetId, ownerId, 'READY', {
         summary,
         completedAt: new Date(),
         error: null,
@@ -303,20 +329,17 @@ export class VideoSummariesService {
         ? error.message
         : '视频转写或总结暂时失败，等待后台重试';
       if (failed)
-        await this.finish(processingWhere, assetId, 'FAILED', {
+        await this.finish(processingWhere, assetId, ownerId, 'FAILED', {
           error: message,
         });
       else
-        await this.prisma.videoSummary.updateMany({
-          where: processingWhere,
-          data: {
-            status: 'PENDING',
-            error: message,
-            leaseToken: null,
-            leaseUntil: null,
-            nextAttemptAt: new Date(Date.now() + 30000 * 2 ** (attempt - 1)),
-            ...(signal.aborted ? { attempts: { decrement: 1 } } : {}),
-          },
+        await this.updateState(processingWhere, assetId, ownerId, 'PENDING', {
+          status: 'PENDING',
+          error: message,
+          leaseToken: null,
+          leaseUntil: null,
+          nextAttemptAt: new Date(Date.now() + 30000 * 2 ** (attempt - 1)),
+          ...(signal.aborted ? { attempts: { decrement: 1 } } : {}),
         });
       if (!signal.aborted) this.logger.warn(`视频 ${assetId}：${message}`);
     } finally {
@@ -329,25 +352,32 @@ export class VideoSummariesService {
   private finish(
     where: Prisma.VideoSummaryWhereInput,
     assetId: string,
+    ownerId: string,
     status: 'READY' | 'FAILED',
+    data: Prisma.VideoSummaryUpdateManyMutationInput,
+  ) {
+    return this.updateState(where, assetId, ownerId, status, {
+      ...data,
+      leaseToken: null,
+      leaseUntil: null,
+      nextAttemptAt: null,
+    });
+  }
+
+  private updateState(
+    where: Prisma.VideoSummaryWhereInput,
+    assetId: string,
+    ownerId: string,
+    status: 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED',
     data: Prisma.VideoSummaryUpdateManyMutationInput,
   ) {
     return this.prisma.$transaction(async (transaction) => {
       const result = await transaction.videoSummary.updateMany({
         where,
-        data: {
-          ...data,
-          status,
-          leaseToken: null,
-          leaseUntil: null,
-          nextAttemptAt: null,
-        },
+        data: { ...data, status },
       });
       if (result.count === 1) {
-        await transaction.$executeRaw`SELECT pg_advisory_xact_lock(${VIDEO_SUMMARY_EVENT_LOCK}::integer, 0)`;
-        await transaction.videoSummaryEvent.create({
-          data: { assetId, status },
-        });
+        await recordVideoSummaryEvent(transaction, assetId, ownerId, status);
       }
       return result.count;
     });

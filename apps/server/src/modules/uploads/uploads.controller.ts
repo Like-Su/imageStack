@@ -13,12 +13,14 @@ import type { Request } from 'express';
 import { PermissionCode } from '../../common/constants';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
+import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import { CreateUploadSessionDto } from './dto/upload.dto';
 import { UploadsService } from './uploads.service';
 
 @Controller('uploads')
 @RequirePermission(PermissionCode.UPLOAD_CREATE)
+@AllowSharedAlbum('upload', 'addAssets')
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
@@ -31,11 +33,13 @@ export class UploadsController {
   }
 
   @Get('sessions/:id')
+  @RequirePermission()
   getSession(@Param('id') sessionId: string, @CurrentUser() user: RequestUser) {
     return this.uploadsService.getSession(sessionId, user.id);
   }
 
   @Get('sessions/:id/progress')
+  @RequirePermission()
   getProgress(
     @Param('id') sessionId: string,
     @CurrentUser() user: RequestUser,
@@ -87,6 +91,7 @@ export class UploadsController {
   }
 
   @Delete('sessions/:id')
+  @RequirePermission()
   cancel(@Param('id') sessionId: string, @CurrentUser() user: RequestUser) {
     return this.uploadsService.cancel(sessionId, user.id);
   }

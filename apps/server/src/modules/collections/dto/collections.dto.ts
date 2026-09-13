@@ -5,6 +5,7 @@ import {
   ArrayMinSize,
   ArrayUnique,
   IsArray,
+  IsBoolean,
   IsOptional,
   IsString,
   MaxLength,
@@ -19,6 +20,10 @@ function trimInput({ obj, key }: TransformFnParams): unknown {
 }
 
 export class CreateAlbumDto {
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsBoolean()
+  shared?: boolean;
+
   @Transform(trimInput)
   @IsString()
   @MinLength(1)

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
 import { ref, watch } from "vue";
-import { RefreshCw, Sparkles } from "lucide-vue-next";
+import { RefreshCw, Sparkles, Tags } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useRemoteData } from "@/composables/useRemoteData";
 import { useVisiblePolling } from "@/composables/useVisiblePolling";
+import { workspaceEventsAvailable } from "@/composables/videoSummaryEvents";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { ImageRecognition } from "@/types/media";
+import AiTagConfirmationDialog from "./AiTagConfirmationDialog.vue";
 
 const props = defineProps<{ assetId: string; ready: boolean }>();
 const workspace = useWorkspaceStore();
@@ -22,13 +24,27 @@ const {
   { resources: ["ai"] },
 );
 const busy = ref(false);
+const confirmingTags = ref(false);
+watch(
+  () => props.assetId,
+  () => {
+    confirmingTags.value = false;
+  },
+);
 watch(result, (value, previous) => {
-  if (value?.status === "READY" && previous && previous.status !== "READY")
+  if (
+    !workspaceEventsAvailable.value &&
+    value?.status === "READY" &&
+    previous &&
+    previous.status !== "READY"
+  )
     workspace.invalidate(["search"]);
 });
 useVisiblePolling(refresh, () =>
   result.value && ["PENDING", "PROCESSING"].includes(result.value.status)
-    ? 5000
+    ? workspaceEventsAvailable.value
+      ? 300000
+      : 15000
     : false,
 );
 
@@ -103,6 +119,22 @@ async function recognize() {
           >{{ keyword }}</span
         >
       </div>
+      <p class="mt-3 text-[10px] leading-5 text-faint">
+        {{
+          $t(
+            "AI 关键词用于检索，不会自动创建标签；可先增加、修改或删除候选，确认后再保存并关联图片。",
+          )
+        }}
+      </p>
+      <el-button
+        v-if="workspace.can('asset:tag')"
+        class="mt-2"
+        native-type="button"
+        :disabled="loading || busy || !ready"
+        @click="confirmingTags = true"
+      >
+        <Tags />{{ $t("编辑 AI 标签") }}
+      </el-button>
       <details v-if="result.ocrText" class="mt-3 text-xs text-soft">
         <summary class="cursor-pointer text-ai">
           {{ $t("查看识别文字") }}
@@ -155,4 +187,13 @@ async function recognize() {
       </el-button>
     </template>
   </section>
+  <AiTagConfirmationDialog
+    v-if="
+      confirmingTags && result?.status === 'READY' && workspace.can('asset:tag')
+    "
+    :key="assetId"
+    :asset-id="assetId"
+    :keywords="result.keywords"
+    @close="confirmingTags = false"
+  />
 </template>

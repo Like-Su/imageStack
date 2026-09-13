@@ -9,6 +9,7 @@ export type WorkspaceResource =
   | "tags"
   | "places"
   | "ai"
+  | "processing"
   | "video-summaries"
   | "overview";
 

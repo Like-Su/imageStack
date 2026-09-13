@@ -145,13 +145,29 @@ export class UploadPartsService {
   async cleanup(sessionId: string) {
     const parts = await this.prisma.uploadPart.findMany({
       where: { sessionId },
+      select: { index: true, storageKey: true },
     });
-    for (const part of parts) {
-      await this.storage.delete(part.storageKey);
-      await this.prisma.uploadPart.deleteMany({
-        where: { sessionId, index: part.index, storageKey: part.storageKey },
-      });
+    let failure: PromiseRejectedResult | undefined;
+    for (let offset = 0; offset < parts.length; offset += 4) {
+      const results = await Promise.allSettled(
+        parts.slice(offset, offset + 4).map(async (part) => {
+          await this.storage.delete(part.storageKey);
+          return part;
+        }),
+      );
+      const removed = results.flatMap((result) =>
+        result.status === 'fulfilled' ? [result.value] : [],
+      );
+      if (removed.length)
+        await this.prisma.uploadPart.deleteMany({
+          where: { sessionId, OR: removed },
+        });
+      failure ??= results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected',
+      );
     }
+    if (failure) throw failure.reason;
   }
 
   private async discard(key: string) {

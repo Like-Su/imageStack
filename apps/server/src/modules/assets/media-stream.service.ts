@@ -30,7 +30,8 @@ import { UserService } from '../iam/user/user.service';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
-import { assetWhere } from './asset-scope';
+import { readableAssetWhere } from './asset-scope';
+import { albumWhere } from '../collections/album-scope';
 import type { MediaStreamDto } from './dto/media-stream.dto';
 
 const STREAM_TICKET_TTL_MS = VIDEO_MAX_DURATION_MS + 15 * 60 * 1000;
@@ -61,7 +62,12 @@ export class MediaStreamService {
     user: RequestUser,
     kind: MediaStreamDto['kind'],
   ) {
-    const asset = await this.findOwned(assetId, user.id);
+    const asset = await this.findReadable(
+      assetId,
+      user.id,
+      user.roleCode !== RoleCode.ADMIN &&
+        !user.permissions.includes(PermissionCode.ASSET_DOWNLOAD),
+    );
     if (kind === 'hls') await this.ensureHls(asset);
     const expiresAt = user.sessionId
       ? Date.now() + STREAM_TICKET_TTL_MS
@@ -87,8 +93,12 @@ export class MediaStreamService {
 
   async resource(assetId: string, fileName: string, ticket: string) {
     const payload = this.verify(ticket, assetId);
-    await this.authorize(payload);
-    const asset = await this.findOwned(assetId, payload.userId);
+    const hasGlobalRead = await this.authorize(payload);
+    const asset = await this.findReadable(
+      assetId,
+      payload.userId,
+      !hasGlobalRead,
+    );
     if (fileName === 'file' && payload.kind !== 'hls') {
       const encodedName = encodeURIComponent(asset.name).replace(
         /['()*]/g,
@@ -188,16 +198,29 @@ export class MediaStreamService {
     const user = await this.users.getAuthUser(ticket.userId, version);
     if (!user)
       throw new UnauthorizedException('登录状态已失效，请重新打开媒体');
-    if (
-      user.roleCode !== RoleCode.ADMIN &&
-      !user.permissions.includes(PermissionCode.ASSET_DOWNLOAD)
-    )
-      throw new ForbiddenException('无权读取媒体文件');
+    return (
+      user.roleCode === RoleCode.ADMIN ||
+      user.permissions.includes(PermissionCode.ASSET_DOWNLOAD)
+    );
   }
 
-  private async findOwned(assetId: string, userId: string) {
+  private async findReadable(
+    assetId: string,
+    userId: string,
+    sharedOnly = false,
+  ) {
     const asset = await this.prisma.fileNode.findFirst({
-      where: { ...assetWhere(userId), id: assetId },
+      where: {
+        ...readableAssetWhere(userId),
+        id: assetId,
+        ...(sharedOnly
+          ? {
+              albums: {
+                some: { album: { shared: true, ...albumWhere(userId) } },
+              },
+            }
+          : {}),
+      },
       select: assetMediaSelect,
     });
     if (!asset) throw new NotFoundException('媒体文件不存在');

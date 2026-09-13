@@ -121,8 +121,13 @@ export function useAssetActions(source?: () => AssetSummary[]) {
     }
   }
 
-  async function download(asset: AssetSummary, originalBlob?: Blob) {
-    if (downloading.value || !workspace.can("asset:download")) return;
+  async function download(
+    asset: AssetSummary,
+    originalBlob?: Blob,
+    shared = false,
+  ) {
+    if (downloading.value || (!shared && !workspace.can("asset:download")))
+      return;
     downloading.value = true;
     downloadController = new AbortController();
     try {

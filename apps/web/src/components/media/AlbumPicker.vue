@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { FolderPlus } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
@@ -23,6 +23,13 @@ const {
   update: updateAlbums,
 });
 const selected = ref("");
+const albumOptions = computed(() =>
+  (albums.value ?? []).map((album) => ({
+    label: `${album.name} · ${album.count}${translate("项")}`,
+    value: album.id,
+    disabled: !album.permissions.addAssets,
+  })),
+);
 const newName = ref("");
 const creating = ref(false);
 const busy = ref(false);
@@ -82,22 +89,16 @@ async function submit() {
       <template v-else>
         <label v-if="!creating" class="mh-label"
           >{{ $t("选择相册")
-          }}<el-select v-model="selected" class="min-w-36" :disabled="busy">
-            <el-option
-              :label="
-                albums?.length ? $t('请选择相册') : $t('还没有相册，请先新建')
-              "
-              value=""
-            >
-            </el-option>
-            <el-option
-              :label="album.name + '·' + album.count + $t('项')"
-              v-for="album in albums"
-              :key="album.id"
-              :value="album.id"
-            >
-            </el-option> </el-select
-        ></label>
+          }}<el-select-v2
+            v-model="selected"
+            class="min-w-36"
+            filterable
+            :options="albumOptions"
+            :disabled="busy"
+            :placeholder="
+              albums?.length ? $t('请选择相册') : $t('还没有相册，请先新建')
+            "
+        /></label>
         <label v-else class="mh-label"
           >{{ $t("新相册名称")
           }}<el-input

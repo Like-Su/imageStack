@@ -25,6 +25,10 @@ const scrollParent = shallowRef<HTMLElement>();
 const width = ref(0);
 const enabled = ref(true);
 let observer: ResizeObserver | null = null;
+let layoutWidth = -1;
+let layoutGrid: boolean | undefined;
+let layoutColumns = 0;
+let layoutItems: Pick<AssetSummary, "id" | "width" | "height">[] = [];
 const columnCount = computed(() =>
   props.grid
     ? Math.max(
@@ -36,28 +40,55 @@ const columnCount = computed(() =>
       )
     : 1,
 );
-const columns = computed(() => {
-  const count = columnCount.value;
-  const columnWidth = Math.max(1, (width.value - (count - 1) * 12) / count);
-  const heights = Array<number>(count).fill(0);
-  const result = Array.from(
-    { length: count },
-    () => [] as { id: string; asset: AssetSummary; height: number }[],
-  );
-  for (const asset of props.items) {
-    const column = heights.indexOf(Math.min(...heights));
-    const ratio =
-      asset.width && asset.height
-        ? Math.max(0.6, Math.min(1.85, asset.width / asset.height))
-        : 1.2;
-    const height = props.grid
-      ? Math.ceil(Math.max(1, columnWidth - 2) / ratio) + 14
-      : 73;
-    result[column]!.push({ id: asset.id, asset, height });
-    heights[column]! += height;
-  }
-  return result;
-});
+const columns = computed<{ id: string; index: number; height: number }[][]>(
+  (previous) => {
+    const count = columnCount.value;
+    if (
+      previous &&
+      layoutWidth === width.value &&
+      layoutGrid === props.grid &&
+      layoutColumns === count &&
+      layoutItems.length === props.items.length &&
+      props.items.every((asset, index) => {
+        const before = layoutItems[index]!;
+        return (
+          asset.id === before.id &&
+          asset.width === before.width &&
+          asset.height === before.height
+        );
+      })
+    )
+      return previous;
+    layoutWidth = width.value;
+    layoutGrid = props.grid;
+    layoutColumns = count;
+    layoutItems = props.items.map(({ id, width, height }) => ({
+      id,
+      width,
+      height,
+    }));
+    const columnWidth = Math.max(1, (width.value - (count - 1) * 12) / count);
+    const heights = Array<number>(count).fill(0);
+    const result = Array.from(
+      { length: count },
+      () => [] as { id: string; index: number; height: number }[],
+    );
+    for (let index = 0; index < props.items.length; index += 1) {
+      const asset = props.items[index]!;
+      const column = heights.indexOf(Math.min(...heights));
+      const ratio =
+        asset.width && asset.height
+          ? Math.max(0.6, Math.min(1.85, asset.width / asset.height))
+          : 1.2;
+      const height = props.grid
+        ? Math.ceil(Math.max(1, columnWidth - 2) / ratio) + 14
+        : 73;
+      result[column]!.push({ id: asset.id, index, height });
+      heights[column]! += height;
+    }
+    return result;
+  },
+);
 
 onMounted(() => {
   scrollParent.value =
@@ -101,7 +132,11 @@ onScopeDispose(() => observer?.disconnect());
       v-slot="{ item, active }"
     >
       <div :style="{ height: `${item.height}px` }">
-        <slot :asset="item.asset" :active="active" />
+        <slot
+          v-if="items[item.index]"
+          :asset="items[item.index]!"
+          :active="active"
+        />
       </div>
     </RecycleScroller>
   </div>

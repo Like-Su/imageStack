@@ -11,5 +11,6 @@ import { TagsService } from './tags.service';
   imports: [PrismaModule, AssetsModule],
   controllers: [AlbumsController, TagsController, AssetTagsController],
   providers: [AlbumsService, TagsService],
+  exports: [AlbumsService],
 })
 export class CollectionsModule {}

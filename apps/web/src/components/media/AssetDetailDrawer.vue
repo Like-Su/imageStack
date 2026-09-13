@@ -71,7 +71,7 @@ const originalViewer = ref(false);
 const sharing = ref(false);
 const renaming = ref(false);
 const tagBusy = ref(false);
-const imageVersion = ref(0);
+const imagePreview = ref<InstanceType<typeof AssetImage>>();
 
 watch(assetId, () => {
   albumPicker.value = false;
@@ -146,7 +146,7 @@ async function removeTag(tagId: string) {
   }
 }
 function reload() {
-  imageVersion.value += 1;
+  imagePreview.value?.reload();
   void refresh();
 }
 </script>
@@ -168,10 +168,11 @@ function reload() {
     <template v-else-if="asset">
       <div class="relative aspect-[4/3] bg-ink">
         <AssetImage
+          ref="imagePreview"
           :asset-id="asset.id"
           :name="asset.name"
           :trash="asset.deleted"
-          :version="`${asset.status}-${imageVersion}`"
+          :version="asset.thumbnailRevision ?? asset.status"
           contain
         /><el-button
           text

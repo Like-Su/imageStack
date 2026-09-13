@@ -6,7 +6,6 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
-  shallowRef,
   useId,
   watch,
 } from "vue";
@@ -28,8 +27,9 @@ import { useAssetActions } from "@/composables/useAssetActions";
 import { formatBytes, formatDuration } from "@/composables/mediaFormat";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { AssetDetail } from "@/types/media";
+import AssetImage from "./AssetImage.vue";
 
-const props = defineProps<{ asset: AssetDetail }>();
+const props = defineProps<{ asset: AssetDetail; shared?: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 const workspace = useWorkspaceStore();
 const { downloading, download } = useAssetActions();
@@ -43,7 +43,6 @@ const mode = ref<"original" | "compatible">(
 );
 const source = ref("");
 const sourceIsHls = ref(false);
-const originalBlob = shallowRef<Blob | null>(null);
 const loading = ref(false);
 const loadingMessage = ref("");
 const mediaReady = ref(false);
@@ -79,6 +78,12 @@ let hlsPlayer: Hls | null = null;
 let playerVersion = 0;
 let retryTimer: number | undefined;
 let observer: ResizeObserver | null = null;
+let zoomFrame: number | undefined;
+let zoomVersion = 0;
+let pendingZoom:
+  { value: number; anchor?: { clientX: number; clientY: number } } | undefined;
+let dragFrame: number | undefined;
+let pendingDrag: { left: number; top: number } | undefined;
 let pointer: {
   id: number;
   left: number;
@@ -88,6 +93,7 @@ let pointer: {
 } | null = null;
 
 function clearMedia() {
+  cancelZoom();
   playerVersion += 1;
   hlsPlayer?.destroy();
   hlsPlayer = null;
@@ -102,7 +108,6 @@ function clearMedia() {
   if (source.value.startsWith("blob:")) URL.revokeObjectURL(source.value);
   source.value = "";
   sourceIsHls.value = false;
-  originalBlob.value = null;
   mediaReady.value = false;
 }
 
@@ -113,7 +118,7 @@ async function retrieve(
   attempt = 0,
 ) {
   try {
-    if (isVideo.value) {
+    if (isVideo.value || kind === "original") {
       const ticket = await mediaApi.streamTicket(
         assetId,
         kind === "compatible" ? "hls" : "original",
@@ -125,11 +130,8 @@ async function retrieve(
       loading.value = false;
       return;
     }
-    const blob = await (kind === "original"
-      ? mediaApi.original(assetId, current.signal)
-      : mediaApi.preview(assetId, current.signal));
+    const blob = await mediaApi.preview(assetId, current.signal);
     if (current.signal.aborted || controller !== current) return;
-    if (kind === "original") originalBlob.value = blob;
     source.value = URL.createObjectURL(blob);
     loading.value = false;
   } catch (failure) {
@@ -255,52 +257,77 @@ function resizeViewport() {
 }
 
 function fit() {
+  cancelZoom();
   fitted.value = true;
   scale.value = fitScale.value;
   void nextTick(() => viewport.value?.scrollTo({ left: 0, top: 0 }));
 }
 
-async function zoomTo(
+function cancelZoom() {
+  if (zoomFrame !== undefined) window.cancelAnimationFrame(zoomFrame);
+  zoomFrame = undefined;
+  pendingZoom = undefined;
+  zoomVersion += 1;
+}
+
+function zoomTo(value: number, anchor?: { clientX: number; clientY: number }) {
+  if (!viewport.value || !mediaReady.value) return;
+  pendingZoom = {
+    value: Math.min(8, Math.max(minimumScale.value, value)),
+    anchor: anchor
+      ? { clientX: anchor.clientX, clientY: anchor.clientY }
+      : undefined,
+  };
+  zoomFrame ??= window.requestAnimationFrame(() => {
+    zoomFrame = undefined;
+    const pending = pendingZoom;
+    pendingZoom = undefined;
+    if (pending) void applyZoom(pending.value, pending.anchor);
+  });
+}
+
+async function applyZoom(
   value: number,
   anchor?: { clientX: number; clientY: number },
 ) {
   const element = viewport.value;
   if (!element || !mediaReady.value) return;
+  const version = zoomVersion;
   const bounds = element.getBoundingClientRect();
-  const anchorX = anchor
-    ? anchor.clientX - bounds.left
-    : element.clientWidth / 2;
-  const anchorY = anchor
-    ? anchor.clientY - bounds.top
-    : element.clientHeight / 2;
+  const { width, height } = viewportSize.value;
+  const anchorX = anchor ? anchor.clientX - bounds.left : width / 2;
+  const anchorY = anchor ? anchor.clientY - bounds.top : height / 2;
   const contentX =
     (element.scrollLeft +
       anchorX -
-      Math.max(0, (element.clientWidth - displayWidth.value) / 2)) /
+      Math.max(0, (width - displayWidth.value) / 2)) /
     scale.value;
   const contentY =
     (element.scrollTop +
       anchorY -
-      Math.max(0, (element.clientHeight - displayHeight.value) / 2)) /
+      Math.max(0, (height - displayHeight.value) / 2)) /
     scale.value;
   fitted.value = false;
   scale.value = Math.min(8, Math.max(minimumScale.value, value));
   await nextTick();
-  if (viewport.value !== element) return;
+  if (viewport.value !== element || version !== zoomVersion) return;
   element.scrollLeft =
     contentX * scale.value +
-    Math.max(0, (element.clientWidth - displayWidth.value) / 2) -
+    Math.max(0, (width - displayWidth.value) / 2) -
     anchorX;
   element.scrollTop =
     contentY * scale.value +
-    Math.max(0, (element.clientHeight - displayHeight.value) / 2) -
+    Math.max(0, (height - displayHeight.value) / 2) -
     anchorY;
 }
 
 function wheel(event: WheelEvent) {
   if (!mediaReady.value || isVideo.value || !event.deltaY) return;
   event.preventDefault();
-  void zoomTo(scale.value * (event.deltaY < 0 ? 1.15 : 1 / 1.15), event);
+  zoomTo(
+    (pendingZoom?.value ?? scale.value) * (event.deltaY < 0 ? 1.15 : 1 / 1.15),
+    event,
+  );
 }
 
 function startDrag(event: PointerEvent) {
@@ -327,11 +354,25 @@ function startDrag(event: PointerEvent) {
 
 function drag(event: PointerEvent) {
   if (!pointer || pointer.id !== event.pointerId || !viewport.value) return;
-  viewport.value.scrollLeft = pointer.left - event.clientX + pointer.clientX;
-  viewport.value.scrollTop = pointer.top - event.clientY + pointer.clientY;
+  pendingDrag = {
+    left: pointer.left - event.clientX + pointer.clientX,
+    top: pointer.top - event.clientY + pointer.clientY,
+  };
+  dragFrame ??= window.requestAnimationFrame(flushDrag);
+}
+
+function flushDrag() {
+  if (dragFrame !== undefined) window.cancelAnimationFrame(dragFrame);
+  dragFrame = undefined;
+  if (pendingDrag && viewport.value) {
+    viewport.value.scrollLeft = pendingDrag.left;
+    viewport.value.scrollTop = pendingDrag.top;
+  }
+  pendingDrag = undefined;
 }
 
 function stopDrag() {
+  flushDrag();
   const captured = pointer;
   pointer = null;
   dragging.value = false;
@@ -344,7 +385,7 @@ function ready(event: Event) {
   if (!source.value || loading.value) return;
   if (
     element instanceof HTMLImageElement &&
-    element.currentSrc === source.value
+    element.currentSrc === new URL(source.value, window.location.href).href
   )
     dimensions.value = {
       width: element.naturalWidth || dimensions.value.width,
@@ -368,7 +409,7 @@ function cannotDisplay(event: Event) {
   const element = event.target;
   if (
     element instanceof HTMLImageElement &&
-    element.currentSrc !== source.value
+    element.currentSrc !== new URL(source.value, window.location.href).href
   )
     return;
   videoElement.value?.pause();
@@ -403,10 +444,7 @@ function keyboard(event: KeyboardEvent) {
 }
 
 function downloadOriginal() {
-  void download(
-    props.asset,
-    mode.value === "original" ? (originalBlob.value ?? undefined) : undefined,
-  );
+  void download(props.asset, undefined, Boolean(props.shared));
 }
 
 watch(
@@ -507,6 +545,14 @@ onBeforeUnmount(() => {
         @pointercancel="stopDrag"
         @lostpointercapture="stopDrag"
       >
+        <AssetImage
+          v-if="!isVideo && !mediaReady && !error"
+          :asset-id="asset.id"
+          :name="asset.name"
+          :version="asset.thumbnailRevision ?? asset.status"
+          class="!absolute inset-0"
+          contain
+        />
         <div v-if="source && !error" class="viewer-canvas" :style="canvasStyle">
           <video
             v-if="isVideo"
@@ -528,6 +574,7 @@ onBeforeUnmount(() => {
             class="viewer-media"
             :style="canvasStyle"
             draggable="false"
+            decoding="async"
             referrerpolicy="no-referrer"
             @load="ready"
             @error="cannotDisplay"
@@ -623,7 +670,9 @@ onBeforeUnmount(() => {
           <button
             class="viewer-button is-primary"
             type="button"
-            :disabled="downloading || !workspace.can('asset:download')"
+            :disabled="
+              downloading || (!shared && !workspace.can('asset:download'))
+            "
             @click="downloadOriginal"
           >
             <LoaderCircle

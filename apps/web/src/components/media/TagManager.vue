@@ -210,6 +210,7 @@ async function remove(tag: Tag) {
               ><AssetImage
                 v-if="tag.coverAssetId"
                 :asset-id="tag.coverAssetId"
+                :version="tag.coverThumbnailRevision ?? undefined"
                 :name="label(tag)" /><span
                 v-else
                 class="mh-gradient grid size-full place-items-center"

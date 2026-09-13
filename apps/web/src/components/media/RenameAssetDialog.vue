@@ -7,7 +7,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import type { AssetSummary } from "@/types/media";
 import AppModal from "@/components/workspace/AppModal.vue";
 
-const props = defineProps<{ asset: AssetSummary }>();
+const props = defineProps<{ asset: AssetSummary; albumId?: string }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const workspace = useWorkspaceStore();
 const extension = props.asset.name.match(/\.[^.]+$/u)?.[0] ?? "";
@@ -30,7 +30,7 @@ async function submit() {
     busy.value ||
     !isCurrent() ||
     props.asset.deleted ||
-    !workspace.can("asset:edit")
+    (!props.albumId && !workspace.can("asset:edit"))
   )
     return;
   const baseName = name.value.trim();
@@ -51,11 +51,14 @@ async function submit() {
   error.value = "";
   workspace.rememberAssets([props.asset]);
   try {
-    const result = await mediaApi.renameAsset(
-      props.asset.id,
-      nextName,
-      controller.signal,
-    );
+    const result = await (props.albumId
+      ? mediaApi.renameAlbumAsset(
+          props.albumId,
+          props.asset.id,
+          nextName,
+          controller.signal,
+        )
+      : mediaApi.renameAsset(props.asset.id, nextName, controller.signal));
     if (!isCurrent()) return;
     workspace.updateAssets([result.id], {
       name: result.name,
@@ -77,7 +80,11 @@ async function submit() {
     open
     :title="$t('重命名文件')"
     :description="
-      $t('仅修改名称，保留原扩展名，不影响原文件、相册和分享链接。')
+      albumId
+        ? $t(
+            '修改共享文件名称会同步更新上传者图库中的名称，原文件和扩展名保持不变。',
+          )
+        : $t('仅修改名称，保留原扩展名，不影响原文件、相册和分享链接。')
     "
     :busy="busy"
     @update:open="emit('close')"

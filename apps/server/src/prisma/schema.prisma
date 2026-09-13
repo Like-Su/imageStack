@@ -56,14 +56,15 @@ model User {
   // 会话版本
   sessionVersion Int @default(0)
 
-  fileNodes       FileNode[]
-  fileShares      FileShare[]
-  filePermissions FilePermission[]
-  uploadSessions  UploadSession[]
-  albums          Album[]
-  tags            Tag[]
-  shareLinks      ShareLink[]
-  shareSaves      ShareSave[]
+  fileNodes        FileNode[]
+  fileShares       FileShare[]
+  filePermissions  FilePermission[]
+  uploadSessions   UploadSession[]
+  albums           Album[]
+  albumMemberships AlbumMember[]
+  tags             Tag[]
+  shareLinks       ShareLink[]
+  shareSaves       ShareSave[]
 
   // 原有字段
   auditLogs AuditLog[] @relation("AuditActor")
@@ -324,6 +325,7 @@ model Album {
   id          String  @id @default(cuid())
   name        String  @db.VarChar(200)
   description String? @db.VarChar(2000)
+  shared      Boolean @default(false)
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
@@ -331,9 +333,11 @@ model Album {
   coverAssetId String?
   coverAsset   FileNode? @relation("AlbumCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
 
-  assets     AlbumAsset[]
-  shareLinks ShareLink[]
-  shareSaves ShareSave[]
+  assets         AlbumAsset[]
+  members        AlbumMember[]
+  uploadSessions UploadSession[]
+  shareLinks     ShareLink[]
+  shareSaves     ShareSave[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -341,6 +345,22 @@ model Album {
   @@unique([ownerId, name])
   @@index([ownerId, createdAt, id])
   @@index([coverAssetId])
+}
+
+model AlbumMember {
+  albumId   String
+  userId    String
+  canAdd    Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canRemove Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([albumId, userId])
+  @@index([userId, albumId])
 }
 
 model AlbumAsset {
@@ -390,6 +410,9 @@ model UploadSession {
   user   User   @relation(fields: [userId], references: [id])
   userId String
 
+  albumId String?
+  album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
   fileName String
 
   size BigInt?
@@ -415,6 +438,7 @@ model UploadSession {
   file   FileNode? @relation(fields: [fileId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
+  @@index([albumId])
   @@index([userId, hash, size])
   @@index([status, createdAt])
 }

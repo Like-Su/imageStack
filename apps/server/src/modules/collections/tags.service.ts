@@ -7,14 +7,19 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { withSerializable } from '../../common/prisma/transaction';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { assetWhere, requireOwnedAssets } from '../assets/asset-scope';
+import {
+  thumbnailRevision,
+  thumbnailRevisionSelect,
+} from '../assets/asset-media';
 import { rethrowCollectionError } from './collection-errors';
 import { CreateTagDto, UpdateTagDto } from './dto/collections.dto';
+import { ConfirmAssetTagsDto } from './dto/confirm-asset-tags.dto';
 
 function tagInclude(userId: string) {
   return {
     assets: {
       where: { asset: assetWhere(userId) },
-      select: { assetId: true },
+      select: { assetId: true, asset: { select: thumbnailRevisionSelect } },
       orderBy: [
         { asset: { createdAt: 'desc' as const } },
         { assetId: 'desc' as const },
@@ -130,19 +135,50 @@ export class TagsService {
     return { tags: result.tags, createdCount: result.createdCount };
   }
 
-  addToAssets(assetIds: string[], userId: string, names: string[]) {
+  confirmForAsset(assetId: string, userId: string, body: ConfirmAssetTagsDto) {
+    if (body.mode === 'existing' && body.names.length) {
+      throw new BadRequestException('仅使用已有标签时不能创建新标签');
+    }
+    const count = new Set(body.names).size + body.tagIds.length;
+    if (count < 1 || count > 50) {
+      throw new BadRequestException('请确认 1～50 个标签');
+    }
+    return this.addToAssets([assetId], userId, body.names, body.tagIds);
+  }
+
+  addToAssets(
+    assetIds: string[],
+    userId: string,
+    names: string[],
+    tagIds: string[] = [],
+  ) {
     const uniqueNames = [...new Set(names)];
+    const uniqueIds = [...new Set(tagIds)];
 
     return withSerializable(this.prisma, async (transaction) => {
       await requireOwnedAssets(transaction, userId, assetIds);
 
-      const created = await transaction.tag.createMany({
-        data: uniqueNames.map((name) => ({ ownerId: userId, name })),
-        skipDuplicates: true,
-      });
+      if (uniqueIds.length) {
+        const existingCount = await transaction.tag.count({
+          where: { ownerId: userId, id: { in: uniqueIds } },
+        });
+        if (existingCount !== uniqueIds.length) {
+          throw new NotFoundException('部分标签不存在或无权使用，请刷新后重试');
+        }
+      }
+
+      const created = uniqueNames.length
+        ? await transaction.tag.createMany({
+            data: uniqueNames.map((name) => ({ ownerId: userId, name })),
+            skipDuplicates: true,
+          })
+        : { count: 0 };
 
       const selected = await transaction.tag.findMany({
-        where: { ownerId: userId, name: { in: uniqueNames } },
+        where: {
+          ownerId: userId,
+          OR: [{ name: { in: uniqueNames } }, { id: { in: uniqueIds } }],
+        },
         select: { id: true },
       });
 
@@ -221,6 +257,7 @@ export class TagsService {
       source: 'MANUAL' as const,
       count: tag._count.assets,
       coverAssetId: tag.assets[0]?.assetId ?? null,
+      coverThumbnailRevision: thumbnailRevision(tag.assets[0]?.asset),
     };
   }
 }

@@ -65,6 +65,7 @@ export const ModelName = {
   VideoSummary: 'VideoSummary',
   VideoSummaryEvent: 'VideoSummaryEvent',
   Album: 'Album',
+  AlbumMember: 'AlbumMember',
   AlbumAsset: 'AlbumAsset',
   Tag: 'Tag',
   AssetTag: 'AssetTag',
@@ -266,6 +267,7 @@ export const AlbumScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
+  shared: 'shared',
   ownerId: 'ownerId',
   coverAssetId: 'coverAssetId',
   createdAt: 'createdAt',
@@ -274,6 +276,19 @@ export const AlbumScalarFieldEnum = {
 
 export type AlbumScalarFieldEnum =
   (typeof AlbumScalarFieldEnum)[keyof typeof AlbumScalarFieldEnum];
+
+export const AlbumMemberScalarFieldEnum = {
+  albumId: 'albumId',
+  userId: 'userId',
+  canAdd: 'canAdd',
+  canEdit: 'canEdit',
+  canRemove: 'canRemove',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type AlbumMemberScalarFieldEnum =
+  (typeof AlbumMemberScalarFieldEnum)[keyof typeof AlbumMemberScalarFieldEnum];
 
 export const AlbumAssetScalarFieldEnum = {
   albumId: 'albumId',
@@ -307,6 +322,7 @@ export type AssetTagScalarFieldEnum =
 export const UploadSessionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  albumId: 'albumId',
   fileName: 'fileName',
   size: 'size',
   mimeType: 'mimeType',

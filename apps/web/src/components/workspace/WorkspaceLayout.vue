@@ -31,6 +31,7 @@ import { useUploadsStore } from "@/stores/uploads";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useVisiblePolling } from "@/composables/useVisiblePolling";
 import { useVideoSummaryEvents } from "@/composables/useVideoSummaryEvents";
+import { workspaceEventsAvailable } from "@/composables/videoSummaryEvents";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 import WorkspaceFeedback from "./WorkspaceFeedback.vue";
 import UploadPanel from "./UploadPanel.vue";
@@ -68,7 +69,12 @@ const dragging = ref(false);
 let dragDepth = 0;
 useVisiblePolling(
   () => workspace.loadOverview(),
-  () => (route.name === "tasks" ? false : 30000),
+  () =>
+    route.name === "tasks"
+      ? false
+      : workspaceEventsAvailable.value
+        ? 300000
+        : 30000,
 );
 
 function syncNavigation() {

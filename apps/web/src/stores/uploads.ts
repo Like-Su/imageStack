@@ -9,7 +9,7 @@ import {
   uploadMediaKind,
 } from "@/config/workspace";
 import { useWorkspaceStore } from "./workspace";
-import type { UploadSession } from "@/types/media";
+import type { Album, UploadCompletion, UploadSession } from "@/types/media";
 import { hashFile } from "@/uploads/hash-file";
 import type { FileDigest } from "@/uploads/hash-file";
 import { uploadDelay, uploadParts } from "@/uploads/upload-parts";
@@ -29,11 +29,15 @@ interface UploadEntry {
   sessionId?: string;
   assetId?: string;
   albumId?: string;
+  attachedAlbumId?: string | null;
   error?: string;
 }
 
 export const useUploadsStore = defineStore("uploads", () => {
   const workspace = useWorkspaceStore();
+  const albumAccess = ref<Record<string, { shared: boolean; canAdd: boolean }>>(
+    {},
+  );
   const entries = ref<UploadEntry[]>([]);
   const open = ref(false);
   const collapsed = ref(false);
@@ -49,12 +53,29 @@ export const useUploadsStore = defineStore("uploads", () => {
   const controllers = new Map<number, AbortController>();
   let nextId = 0;
   let generation = 0;
+  let refreshTimer: number | undefined;
+  let refreshPending = false;
+  let albumRefreshPending = false;
 
   function canUpload(albumId?: string) {
+    if (!albumId) return workspace.can("upload:create");
+    const album = albumAccess.value[albumId];
+    if (!album?.canAdd) return false;
     return (
-      workspace.can("upload:create") &&
-      (!albumId || workspace.can("asset:category"))
+      album.shared ||
+      (workspace.can("upload:create") && workspace.can("asset:category"))
     );
+  }
+
+  function setAlbumAccess(album: Album) {
+    albumAccess.value[album.id] = {
+      shared: album.shared,
+      canAdd: album.permissions.addAssets,
+    };
+  }
+
+  function forgetAlbum(albumId: string) {
+    delete albumAccess.value[albumId];
   }
 
   function chooseFiles(albumId?: string) {
@@ -121,9 +142,21 @@ export const useUploadsStore = defineStore("uploads", () => {
     return newlyUploaded;
   }
 
-  function invalidateUploaded() {
+  function flushUploaded() {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = undefined;
+    if (!refreshPending) return;
+    refreshPending = false;
     workspace.invalidate(["assets", "overview"]);
     workspace.invalidate(["places", "ai"], true);
+    if (albumRefreshPending) workspace.invalidate(["albums"]);
+    albumRefreshPending = false;
+  }
+
+  function invalidateUploaded(refreshAlbum = false) {
+    refreshPending = true;
+    albumRefreshPending ||= refreshAlbum;
+    refreshTimer ??= window.setTimeout(flushUploaded, 5000);
   }
 
   async function finish(
@@ -131,26 +164,38 @@ export const useUploadsStore = defineStore("uploads", () => {
     assetId: string,
     signal: AbortSignal,
     version: number,
+    completion?: Pick<UploadCompletion, "albumId" | "album">,
   ) {
     if (signal.aborted || version !== generation) return;
     const newlyUploaded = rememberUploaded(entry, assetId);
+    if (completion?.albumId !== undefined)
+      entry.attachedAlbumId = completion.albumId;
+    let refreshAlbum = Boolean(entry.albumId);
     try {
       if (entry.albumId) {
-        entry.phase = "album";
-        const result = await mediaApi.addToAlbum(
-          entry.albumId,
-          [assetId],
-          signal,
-        );
-        if (signal.aborted || version !== generation) return;
-        workspace.updateAlbumMembers(result.album, [assetId], true);
+        if (entry.attachedAlbumId === entry.albumId) {
+          if (completion?.album)
+            workspace.updateAlbumMembers(completion.album, [assetId], true);
+          else refreshAlbum = true;
+        } else {
+          entry.phase = "album";
+          const result = await mediaApi.addToAlbum(
+            entry.albumId,
+            [assetId],
+            signal,
+          );
+          if (signal.aborted || version !== generation) return;
+          entry.attachedAlbumId = entry.albumId;
+          workspace.updateAlbumMembers(result.album, [assetId], true);
+        }
         if (!newlyUploaded && !workspace.knownAssets([assetId]).length)
-          workspace.invalidate(["assets"]);
+          invalidateUploaded(refreshAlbum);
       }
       entry.state = "done";
       entry.error = undefined;
     } finally {
-      if (newlyUploaded && version === generation) invalidateUploaded();
+      if ((newlyUploaded || refreshAlbum) && version === generation)
+        invalidateUploaded(refreshAlbum);
     }
   }
 
@@ -185,7 +230,13 @@ export const useUploadsStore = defineStore("uploads", () => {
                 "服务器已完成此会话，但对应文件已不可用，请重新选择文件。",
               ),
             );
-          await finish(entry, session.file.id, controller.signal, version);
+          await finish(
+            entry,
+            session.file.id,
+            controller.signal,
+            version,
+            session,
+          );
           return;
         }
         if (
@@ -214,20 +265,33 @@ export const useUploadsStore = defineStore("uploads", () => {
           entry.file,
           entry.digest.hash,
           controller.signal,
+          entry.albumId,
         );
         if (version !== generation) return;
         entry.sessionId = session.id;
       }
       if (session.status === "COMPLETED" && session.file) {
         entry.instant = session.instant;
-        await finish(entry, session.file.id, controller.signal, version);
+        await finish(
+          entry,
+          session.file.id,
+          controller.signal,
+          version,
+          session,
+        );
         return;
       }
       if (session.merging) {
         entry.phase = "verifying";
         session = await waitForMerge(session, controller.signal);
         if (session.status === "COMPLETED" && session.file) {
-          await finish(entry, session.file.id, controller.signal, version);
+          await finish(
+            entry,
+            session.file.id,
+            controller.signal,
+            version,
+            session,
+          );
           return;
         }
       }
@@ -251,7 +315,7 @@ export const useUploadsStore = defineStore("uploads", () => {
         session.mode === "CHUNKED"
           ? await mediaApi.completeUpload(session.id, controller.signal)
           : await mediaApi.upload(session.id, entry.file, controller.signal);
-      await finish(entry, result.file.id, controller.signal, version);
+      await finish(entry, result.file.id, controller.signal, version, result);
     } catch (error) {
       if (version !== generation || controller.signal.aborted) return;
       let failure = error;
@@ -263,7 +327,13 @@ export const useUploadsStore = defineStore("uploads", () => {
           );
           if (version !== generation) return;
           if (session.status === "COMPLETED" && session.file) {
-            await finish(entry, session.file.id, controller.signal, version);
+            await finish(
+              entry,
+              session.file.id,
+              controller.signal,
+              version,
+              session,
+            );
             return;
           }
         } catch (cause) {
@@ -312,7 +382,10 @@ export const useUploadsStore = defineStore("uploads", () => {
       const entry = entries.value.find(
         (item) => item.state === "queued" && !controllers.has(item.id),
       );
-      if (!entry) break;
+      if (!entry) {
+        if (!controllers.size) flushUploaded();
+        break;
+      }
       void process(entry);
     }
   }
@@ -354,8 +427,11 @@ export const useUploadsStore = defineStore("uploads", () => {
             session?.status === "COMPLETED" &&
             session.file
           ) {
-            if (rememberUploaded(entry, session.file.id)) invalidateUploaded();
-            if (entry.albumId)
+            if (rememberUploaded(entry, session.file.id)) {
+              invalidateUploaded(Boolean(entry.albumId));
+              if (!controllers.size) flushUploaded();
+            }
+            if (entry.albumId && session.albumId !== entry.albumId)
               entry.error = translate("已停止加入相册，文件仍保留在图库。");
             else entry.state = "done";
           }
@@ -385,6 +461,11 @@ export const useUploadsStore = defineStore("uploads", () => {
   }
   function reset() {
     generation += 1;
+    window.clearTimeout(refreshTimer);
+    refreshTimer = undefined;
+    refreshPending = false;
+    albumRefreshPending = false;
+    albumAccess.value = {};
     for (const controller of controllers.values()) controller.abort();
     controllers.clear();
     entries.value = [];
@@ -398,6 +479,8 @@ export const useUploadsStore = defineStore("uploads", () => {
     active,
     completed,
     canUpload,
+    setAlbumAccess,
+    forgetAlbum,
     chooseFiles,
     add,
     retry,

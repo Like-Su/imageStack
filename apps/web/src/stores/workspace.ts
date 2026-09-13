@@ -10,7 +10,11 @@ import {
 import { clearSharedReads } from "@/api/sharedRead";
 import { ApiError, getErrorMessage } from "@/api/request";
 import { useAuthStore } from "./auth";
-import { updateAsset, updateAssetDetail } from "@/composables/workspaceUpdates";
+import {
+  assetChangeIds,
+  updateAsset,
+  updateAssetDetail,
+} from "@/composables/workspaceUpdates";
 import { clearThumbnailCache } from "@/composables/thumbnailCache";
 import type {
   Album,
@@ -46,6 +50,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   let overviewController: AbortController | null = null;
   let overviewPromise: Promise<void> | null = null;
   let overviewLoadedAt = 0;
+  let overviewReloadRequested = false;
   let confirmationResolve: ((answer: boolean) => void) | null = null;
   const assets = new Map<string, AssetSummary>();
   const assetAlbums = new Map<string, Set<string>>();
@@ -75,7 +80,10 @@ export const useWorkspaceStore = defineStore("workspace", () => {
 
   function loadOverview(force = false): Promise<void> {
     if (!can("asset:list")) return Promise.resolve();
-    if (overviewPromise && !force) return overviewPromise;
+    if (overviewPromise) {
+      overviewReloadRequested ||= force;
+      return overviewPromise;
+    }
     if (!force && overview.value && Date.now() - overviewLoadedAt < 5000)
       return Promise.resolve();
     overviewController?.abort();
@@ -84,7 +92,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     const pending = (async () => {
       try {
         const result = await mediaApi.overview(controller.signal);
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || overviewReloadRequested) return;
         overview.value = result;
         overviewLoadedAt = Date.now();
         overviewError.value = "";
@@ -92,7 +100,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         if (!controller.signal.aborted)
           overviewError.value = getErrorMessage(error);
       } finally {
-        if (overviewController === controller) overviewPromise = null;
+        if (overviewController === controller) {
+          overviewPromise = null;
+          if (overviewReloadRequested && !controller.signal.aborted) {
+            overviewReloadRequested = false;
+            await loadOverview(true);
+          }
+        }
       }
     })();
     overviewPromise = pending;
@@ -187,9 +201,10 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     if (change.type === "album" && !change.value)
       for (const memberships of assetAlbums.values())
         memberships.delete(change.id);
-    for (const [id, asset] of assets) {
-      if (change.type === "assets" && change.removed && change.ids.includes(id))
-        assets.delete(id);
+    for (const id of assetChangeIds(change) ?? assets.keys()) {
+      const asset = assets.get(id);
+      if (!asset) continue;
+      if (change.type === "assets" && change.removed) assets.delete(id);
       else
         assets.set(
           id,
@@ -216,6 +231,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     if (!overview.value) return;
     overviewController?.abort();
     overviewPromise = null;
+    overviewReloadRequested = false;
     overviewLoadedAt = Date.now();
     overview.value = update(overview.value);
   }
@@ -417,6 +433,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     clearThumbnailCache();
     overviewController?.abort();
     overviewPromise = null;
+    overviewReloadRequested = false;
     overviewLoadedAt = 0;
     window.clearTimeout(invalidationTimer);
     invalidated.clear();

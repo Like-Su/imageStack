@@ -5,10 +5,12 @@ import { MediaJobsService } from '../jobs/media-jobs.service';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
 import type { StorageProvider } from '../storage/storage.provider';
 import { assetWhere, requireOwnedAssets } from './asset-scope';
+import { albumWhere } from '../collections/album-scope';
 import { IMAGE_MIME_TYPES } from '../../common/media-formats';
 import { Prisma } from '../../prisma/generated/prisma/client';
 import { hlsObjectKeys } from '../../common/video-stream';
 import { referencedStorageKeys } from '../storage/storage-references';
+import { CoalescedReads } from '../../common/coalesced-reads';
 
 interface PlaceRow {
   latitudeCell: number;
@@ -21,6 +23,7 @@ interface PlaceRow {
 @Injectable()
 export class AssetWorkspaceService {
   private readonly logger = new Logger(AssetWorkspaceService.name);
+  private readonly reads = new CoalescedReads();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -28,7 +31,13 @@ export class AssetWorkspaceService {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
-  async overview(userId: string) {
+  overview(userId: string) {
+    return this.reads.run(`overview:${userId}`, () =>
+      this.readOverview(userId),
+    );
+  }
+
+  private async readOverview(userId: string) {
     const groupByData = this.prisma.fileNode.groupBy({
       by: ['deleted', 'processingStatus', 'isFavorite'],
       where: assetWhere(userId, null),
@@ -38,7 +47,7 @@ export class AssetWorkspaceService {
 
     const [groups, albums, tags] = await this.prisma.$transaction([
       groupByData,
-      this.prisma.album.count({ where: { ownerId: userId } }),
+      this.prisma.album.count({ where: albumWhere(userId) }),
       this.prisma.tag.count({ where: { ownerId: userId } }),
     ]);
     const statuses = { PENDING: 0, PROCESSING: 0, READY: 0, FAILED: 0 };
@@ -70,7 +79,11 @@ export class AssetWorkspaceService {
     };
   }
 
-  async places(userId: string) {
+  places(userId: string) {
+    return this.reads.run(`places:${userId}`, () => this.readPlaces(userId));
+  }
+
+  private async readPlaces(userId: string) {
     const rows = await this.prisma.$queryRaw<PlaceRow[]>`
       WITH positions AS (
         SELECT
