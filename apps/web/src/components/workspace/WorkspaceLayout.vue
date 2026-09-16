@@ -23,7 +23,6 @@ import {
   UPLOAD_ACCEPT,
   UPLOAD_IMAGE_LABEL,
   UPLOAD_VIDEO_LABEL,
-  UPLOAD_LIMITS_LABEL,
 } from "@/config/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
@@ -75,6 +74,10 @@ useVisiblePolling(
       : workspaceEventsAvailable.value
         ? 300000
         : 30000,
+);
+useVisiblePolling(
+  () => workspace.loadStorage(),
+  () => 30000,
 );
 
 function syncNavigation() {
@@ -136,7 +139,7 @@ function drop(event: DragEvent) {
   dragDepth = 0;
   dragging.value = false;
   if (event.dataTransfer?.files)
-    uploads.add(Array.from(event.dataTransfer.files), uploadAlbumId.value);
+    void uploads.add(Array.from(event.dataTransfer.files), uploadAlbumId.value);
 }
 
 watch(
@@ -172,6 +175,7 @@ onBeforeRouteLeave(async (to) => {
 
 onMounted(() => {
   void workspace.loadOverview();
+  void uploads.loadLimits();
   window.addEventListener("keydown", keyboard);
   window.addEventListener("beforeunload", beforeUnload);
   desktopQuery.addEventListener("change", syncNavigation);
@@ -366,7 +370,7 @@ onBeforeUnmount(() => {
       </p>
       <p class="max-w-xl px-6 text-center text-sm leading-7 text-soft">
         {{ $t(UPLOAD_IMAGE_LABEL) }}<br />{{ UPLOAD_VIDEO_LABEL }} ·
-        {{ $t(UPLOAD_LIMITS_LABEL) }}
+        {{ uploads.limitsLabel }}
       </p>
     </div>
     <AssetDetailDrawer />

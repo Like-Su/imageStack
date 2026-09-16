@@ -29,6 +29,7 @@ import {
   InviteAlbumMemberDto,
 } from './dto/album-members.dto';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/collections.dto';
+import { normalizeAlbumCover } from './album-cover';
 
 function albumInclude(userId: string) {
   return {
@@ -109,7 +110,11 @@ export class AlbumsService {
     };
   }
 
-  create(user: RequestUser, body: CreateAlbumDto) {
+  async create(user: RequestUser, body: CreateAlbumDto) {
+    const coverImage =
+      body.coverImage == null
+        ? body.coverImage
+        : await normalizeAlbumCover(body.coverImage);
     return withSerializable(this.prisma, async (transaction) => {
       if (body.shared) {
         const administrator = await transaction.user.findFirst({
@@ -131,6 +136,7 @@ export class AlbumsService {
           name: body.name,
           description: body.description,
           shared: body.shared ?? false,
+          coverImage,
         },
         include: albumInclude(user.id),
       });
@@ -138,14 +144,23 @@ export class AlbumsService {
     }).catch((error: unknown) => rethrowCollectionError(error, '相册'));
   }
 
-  update(albumId: string, userId: string, body: UpdateAlbumDto) {
+  async update(albumId: string, userId: string, body: UpdateAlbumDto) {
     if (
       body.name === undefined &&
       body.description === undefined &&
-      body.coverAssetId === undefined
+      body.coverAssetId === undefined &&
+      body.coverImage === undefined
     ) {
       throw new BadRequestException('至少提供一个要更新的相册字段');
     }
+
+    if (body.coverImage != null && body.coverAssetId != null) {
+      throw new BadRequestException('自定义图片和相册资源不能同时设为封面');
+    }
+    const coverImage =
+      body.coverImage == null
+        ? body.coverImage
+        : await normalizeAlbumCover(body.coverImage);
 
     return withSerializable(this.prisma, async (transaction) => {
       await requireAlbumAccess(transaction, albumId, userId, 'edit');
@@ -170,7 +185,13 @@ export class AlbumsService {
         data: {
           name: body.name,
           description: body.description,
-          coverAssetId: body.coverAssetId,
+          coverAssetId: coverImage ? null : body.coverAssetId,
+          coverImage:
+            coverImage !== undefined
+              ? coverImage
+              : body.coverAssetId !== undefined
+                ? null
+                : undefined,
         },
         include: albumInclude(userId),
       });
@@ -436,8 +457,9 @@ export class AlbumsService {
   }
 
   private summary(album: AlbumRow, userId: string) {
-    const coverAssetId =
-      album.coverAsset?.id ?? album.assets[0]?.assetId ?? null;
+    const coverAssetId = album.coverImage
+      ? null
+      : (album.coverAsset?.id ?? album.assets[0]?.assetId ?? null);
 
     return {
       id: album.id,
@@ -447,11 +469,18 @@ export class AlbumsService {
       owner: { id: album.owner.id, username: album.owner.username },
       memberCount: album._count.members,
       permissions: albumPermissions(album, userId),
+      coverSource: album.coverImage
+        ? 'custom'
+        : album.coverAsset
+          ? 'asset'
+          : 'auto',
       coverAssetId,
-      coverThumbnailRevision: thumbnailRevision(
-        album.coverAsset ?? album.assets[0]?.asset,
-      ),
-      coverUrl: coverAssetId ? this.assets.thumbnailUrl(coverAssetId) : null,
+      coverThumbnailRevision: album.coverImage
+        ? null
+        : thumbnailRevision(album.coverAsset ?? album.assets[0]?.asset),
+      coverUrl:
+        album.coverImage ??
+        (coverAssetId ? this.assets.thumbnailUrl(coverAssetId) : null),
       count: album._count.assets,
       createdAt: album.createdAt.toISOString(),
       updatedAt: album.updatedAt.toISOString(),

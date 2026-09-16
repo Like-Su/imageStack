@@ -3,10 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { execFile } from 'node:child_process';
 import { mkdir, open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import {
-  VIDEO_MAX_BYTES,
-  VIDEO_MAX_DURATION_MS,
-} from '../../common/media-formats';
 import type { VideoFormat } from '../../common/media-formats';
 import {
   HLS_MAX_PLAYLIST_BYTES,
@@ -124,13 +120,9 @@ export class VideoProcessorService {
       width < 1 ||
       height < 1 ||
       !Number.isSafeInteger(durationMs) ||
-      durationMs < 1 ||
-      durationMs > VIDEO_MAX_DURATION_MS
+      durationMs < 1
     )
-      throw new MediaProcessingError(
-        '视频须含有效画面，时长不超过 4 小时',
-        true,
-      );
+      throw new MediaProcessingError('视频须含有效画面和有效时长', true);
 
     const rotation = Number(
       stream.side_data_list?.find((item) => item.rotation !== undefined)
@@ -211,6 +203,7 @@ export class VideoProcessorService {
     }
 
     if (needs.preview || needs.hls) {
+      const maxBytes = this.config.getOrThrow<number>('VIDEO_ASSET_SIZE');
       previewPath = join(directory, 'preview.mp4');
       await this.run(VIDEO_PROCESSING_COMMAND.FFMPEG, [
         ...input,
@@ -251,12 +244,15 @@ export class VideoProcessorService {
         '-movflags',
         '+faststart',
         '-fs',
-        String(VIDEO_MAX_BYTES + 65536),
+        String(Math.min(maxBytes + 65536, Number.MAX_SAFE_INTEGER)),
         previewPath,
       ]);
       const metadata = await stat(previewPath);
-      if (metadata.size < 1 || metadata.size > VIDEO_MAX_BYTES)
-        throw new MediaProcessingError('兼容视频预览超过 512 MiB 限制', true);
+      if (metadata.size < 1 || metadata.size > maxBytes)
+        throw new MediaProcessingError(
+          `兼容视频预览需大于 0 B 且不超过 ${maxBytes} B`,
+          true,
+        );
       const preview = await this.inspect(previewPath, 'mp4');
       if (Math.abs(preview.durationMs - video.durationMs) > 2000)
         throw new MediaProcessingError(

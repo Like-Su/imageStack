@@ -28,6 +28,14 @@ export class TrashIdsQueryDto {
 }
 
 export class ListAssetsDto extends CursorPaginationDto {
+  @IsOptional()
+  @IsIn(['createdAt', 'name', 'size'])
+  sortBy?: 'createdAt' | 'name' | 'size' = 'createdAt';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'desc';
+
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )

@@ -6,7 +6,6 @@ import {
   Header,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   Patch,
   Post,
@@ -21,8 +20,7 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import {
   ListAssetsDto,
   ThumbnailQueryDto,
@@ -32,7 +30,10 @@ import { AssetIdsDto } from './dto/asset-ids.dto';
 import { RenameAssetDto } from './dto/rename-asset.dto';
 import { AssetsService } from './assets.service';
 import { AssetWorkspaceService } from './asset-workspace.service';
-import { streamStoredMedia } from './asset-file-response';
+import {
+  isMediaResponseClosed,
+  streamStoredMedia,
+} from './asset-file-response';
 import type { ThumbnailResponse } from './thumbnails.service';
 
 @Controller('assets')
@@ -41,8 +42,7 @@ export class AssetsController {
   constructor(
     private readonly assets: AssetsService,
     private readonly workspace: AssetWorkspaceService,
-    @Inject(STORAGE_PROVIDER)
-    private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   @Get()
@@ -116,7 +116,7 @@ export class AssetsController {
     @CurrentUser() user: RequestUser,
     @Query() query: ThumbnailQueryDto,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const resource = await this.assets.thumbnail(
       assetId,
@@ -166,7 +166,7 @@ export class AssetsController {
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const resource = await this.assets.original(assetId, user.id);
 
@@ -181,7 +181,7 @@ export class AssetsController {
     @CurrentUser() user: RequestUser,
     @Query() query: ThumbnailQueryDto,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const resource = await this.assets.thumbnail(assetId, user.id, query.size);
 
@@ -196,7 +196,7 @@ export class AssetsController {
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const resource = await this.assets.preview(assetId, user.id);
     return this.mediaResponse(resource, request, response);
@@ -207,6 +207,7 @@ export class AssetsController {
     request: Request,
     response: Response,
   ) {
+    if (isMediaResponseClosed(request, response)) return;
     if ('key' in resource) {
       return streamStoredMedia(this.storage, resource, request, response);
     }
@@ -215,10 +216,10 @@ export class AssetsController {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Retry-After', '3');
 
-    return {
+    response.json({
       success: true,
       data: resource,
       timestamp: new Date().toISOString(),
-    };
+    });
   }
 }

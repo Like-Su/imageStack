@@ -1,5 +1,31 @@
 # 项目架构说明
 
+## 存储策略与 RustFS
+
+在 `apps/server/.env` 中设置 `STORAGE_DRIVER=LOCAL_FS` 使用本地存储，或设置 `STORAGE_DRIVER=RUST_FS` 使用 RustFS，修改后重启后端生效。配置统一使用 `STORAGE_*` 命名：本地目录使用 `STORAGE_ROOT`；对象存储使用 `STORAGE_ENDPOINT`、`STORAGE_BUCKET`、`STORAGE_ACCESS_KEY` 和 `STORAGE_SECRET_KEY`。
+
+业务通过 `StorageService` 和策略注册中心访问存储。原文件、分片、缩略图、视频预览、HLS、分享与清理均按记录中的存储位置路由，切换默认策略不会迁移历史文件。
+
+本地 RustFS 的端点、桶、凭据配置、迁移命令和扩展 Provider 的方式见 [存储策略与 RustFS](../../STORAGE.md)。默认仍使用本地存储，启用 RustFS 前需创建私有桶并应用新增数据库迁移。
+
+## 相册封面
+
+- 新建或编辑相册时，可上传自定义图片；已有相册也可单选其中的图片或视频作为封面，视频使用缩略图。选择「自动封面」恢复使用相册内最新的未删除资源。
+- 自定义封面仅保存在相册中，不创建图库资源、不改变相册媒体数量。浏览器接受不超过 5 MiB、2000 万像素的 PNG/JPEG/WebP，居中裁剪为 4:3 并压缩后提交。
+- `POST /albums` 新增可选 `coverImage`；`PATCH /albums/:id` 支持 `coverImage` 或 `coverAssetId`。`coverImage` 仅接受不超过 65536 字符的图片 data URL，服务端验证实际格式、拒绝 SVG/远程 URL，并重新编码为最大 640 × 480 的 WebP。
+- 设置自定义图片会清除资源封面；设置或清空 `coverAssetId` 会清除自定义封面。省略两个字段保持原封面，同时传入两个非空值会被拒绝。传入 `{ "coverImage": null, "coverAssetId": null }` 恢复自动封面。
+- 相册摘要新增 `coverSource: auto | asset | custom`；`coverUrl` 对自定义封面返回经过验证的 data URL，其他封面保持原有缩略图地址。权限沿用相册编辑权限；资源封面必须属于该相册且未删除。短链转存相册会保留自定义封面。
+
+部署前执行 `pnpm --dir apps/server run db:migrate` 和 `pnpm --dir apps/server run db:generate`，然后重启后端。新增迁移 `20260915100000_album_custom_cover` 仅为 `Album` 增加可空的 `coverImage` 字段，已有封面不受影响。
+
+## 资源排序与自动加载
+
+- `GET /api/assets`、`GET /api/assets/trash` 和 `GET /api/search` 支持 `sortBy=createdAt|name|size` 与 `sortOrder=asc|desc`，默认最新上传优先。
+- 排序由数据库执行，再用相同方向的文件 ID 排列同值记录；大小未知的资源始终放在最后。游标携带排序值并绑定排序方式，切换排序必须重新加载第一页，不是在已加载数据中临时排序。
+- 图库、收藏、标签、地点、回收站、相册、共享相册和媒体选择器共用排序；偏好按账户保存在浏览器中。文件名顺序以数据库排序规则为准，重命名后重新获取正确顺序。
+- 资源列表在接近当前滚动容器底部时自动加载下一页，也适用于媒体选择弹窗和公开分享页。请求进行中不会重复加载；加载失败暂停自动重试并显示重试按钮，离开缓存页面时停止观察。
+- 本次功能无需数据库结构迁移或新增依赖。
+
 ## 按性能清单实施的优化
 
 - 新增 `GET /albums/:id/summary`、`GET /tags/:id`，详情页只读取所需摘要；原有列表及相册详情接口继续兼容。
@@ -74,19 +100,30 @@ pnpm --dir apps/server run db:generate
 
 上传、图库/搜索、收藏/相册/标签、回收站与后台处理使用同一组媒体类型：
 
-| 类型                        | 扩展名                                     | 限制                             |
-| --------------------------- | ------------------------------------------ | -------------------------------- |
-| JPEG                        | `.jpg`、`.jpeg`、`.jfif`、`.pjpeg`、`.pjp` | 10 MiB                           |
-| PNG / APNG、WebP、GIF、AVIF | `.png`、`.apng`、`.webp`、`.gif`、`.avif`  | 10 MiB，动图最多 1000 帧         |
-| SVG                         | `.svg`                                     | 10 MiB，仅安全静态图形和内联样式 |
-| 视频                        | `.mp4`、`.mov`、`.mkv`（不区分大小写）     | 512 MiB、4 小时                  |
+| 类型                        | 扩展名                                     | 限制                                     |
+| --------------------------- | ------------------------------------------ | ---------------------------------------- |
+| JPEG                        | `.jpg`、`.jpeg`、`.jfif`、`.pjpeg`、`.pjp` | `ASSETE_SIZE`（默认 10MB）               |
+| PNG / APNG、WebP、GIF、AVIF | `.png`、`.apng`、`.webp`、`.gif`、`.avif`  | `ASSETE_SIZE`，动图最多 1000 帧          |
+| SVG                         | `.svg`                                     | `ASSETE_SIZE`，仅安全静态图形和内联样式  |
+| 视频                        | `.mp4`、`.mov`、`.mkv`（不区分大小写）     | `VIDEO_ASSET_SIZE`（默认 1GB），不限时长 |
 
-图片和视频上传不限制像素或分辨率；图片校验、缩略图和 AI 识别均不设置输入像素上限，`GET /system/capabilities` 的 `upload.maxPixels` 返回 `null` 表示不限制。文件大小、动图帧数、视频时长和解码超时保护仍保留，存储层 `STORAGE_MAX_FILE_BYTES` 可以进一步限制上传大小。文件扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
+在服务端 `apps/server/.env` 配置上传大小，修改后重启服务生效：
+
+```dotenv
+# 支持 B/MB/GB 单位，默认 10MB（除视频外的文件类型）
+ASSETE_SIZE=10MB
+# 视频文件大小上限，默认 1GB，不限制视频时长
+VIDEO_ASSET_SIZE=1GB
+```
+
+单位不区分大小写，按 1024 换算（1MB = 1024² B，1GB = 1024³ B），换算结果必须为大于 0 的安全整数字节数；非法配置会在启动时被拒绝。实际上传上限取对应配置与存储层 `STORAGE_MAX_FILE_BYTES` 的较小值，配置大于 1GB 的上传时也需相应调高存储上限。前端从 `GET /system/capabilities` 获取实际大小上限，不再使用写死的大小限制。
+
+图片和视频上传不限制像素或分辨率，视频不设置时长上限；图片校验、缩略图和 AI 识别均不设置输入像素上限，能力接口的 `upload.maxPixels` 和 `upload.videoMaxDurationMs` 返回 `null` 表示不限制。文件大小、动图帧数、内容校验和解码超时保护仍保留。文件扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流和有效时长；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
 
 - 原文件字节保持不变，BLAKE3 校验覆盖完整内容。图片缩略图取首帧并纠正 EXIF 方向，不将 GIF/APNG 原文件转为静态图；地点聚合仍只使用图片已有 GPS。
 - `PATCH /api/assets/:id` 修改图片或视频名称，请求体为 `{ "name": "新的名称.jpg" }`，返回 `id`、`name` 和 `updatedAt`。需要 `asset:edit` 权限，仅可修改未删除的自有媒体；名称去除首尾空白后最多 255 个字符，禁止路径分隔符和控制字符，并须保留原扩展名（不区分大小写）。只更新已有 `FileNode.name`，不修改原文件、存储路径、相册或分享链接，无需数据库迁移。
 - SVG 使用 `sax` 严格 XML 解析与静态元素限制，拒绝 DTD、脚本、事件、外链、`foreignObject`、SMIL、嵌入图片和样式表。允许本地片段引用及受限内联样式；限制节点数与嵌套深度。原 SVG 响应增加沙箱 CSP，前端仅作为图片显示，不注入 DOM。
-- 视频通过私有临时文件流式接收与计算哈希，不将大视频整体放入 Node 内存。后台同样流式读取，生成最长边 1024px、质量 90 的 WebP 封面和不超过 1920×1080 的 H.264/AAC MP4 兼容预览；若预览超出 512 MiB、超时或解码失败，任务会重试/失败，原文件仍可下载。
+- 视频通过私有临时文件流式接收与计算哈希，不将大视频整体放入 Node 内存。后台同样流式读取，生成最长边 1024px、质量 90 的 WebP 封面和不超过 1920×1080 的 H.264/AAC MP4 兼容预览；若预览超出 `VIDEO_ASSET_SIZE` 或存储上限、超时或解码失败，任务会重试/失败，原文件仍可下载。HLS 播放列表仍保留 1 MiB 的资源保护上限，分段数量不再由四小时时长推导。
 - `GET /api/assets/:id/file` 始终返回原文件；新增 `GET /api/assets/:id/preview` 返回视频兼容预览。二者均要求登录、`asset:download` 权限和未删除的自有资源，支持单段 Range。预览未就绪返回 `202` 与 `Retry-After: 3`，失败返回 `422`，不会返回原视频冒充兼容文件。
 - 资产摘要/详情增加 `durationMs`，详情增加 `previewUrl`，上传结果包含 `mediaType` 与 `durationMs`；时长按毫秒字符串返回。复用已有 `FileNode.previewKey` 和 `durationMs`，不需要新数据库迁移。
 
@@ -101,7 +138,7 @@ pnpm --dir apps/server run db:generate
 | `MEDIA_VIDEO_PROBE_TIMEOUT_MS`      | `30000`   | 视频信息读取时限                       |
 | `MEDIA_VIDEO_PROCESSING_TIMEOUT_MS` | `600000`  | 单次封面/转码命令时限，可配置到 1 小时 |
 
-只在接收视频或处理任务时调用工具，不在应用启动时执行探测。工具调用不经过 shell，限定 MP4/MOV/Matroska 解复用器、仅允许本地文件协议、禁用 MOV 外部数据引用，使用固定参数和随机私有临时目录。临时目录需要足够空间容纳原视频和派生文件；正常完成及失败时会清理，异常断电遗留目录需由部署环境定期清理。视频接收超时为 10 分钟，反向代理也需允许至少 512 MiB 请求体及相应上传/读取时限。
+只在接收视频或处理任务时调用工具，不在应用启动时执行探测。工具调用不经过 shell，限定 MP4/MOV/Matroska 解复用器、仅允许本地文件协议、禁用 MOV 外部数据引用，使用固定参数和随机私有临时目录。临时目录需要足够空间容纳原视频和派生文件；正常完成及失败时会清理，异常断电遗留目录需由部署环境定期清理。视频接收超时为 10 分钟；这属于请求读取保护，不是视频内容时长限制。反向代理需按配置的上传大小、分片请求及相应上传/读取时限设置。
 
 浏览器不一定原生支持 MOV/MKV 或某些编码，前端明确区分原视频和兼容预览，下载始终保持原文件。未部署工具时上传视频返回明确的服务不可用错误，不伪造处理成功。
 
@@ -153,7 +190,7 @@ GET /api/assets?type=image&year=2026&timeField=createdAt
 每条命中为 `{ asset, score: null, matchedBy: ["keyword"] }`，`asset` 与图库摘要一致；
 没有关键词时 `matchedBy` 为 `["filter"]`，不会提供伪造的相似度分数。
 
-排序固定为 `createdAt DESC, id DESC`，搜索与图库共用稳定的游标分页和资产摘要。
+默认排序为 `createdAt DESC, id DESC`，也可通过 `sortBy`、`sortOrder` 选择文件名或文件大小及升降序；搜索与图库共用稳定的游标分页和资产摘要。
 搜索游标绑定当前用户、关键词及全部筛选条件；翻页时保持条件不变，只替换 `cursor`，可调整 `limit`。
 切换条件必须清空游标；跨用户、跨条件、损坏的游标或混用图库游标均返回 400。
 原有图库与回收站的无搜索上下文游标保持兼容。
@@ -235,6 +272,7 @@ Prisma 在 `onApplicationShutdown` 阶段断开，确保媒体任务排空时仍
   和 `{ success: true, data: { assetId, status }, timestamp }`，客户端应显示占位图并稍后重试。
   失败且没有可用缩略图时返回 `422 / ASSET_PROCESSING_FAILED`。
   已完成资产的缩略图文件丢失时会重置重试次数并重新排队修复；已有缩略图不受 EXIF 重试影响。
+- 缩略图、原文件、视频预览、HLS 分段及分享下载统一直接管理流响应。浏览器滚动、切页或关闭页面取消请求时，不再向已关闭的响应建立管道，并释放已打开的存储流；正常客户端断连不记为服务器错误，真实存储读取失败仍记录日志。`HEAD`、`304`、Range 和未就绪的 `202` 响应语义保持不变。
 - Worker 对受支持的图片生成最长边 1024px、质量 90 的 WebP，自动纠正方向且不放大小图；GIF/APNG 等动图取首帧，视频封面采用同样的尺寸和质量，并使用 Lanczos 缩放。
   `size=sm` 保留为兼容接口参数，图库、大卡片和详情预览统一读取高清缩略图，不直接下载原文件。
   保留上传阶段的大小、像素和单帧限制，处理过程有流读取和解码超时。
@@ -312,7 +350,7 @@ JSON 响应沿用 `{ success, data, timestamp }`。
 | POST           | `/assets/:id/tags/confirm`            | 确认候选标签，接受 `{ mode, tagIds, names }`，返回 `{ assets, tags, createdCount }` |
 | DELETE         | `/assets/:id/tags/:tagId`             | 解除该资产与标签的关联，返回 `{ count, tag }`                                       |
 
-资产分页默认 `limit=24`，范围为 1～100，按 `createdAt DESC, id DESC` 排序。
+资产分页默认 `limit=24`，范围为 1～100，默认按 `createdAt DESC, id DESC` 排序，可通过 `sortBy`、`sortOrder` 调整。
 切换视图或筛选条件时清空 `cursor`；`favorite` 只接受 `true` / `false`。
 列表增加 `deleted`、`deletedAt` 和 `tags: { id, name, source: "MANUAL" }[]`；
 详情另外返回 `albums: { id, name }[]`。
@@ -332,7 +370,7 @@ JSON 响应沿用 `{ success, data, timestamp }`。
   仅专用回收站缩略图接口允许预览；回收站资产不能新加相册、标签或修改收藏。
 - 相册/标签名去除首尾空白后在同一用户内区分大小写且唯一，重复创建或重命名返回 409。
   相册名上限 200 字符、标签名上限 100 字符；相册描述上限 2000 字符；`names` 每次为 1～50 项。
-- 相册封面必须是其中未删除的成员；没有显式封面或封面已回收时使用最新可见成员。
+- 选择相册资源作为封面时，必须是其中未删除的成员；没有自定义图片且没有有效的显式资源封面时，使用最新可见成员。
   `coverAssetId: null` 恢复自动封面，`description: null` 清空描述；移出封面成员会清除显式选择。
 - 删除相册或标签只删除集合与关联，不删除资产。手动合并标签会去重并保留所有关联（包括回收站）。
   用户主动删除或合并的集合不会因资产恢复而重建。

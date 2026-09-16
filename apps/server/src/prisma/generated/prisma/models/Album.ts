@@ -31,6 +31,7 @@ export type AlbumMinAggregateOutputType = {
   shared: boolean | null;
   ownerId: string | null;
   coverAssetId: string | null;
+  coverImage: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -42,6 +43,7 @@ export type AlbumMaxAggregateOutputType = {
   shared: boolean | null;
   ownerId: string | null;
   coverAssetId: string | null;
+  coverImage: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -53,6 +55,7 @@ export type AlbumCountAggregateOutputType = {
   shared: number;
   ownerId: number;
   coverAssetId: number;
+  coverImage: number;
   createdAt: number;
   updatedAt: number;
   _all: number;
@@ -65,6 +68,7 @@ export type AlbumMinAggregateInputType = {
   shared?: true;
   ownerId?: true;
   coverAssetId?: true;
+  coverImage?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -76,6 +80,7 @@ export type AlbumMaxAggregateInputType = {
   shared?: true;
   ownerId?: true;
   coverAssetId?: true;
+  coverImage?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -87,6 +92,7 @@ export type AlbumCountAggregateInputType = {
   shared?: true;
   ownerId?: true;
   coverAssetId?: true;
+  coverImage?: true;
   createdAt?: true;
   updatedAt?: true;
   _all?: true;
@@ -178,6 +184,7 @@ export type AlbumGroupByOutputType = {
   shared: boolean;
   ownerId: string;
   coverAssetId: string | null;
+  coverImage: string | null;
   createdAt: Date;
   updatedAt: Date;
   _count: AlbumCountAggregateOutputType | null;
@@ -208,6 +215,7 @@ export type AlbumWhereInput = {
   shared?: Prisma.BoolFilter<'Album'> | boolean;
   ownerId?: Prisma.StringFilter<'Album'> | string;
   coverAssetId?: Prisma.StringNullableFilter<'Album'> | string | null;
+  coverImage?: Prisma.StringNullableFilter<'Album'> | string | null;
   createdAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -229,6 +237,7 @@ export type AlbumOrderByWithRelationInput = {
   shared?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   coverAssetId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  coverImage?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   owner?: Prisma.UserOrderByWithRelationInput;
@@ -252,6 +261,7 @@ export type AlbumWhereUniqueInput = Prisma.AtLeast<
     shared?: Prisma.BoolFilter<'Album'> | boolean;
     ownerId?: Prisma.StringFilter<'Album'> | string;
     coverAssetId?: Prisma.StringNullableFilter<'Album'> | string | null;
+    coverImage?: Prisma.StringNullableFilter<'Album'> | string | null;
     createdAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
     owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -275,6 +285,7 @@ export type AlbumOrderByWithAggregationInput = {
   shared?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   coverAssetId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  coverImage?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   _count?: Prisma.AlbumCountOrderByAggregateInput;
@@ -298,6 +309,8 @@ export type AlbumScalarWhereWithAggregatesInput = {
   ownerId?: Prisma.StringWithAggregatesFilter<'Album'> | string;
   coverAssetId?:
     Prisma.StringNullableWithAggregatesFilter<'Album'> | string | null;
+  coverImage?:
+    Prisma.StringNullableWithAggregatesFilter<'Album'> | string | null;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<'Album'> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<'Album'> | Date | string;
 };
@@ -307,6 +320,7 @@ export type AlbumCreateInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -325,6 +339,7 @@ export type AlbumUncheckedCreateInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -339,6 +354,7 @@ export type AlbumUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -358,6 +374,7 @@ export type AlbumUncheckedUpdateInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -374,6 +391,7 @@ export type AlbumCreateManyInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -383,6 +401,7 @@ export type AlbumUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -395,6 +414,7 @@ export type AlbumUncheckedUpdateManyInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -421,6 +441,7 @@ export type AlbumCountOrderByAggregateInput = {
   shared?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   coverAssetId?: Prisma.SortOrder;
+  coverImage?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -432,6 +453,7 @@ export type AlbumMaxOrderByAggregateInput = {
   shared?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   coverAssetId?: Prisma.SortOrder;
+  coverImage?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -443,6 +465,7 @@ export type AlbumMinOrderByAggregateInput = {
   shared?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   coverAssetId?: Prisma.SortOrder;
+  coverImage?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -770,6 +793,7 @@ export type AlbumCreateWithoutOwnerInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   coverAsset?: Prisma.FileNodeCreateNestedOneWithoutAlbumCoversInput;
@@ -786,6 +810,7 @@ export type AlbumUncheckedCreateWithoutOwnerInput = {
   description?: string | null;
   shared?: boolean;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -846,6 +871,7 @@ export type AlbumScalarWhereInput = {
   shared?: Prisma.BoolFilter<'Album'> | boolean;
   ownerId?: Prisma.StringFilter<'Album'> | string;
   coverAssetId?: Prisma.StringNullableFilter<'Album'> | string | null;
+  coverImage?: Prisma.StringNullableFilter<'Album'> | string | null;
   createdAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'Album'> | Date | string;
 };
@@ -855,6 +881,7 @@ export type AlbumCreateWithoutCoverAssetInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -871,6 +898,7 @@ export type AlbumUncheckedCreateWithoutCoverAssetInput = {
   description?: string | null;
   shared?: boolean;
   ownerId: string;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -928,6 +956,7 @@ export type AlbumCreateWithoutMembersInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -945,6 +974,7 @@ export type AlbumUncheckedCreateWithoutMembersInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -986,6 +1016,7 @@ export type AlbumUpdateWithoutMembersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1004,6 +1035,7 @@ export type AlbumUncheckedUpdateWithoutMembersInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1017,6 +1049,7 @@ export type AlbumCreateWithoutAssetsInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -1034,6 +1067,7 @@ export type AlbumUncheckedCreateWithoutAssetsInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   members?: Prisma.AlbumMemberUncheckedCreateNestedManyWithoutAlbumInput;
@@ -1075,6 +1109,7 @@ export type AlbumUpdateWithoutAssetsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1093,6 +1128,7 @@ export type AlbumUncheckedUpdateWithoutAssetsInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   members?: Prisma.AlbumMemberUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1106,6 +1142,7 @@ export type AlbumCreateWithoutUploadSessionsInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -1123,6 +1160,7 @@ export type AlbumUncheckedCreateWithoutUploadSessionsInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -1164,6 +1202,7 @@ export type AlbumUpdateWithoutUploadSessionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1182,6 +1221,7 @@ export type AlbumUncheckedUpdateWithoutUploadSessionsInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1195,6 +1235,7 @@ export type AlbumCreateWithoutShareLinksInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -1212,6 +1253,7 @@ export type AlbumUncheckedCreateWithoutShareLinksInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -1253,6 +1295,7 @@ export type AlbumUpdateWithoutShareLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1271,6 +1314,7 @@ export type AlbumUncheckedUpdateWithoutShareLinksInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1284,6 +1328,7 @@ export type AlbumCreateWithoutShareSavesInput = {
   name: string;
   description?: string | null;
   shared?: boolean;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutAlbumsInput;
@@ -1301,6 +1346,7 @@ export type AlbumUncheckedCreateWithoutShareSavesInput = {
   shared?: boolean;
   ownerId: string;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   assets?: Prisma.AlbumAssetUncheckedCreateNestedManyWithoutAlbumInput;
@@ -1342,6 +1388,7 @@ export type AlbumUpdateWithoutShareSavesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1360,6 +1407,7 @@ export type AlbumUncheckedUpdateWithoutShareSavesInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1374,6 +1422,7 @@ export type AlbumCreateManyOwnerInput = {
   description?: string | null;
   shared?: boolean;
   coverAssetId?: string | null;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1383,6 +1432,7 @@ export type AlbumUpdateWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   coverAsset?: Prisma.FileNodeUpdateOneWithoutAlbumCoversNestedInput;
@@ -1400,6 +1450,7 @@ export type AlbumUncheckedUpdateWithoutOwnerInput = {
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1416,6 +1467,7 @@ export type AlbumUncheckedUpdateManyWithoutOwnerInput = {
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   coverAssetId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1426,6 +1478,7 @@ export type AlbumCreateManyCoverAssetInput = {
   description?: string | null;
   shared?: boolean;
   ownerId: string;
+  coverImage?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1435,6 +1488,7 @@ export type AlbumUpdateWithoutCoverAssetInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutAlbumsNestedInput;
@@ -1451,6 +1505,7 @@ export type AlbumUncheckedUpdateWithoutCoverAssetInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   assets?: Prisma.AlbumAssetUncheckedUpdateManyWithoutAlbumNestedInput;
@@ -1466,6 +1521,7 @@ export type AlbumUncheckedUpdateManyWithoutCoverAssetInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   shared?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1567,6 +1623,7 @@ export type AlbumSelect<
     shared?: boolean;
     ownerId?: boolean;
     coverAssetId?: boolean;
+    coverImage?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -1592,6 +1649,7 @@ export type AlbumSelectCreateManyAndReturn<
     shared?: boolean;
     ownerId?: boolean;
     coverAssetId?: boolean;
+    coverImage?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -1611,6 +1669,7 @@ export type AlbumSelectUpdateManyAndReturn<
     shared?: boolean;
     ownerId?: boolean;
     coverAssetId?: boolean;
+    coverImage?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -1626,6 +1685,7 @@ export type AlbumSelectScalar = {
   shared?: boolean;
   ownerId?: boolean;
   coverAssetId?: boolean;
+  coverImage?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
 };
@@ -1640,6 +1700,7 @@ export type AlbumOmit<
   | 'shared'
   | 'ownerId'
   | 'coverAssetId'
+  | 'coverImage'
   | 'createdAt'
   | 'updatedAt',
   ExtArgs['result']['album']
@@ -1694,6 +1755,7 @@ export type $AlbumPayload<
       shared: boolean;
       ownerId: string;
       coverAssetId: string | null;
+      coverImage: string | null;
       createdAt: Date;
       updatedAt: Date;
     },
@@ -2370,6 +2432,7 @@ export interface AlbumFieldRefs {
   readonly shared: Prisma.FieldRef<'Album', 'Boolean'>;
   readonly ownerId: Prisma.FieldRef<'Album', 'String'>;
   readonly coverAssetId: Prisma.FieldRef<'Album', 'String'>;
+  readonly coverImage: Prisma.FieldRef<'Album', 'String'>;
   readonly createdAt: Prisma.FieldRef<'Album', 'DateTime'>;
   readonly updatedAt: Prisma.FieldRef<'Album', 'DateTime'>;
 }

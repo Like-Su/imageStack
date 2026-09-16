@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
-import { VIDEO_MAX_DURATION_MS } from './media-formats';
 
 export const HLS_SEGMENT_SECONDS = 4;
-export const HLS_MAX_SEGMENTS =
-  Math.ceil(VIDEO_MAX_DURATION_MS / 1000 / HLS_SEGMENT_SECONDS) + 2;
 export const HLS_MAX_PLAYLIST_BYTES = 1024 * 1024;
+export const HLS_MAX_SEGMENTS = Math.floor(
+  HLS_MAX_PLAYLIST_BYTES / '#EXTINF:0,\nsegment-000000.ts\n'.length,
+);
 export const HLS_PLAYLIST_NAME = 'index.m3u8';
 export const HLS_SEGMENT_PATTERN = /^segment-([0-9]{6})\.ts$/;
 

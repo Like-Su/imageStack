@@ -227,14 +227,20 @@ export const english: Record<string, string> = {
   "视觉模型转录图片中清晰可见的文字，结果持久化并参与关键词检索；可在媒体详情查看。准确度受图片清晰度和所配置模型影响，不保证逐字准确。":
     "The vision model transcribes visible text for persistent keyword search and media details. Accuracy depends on image clarity and the configured model; exact transcription is not guaranteed.",
   "S3 / 对象存储": "S3 / object storage",
+  "本地文件按原存储根目录读取；切换默认存储不会迁移历史文件。网页不能修改磁盘路径，统计仅包含当前账户记录的原文件大小。":
+    "Local files are read from their original storage root. Changing the default storage does not migrate existing files. Disk paths cannot be changed here; statistics cover only original files recorded for the current account.",
+  "RustFS S3 兼容对象存储，保留本地存储策略。":
+    "RustFS S3-compatible object storage alongside the local filesystem strategy.",
+  "通过服务端 STORAGE_DRIVER 选择 LOCAL_FS 或 RUST_FS，统一使用 STORAGE_* 配置，重启后生效；历史文件按记录中的存储位置访问，网页不接收存储密钥或修改存储配置。":
+    "Set server STORAGE_DRIVER to LOCAL_FS or RUST_FS with shared STORAGE_* configuration, then restart the server. Existing files use their recorded storage location. Storage credentials and configuration are not managed in the browser.",
   "扩展远端存储提供器。": "Add remote storage providers.",
   "当前仅实现 LOCAL_FS，不支持在网页中切换 S3、MinIO 或其他对象存储。":
     "Only LOCAL_FS is implemented. Switching to S3, MinIO, or other object storage is not supported here.",
   视频处理: "Video processing",
   "视频抽帧、转码与在线预览。":
     "Video frame extraction, transcoding, and online previews.",
-  "超过 5 MiB 自动分片，支持 24 小时断点续传和同账户 BLAKE3 秒传复用。视频不超过 512 MiB、4 小时；后台生成封面、H.264/AAC 兼容预览及约 4 秒一段的 HLS 视频流，浏览器通过 m3u8 按需播放。原文件不改动，下载支持 HTTP Range。服务器需部署包含 libx264、AAC、libwebp 的 FFmpeg/ffprobe；首次转码完成前可读取原视频，不保证任意网络环境下固定一秒起播。":
-    "Files over 5 MiB use chunked uploads with 24-hour resume and same-account BLAKE3 deduplication. Videos are limited to 512 MiB and 4 hours. Background processing creates covers, H.264/AAC previews, and HLS segments of about 4 seconds for on-demand m3u8 playback. Originals are unchanged and support HTTP Range downloads. The server needs FFmpeg/ffprobe with libx264, AAC, and libwebp. Originals are available before transcoding completes; startup latency depends on the network.",
+  "超过 5 MiB 自动分片，支持 24 小时断点续传和同账户 BLAKE3 秒传复用。视频大小上限由 VIDEO_ASSET_SIZE 配置，不限制时长；后台生成封面、H.264/AAC 兼容预览及约 4 秒一段的 HLS 视频流，浏览器通过 m3u8 按需播放。原文件不改动，下载支持 HTTP Range。服务器需部署包含 libx264、AAC、libwebp 的 FFmpeg/ffprobe；首次转码完成前可读取原视频，不保证任意网络环境下固定一秒起播。":
+    "Files over 5 MiB use chunked uploads with 24-hour resume and same-account BLAKE3 deduplication. VIDEO_ASSET_SIZE configures video size limits; duration is unlimited. Background processing creates covers, H.264/AAC previews, and HLS segments of about 4 seconds for on-demand m3u8 playback. Originals are unchanged and support HTTP Range downloads. The server needs FFmpeg/ffprobe with libx264, AAC, and libwebp. Originals are available before transcoding completes; startup latency depends on the network.",
   "统一身份认证与企业登录。": "Centralized identity and enterprise sign-in.",
   "当前提供邮箱密码登录、邮箱激活及找回密码。OIDC、SSO 与 LDAP 尚未接入。":
     "Email/password sign-in, email activation, and password recovery are available. OIDC, SSO, and LDAP are not connected.",
@@ -310,8 +316,10 @@ export const english: Record<string, string> = {
   请再次输入新密码: "Enter your new password again",
   "JPEG（含 JFIF / PJPEG / PJP）、PNG / APNG、WebP、GIF、AVIF、SVG":
     "JPEG (including JFIF / PJPEG / PJP), PNG / APNG, WebP, GIF, AVIF, SVG",
-  "图片 ≤ 10 MiB；视频 ≤ 512 MiB、4 小时":
-    "Images ≤ 10 MiB; videos ≤ 512 MiB and 4 hours",
+  "图片 ≤ {value1}；视频 ≤ {value2}，视频时长不限制":
+    "Images ≤ {value1}; videos ≤ {value2}, with no duration limit",
+  "文件大小以服务器配置为准，视频时长不限制":
+    "File size limits follow server configuration; video duration is unlimited",
   资源库: "Library",
   图库: "Gallery",
   相册: "Albums",
@@ -353,10 +361,9 @@ export const english: Record<string, string> = {
     "The upload queue holds at most 100 items. Clear completed items first.",
   "请选择受支持的图片或 MP4 / MOV / MKV 视频":
     "Select a supported image or MP4 / MOV / MKV video",
-  "视频需大于 0 B 且不超过 512 MiB":
-    "Videos must be larger than 0 B and no larger than 512 MiB",
-  "图片需大于 0 B 且不超过 10 MiB":
-    "Images must be larger than 0 B and no larger than 10 MiB",
+  "文件大小必须大于 0 B": "Files must be larger than 0 B",
+  "视频不得超过 {value1}": "Videos must be no larger than {value1}",
+  "图片不得超过 {value1}": "Images must be no larger than {value1}",
   文件名过长或含有不支持的字符:
     "The filename is too long or contains unsupported characters",
   "服务器已完成此会话，但对应文件已不可用，请重新选择文件。":
@@ -519,6 +526,39 @@ export const english: Record<string, string> = {
   "给回忆一个名字，让每一张照片都有归属。":
     "Give your memories a name and your photos a home.",
   相册名称: "Album name",
+  相册封面: "Album cover",
+  自动封面: "Automatic cover",
+  自定义图片: "Custom image",
+  相册内资源: "Album media",
+  上传封面图片: "Upload cover image",
+  选择相册内资源: "Choose album media",
+  选择相册封面: "Choose album cover",
+  "支持 PNG、JPEG、WebP，不超过 5 MiB；自动裁剪为 4:3，仅用作封面，不加入图库。":
+    "PNG, JPEG or WebP, up to 5 MiB. Cropped to 4:3 for the cover only; not added to your library.",
+  "可选择相册内的图片或视频，视频将使用缩略图。":
+    "Choose a photo or video from this album. Videos use their thumbnails.",
+  "选择一项相册内的资源作为封面，视频将使用缩略图。":
+    "Choose one item from this album as its cover. Videos use their thumbnails.",
+  "自动使用相册内最新资源作为封面。":
+    "Automatically use the latest media in this album as its cover.",
+  "添加资源后，可选择相册内资源作为封面。":
+    "Add media to the album to select it as the cover.",
+  "请先向相册添加资源，或换一个关键词。":
+    "Add media to the album first, or try another keyword.",
+  请选择自定义封面图片: "Choose a custom cover image",
+  请选择相册内的封面资源: "Choose cover media from this album",
+  "封面文件需大于 0 且不超过 5 MiB":
+    "Cover files must be larger than 0 and no more than 5 MiB",
+  "封面图片不能超过 2000 万像素": "Cover images must not exceed 20 megapixels",
+  当前浏览器无法处理封面图片: "Your browser cannot process this cover image",
+  "封面数据过大，请重新选择图片":
+    "The cover image is too large. Choose another image.",
+  "无法读取图片，请重新选择封面":
+    "Cannot read the image. Choose another cover.",
+  "封面图片无效，请选择 PNG、JPEG 或 WebP 图片":
+    "Invalid cover image. Choose a PNG, JPEG or WebP image.",
+  自定义图片和相册资源不能同时设为封面:
+    "A custom image and album media cannot both be set as the cover",
   "例如：夏日旅行": "For example: Summer vacation",
   "描述（可选）": "Description (optional)",
   "记录一些与这段回忆有关的事…": "Write something about these memories…",
@@ -551,6 +591,18 @@ export const english: Record<string, string> = {
   刷新媒体列表: "Refresh media",
   时间字段: "Date field",
   上传时间: "Upload date",
+  资源排序: "Sort media",
+  文件名升序: "Filename ascending",
+  文件名降序: "Filename descending",
+  小文件优先: "Smallest files first",
+  大文件优先: "Largest files first",
+  最早上传优先: "Oldest uploads first",
+  "切换排序方向：{value1}": "Toggle sort direction: {value1}",
+  "正在加载更多资源…": "Loading more media…",
+  继续向下滚动自动加载: "Scroll down to load more automatically",
+  "已显示 {value1} 项{value2}": "Showing {value1} items{value2}",
+  "项结果 · 关键词匹配 · 本次查询 {value1} ms":
+    " results · keyword matching · query: {value1} ms",
   "拍摄时间（EXIF）": "Date taken (EXIF)",
   "开始日期（UTC）": "Start date (UTC)",
   "结束日期（含当日）": "End date (inclusive)",
@@ -955,10 +1007,22 @@ export const english: Record<string, string> = {
   "Media Hub 图库": "Media Hub gallery",
   关闭导航: "Close navigation",
   原图存储: "Original file storage",
+  存储空间: "Storage space",
+  图片加载中: "Loading image",
+  "已用 / 总容量": "Used / Total",
+  未配置: "Not configured",
+  存储空间使用率: "Storage usage",
+  "存储磁盘 · 含其他应用数据": "Storage disk · Includes other applications",
+  "当前存储桶 · 含原文件与派生文件":
+    "Current bucket · Originals and derived files",
+  "剩余可用：{value1}": "Available: {value1}",
+  总容量需由管理员配置: "An administrator must configure the total capacity",
   "当前账户 · 图库与回收站": "Current account · Gallery and trash",
   "不含缩略图，不代表磁盘总容量":
     "Excludes thumbnails; not total disk capacity",
   "统计获取失败，点击重试": "Could not load statistics. Click to retry.",
+  "图库统计获取失败，点击重试":
+    "Could not load library statistics. Click to retry.",
   正在激活账户: "Activating account",
   账户已激活: "Account activated",
   暂时无法激活: "Unable to activate right now",
@@ -1201,6 +1265,8 @@ export const english: Record<string, string> = {
   "{value1} 天": "{value1} days",
   "不包含缩略图、兼容视频预览及其他用户数据。存储路径与服务器容量需由部署环境管理。":
     "Excludes thumbnails, compatible video previews, and other users' data. Storage paths and server capacity are managed by the deployment environment.",
+  "图库与回收站原文件仅统计当前账户，不含派生文件；上方容量统计当前存储磁盘或存储桶，不是个人配额。":
+    "Gallery and trash originals are for the current account and exclude derived files. Capacity above covers the current storage disk or bucket, not a personal quota.",
   媒体处理与扩展: "Media processing and extensions",
   查看能力清单: "View capabilities",
   重试: "Retry",

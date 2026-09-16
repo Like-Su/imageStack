@@ -168,6 +168,7 @@ export const mediaApi = {
     name: string;
     description?: string;
     shared?: boolean;
+    coverImage?: string | null;
   }) => request<Album>("/albums", { method: "POST", body }),
   updateAlbum: (
     albumId: string,
@@ -175,6 +176,7 @@ export const mediaApi = {
       name?: string;
       description?: string | null;
       coverAssetId?: string | null;
+      coverImage?: string | null;
     },
   ) =>
     request<Album>(`/albums/${identifier(albumId)}`, { method: "PATCH", body }),

@@ -6,7 +6,6 @@ import {
   Header,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Query,
@@ -21,8 +20,11 @@ import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { Open } from '../iam/auth/decorators/open.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import type { RequestUser } from '../iam/auth/auth.type';
-import { streamStoredMedia } from '../assets/asset-file-response';
-import { STORAGE_PROVIDER, StorageProvider } from '../storage/storage.provider';
+import {
+  isMediaResponseClosed,
+  streamStoredMedia,
+} from '../assets/asset-file-response';
+import { StorageService } from '../storage/storage.service';
 import { SharesService } from './shares.service';
 import {
   CreateShareDto,
@@ -36,7 +38,7 @@ import {
 export class SharesController {
   constructor(
     private readonly shares: SharesService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   @Post()
@@ -83,7 +85,7 @@ export class SharesController {
   thumbnail(
     @Param() params: ShareAssetDto,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     return this.media(params, false, request, response);
   }
@@ -94,7 +96,7 @@ export class SharesController {
   original(
     @Param() params: ShareAssetDto,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     return this.media(params, true, request, response);
   }
@@ -110,15 +112,16 @@ export class SharesController {
       params.assetId,
       original,
     );
+    if (isMediaResponseClosed(request, response)) return;
     if ('key' in resource)
       return streamStoredMedia(this.storage, resource, request, response);
     response.status(HttpStatus.ACCEPTED);
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Retry-After', '3');
-    return {
+    response.json({
       success: true,
       data: resource,
       timestamp: new Date().toISOString(),
-    };
+    });
   }
 }

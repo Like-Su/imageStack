@@ -3,7 +3,6 @@ import {
   ConflictException,
   ForbiddenException,
   GoneException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -43,10 +42,10 @@ import { VideoSummariesService } from '../video-summaries/video-summaries.servic
 import { recordVideoSummaryEvent } from '../video-summaries/video-summary-state';
 import {
   createStorageKey,
-  STORAGE_PROVIDER,
+  storageProviderTypes,
   StorageError,
 } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { CreateUploadSessionDto } from './dto/upload.dto';
 import { UploadPartsService } from './upload-parts.service';
 import {
@@ -86,7 +85,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     private readonly config: ConfigService,
     private readonly videoSummaries: VideoSummariesService,
     private readonly albums: AlbumsService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   onModuleInit() {
@@ -110,14 +109,9 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       await this.requireAlbumUpload(this.prisma, dto.albumId, userId);
     const format = mediaFormat(dto.fileName);
     if (!format) throw new UnsupportedMediaTypeException('不支持此文件扩展名');
-    const limit = Math.min(
-      mediaByteLimit(format),
-      this.config.getOrThrow<number>('STORAGE_MAX_FILE_BYTES'),
-    );
+    const limit = mediaByteLimit(format, this.config);
     if (dto.size > limit)
-      throw new PayloadTooLargeException(
-        `文件超过大小限制（${Math.floor(limit / 1024 / 1024)} MiB）`,
-      );
+      throw new PayloadTooLargeException(`文件超过大小限制（${limit} B）`);
     const chunked = dto.size > UPLOAD_CHUNK_BYTES;
     if (chunked && !dto.hash)
       throw new BadRequestException(
@@ -138,7 +132,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
             hashAlgorithm: 'BLAKE3',
             hash: dto.hash,
             size: BigInt(dto.size),
-            storageProvider: 'LOCAL_FS',
+            storageProvider: { in: storageProviderTypes },
             storageKey: { not: null },
           },
         },
@@ -146,7 +140,9 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
         orderBy: { createdAt: 'desc' },
       });
       if (existing?.file?.storageKey) {
-        const metadata = await this.storage.stat(existing.file.storageKey);
+        const metadata = await this.storage
+          .for(existing.file)
+          .stat(existing.file.storageKey);
         if (metadata?.size === existing.file.size) {
           const albumId = dto.albumId ?? null;
           const fileId = existing.file.id;
@@ -183,6 +179,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     }
     const session = await this.prisma.uploadSession.create({
       data: {
+        ...this.storage.defaultLocation,
         userId,
         albumId: dto.albumId ?? null,
         fileName: dto.fileName,
@@ -270,6 +267,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   ) {
     if (this.activeUploads >= UPLOAD_MAX_CONCURRENT)
       throw new ServiceUnavailableException('上传校验繁忙，请稍后重试');
+    const storage = this.storage.for(session);
     this.activeUploads += 1;
     const mergeToken = randomUUID();
     const storageKey = createStorageKey('originals');
@@ -305,6 +303,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       source = await openContent();
       const expectedBytes = Number(session.size);
       const format = mediaFormat(session.fileName);
+      const maxBytes = mediaByteLimit(format, this.config);
       let media: {
         mediaType: 'IMAGE' | 'VIDEO';
         mimeType: string;
@@ -319,6 +318,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
           source,
           expectedBytes,
           session.hash,
+          maxBytes,
         );
         media = {
           ...(await this.videos.inspect(stagedVideo.path, format)),
@@ -326,11 +326,11 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
         };
         content = createReadStream(stagedVideo.path);
       } else {
-        const bytes = await readUploadBody(source, expectedBytes);
-        media = await inspectImage(bytes, session.hash, format);
+        const bytes = await readUploadBody(source, expectedBytes, maxBytes);
+        media = await inspectImage(bytes, session.hash, maxBytes, format);
         content = Readable.from([bytes]);
       }
-      const stored = await this.storage.put(storageKey, content);
+      const stored = await storage.put(storageKey, content);
       objectWritten = true;
       if (stored.size !== BigInt(expectedBytes))
         throw new InternalServerErrorException('存储结果大小不一致');
@@ -343,7 +343,8 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
               name: session.fileName,
               type: 'FILE',
               ownerId: session.userId,
-              storageProvider: 'LOCAL_FS',
+              storageProvider: session.storageProvider,
+              storageBucket: session.storageBucket,
               storageKey,
               size: stored.size,
               mimeType: media.mimeType,
@@ -432,7 +433,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
             return null;
           });
         if (objectWritten && !linkAttempted)
-          await this.storage.delete(storageKey).catch(() => undefined);
+          await storage.delete(storageKey).catch(() => undefined);
         if (status === 'FAILED' && released?.count === 1)
           await this.cleanupParts(session.id);
       }
@@ -566,7 +567,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       !format ||
       !session.size ||
       session.size < 1n ||
-      session.size > BigInt(mediaByteLimit(format))
+      session.size > BigInt(mediaByteLimit(format, this.config))
     )
       throw new BadRequestException('上传会话中的文件格式或大小无效');
   }
@@ -642,7 +643,9 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     for (let offset = 0; offset < storedParts.length; offset += 16) {
       const available = await Promise.all(
         storedParts.slice(offset, offset + 16).map(async (part) => {
-          const metadata = await this.storage.stat(part.storageKey);
+          const metadata = await this.storage
+            .for(session)
+            .stat(part.storageKey);
           return metadata?.size === BigInt(part.size) ? part : null;
         }),
       );

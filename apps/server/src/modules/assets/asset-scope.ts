@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { MEDIA_MIME_TYPES } from '../../common/media-formats';
 import { albumWhere } from '../collections/album-scope';
+import { storageProviderTypes } from '../storage/storage.provider';
 
 export function mediaAssetWhere(
   deleted: boolean | null = false,
@@ -10,7 +11,7 @@ export function mediaAssetWhere(
     ...(deleted === null ? {} : { deleted }),
     type: 'FILE',
     mediaType: { in: ['IMAGE', 'VIDEO'] },
-    storageProvider: 'LOCAL_FS',
+    storageProvider: { in: storageProviderTypes },
     storageKey: { not: null },
     mimeType: { in: MEDIA_MIME_TYPES },
   };

@@ -1,5 +1,7 @@
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
+export type AssetSortBy = "createdAt" | "name" | "size";
+export type AssetSortOrder = "asc" | "desc";
 
 export interface VideoSummary {
   status: ProcessingStatus;
@@ -103,6 +105,8 @@ export interface CursorPage<Item> {
 }
 
 export interface AssetQuery {
+  sortBy?: AssetSortBy;
+  sortOrder?: AssetSortOrder;
   type?: "image" | "video" | "audio";
   timeField?: "createdAt" | "takenAt";
   year?: number;
@@ -146,9 +150,10 @@ export interface Album {
     deleteAlbum: boolean;
     manageMembers: boolean;
   };
+  coverSource: "auto" | "asset" | "custom";
   coverAssetId: string | null;
+  coverThumbnailRevision: string | null;
   coverUrl: string | null;
-  coverThumbnailRevision?: string | null;
   count: number;
   createdAt: string;
   updatedAt: string;

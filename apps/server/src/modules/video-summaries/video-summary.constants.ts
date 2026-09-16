@@ -1,4 +1,5 @@
 import type { Prisma } from '../../prisma/generated/prisma/client';
+import { storageProviderTypes } from '../storage/storage.provider';
 
 export const VIDEO_SUMMARY_INTERVAL_MS = 5000;
 export const VIDEO_SUMMARY_LEASE_MS = 180000;
@@ -14,7 +15,7 @@ export const summaryVideoWhere = {
   type: 'FILE',
   mediaType: 'VIDEO',
   deleted: false,
-  storageProvider: 'LOCAL_FS',
+  storageProvider: { in: storageProviderTypes },
   storageKey: { not: null },
 } satisfies Prisma.FileNodeWhereInput;
 

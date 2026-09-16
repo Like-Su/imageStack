@@ -157,6 +157,7 @@ export class SharesService {
             name: true,
             description: true,
             coverAssetId: true,
+            coverImage: true,
           },
         },
       },
@@ -298,7 +299,10 @@ export class SharesService {
             ownerId: user.id,
             name: `${share.album.name.slice(0, 170)} · 分享 ${randomBytes(6).toString('hex')}`,
             description: share.album.description,
-            coverAssetId: copies[Math.max(0, coverIndex)].id,
+            coverImage: share.album.coverImage,
+            coverAssetId: share.album.coverImage
+              ? null
+              : copies[Math.max(0, coverIndex)].id,
             assets: {
               createMany: {
                 data: copies.map((asset) => ({ assetId: asset.id })),

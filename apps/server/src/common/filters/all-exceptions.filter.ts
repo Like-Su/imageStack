@@ -28,19 +28,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const error = this.resolveError(exception, status);
 
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error(
+        `${request.method} ${request.url}`,
+        exception instanceof Error ? exception.stack : String(exception),
+      );
+    }
+
+    if (request.aborted || response.destroyed || response.writableEnded) return;
+    if (response.headersSent) {
+      response.destroy();
+      return;
+    }
+
     if (status === HttpStatus.TOO_MANY_REQUESTS) {
       const retryAfter = (error.details as { retryAfter?: unknown } | undefined)
         ?.retryAfter;
       if (typeof retryAfter === 'number' && Number.isFinite(retryAfter)) {
         response.setHeader('Retry-After', Math.max(1, Math.ceil(retryAfter)));
       }
-    }
-
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error(
-        `${request.method} ${request.url}`,
-        exception instanceof Error ? exception.stack : String(exception),
-      );
     }
 
     const body: ApiErrorResponse = {

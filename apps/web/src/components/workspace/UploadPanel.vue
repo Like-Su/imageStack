@@ -13,11 +13,7 @@ import {
 import { RouterLink } from "vue-router";
 import { useUploadsStore } from "@/stores/uploads";
 import { formatBytes } from "@/composables/mediaFormat";
-import {
-  UPLOAD_IMAGE_LABEL,
-  UPLOAD_VIDEO_LABEL,
-  UPLOAD_LIMITS_LABEL,
-} from "@/config/workspace";
+import { UPLOAD_IMAGE_LABEL, UPLOAD_VIDEO_LABEL } from "@/config/workspace";
 defineProps<{ albumId?: string }>();
 const uploads = useUploadsStore();
 const labels = {
@@ -191,7 +187,7 @@ const labels = {
         <p class="text-[10px] leading-5 text-faint">
           {{ $t(UPLOAD_IMAGE_LABEL) }}；{{ UPLOAD_VIDEO_LABEL }}<br />{{
             $t("{value1}，不限制图片和视频像素，动图 ≤ 1000 帧。", {
-              value1: $t(UPLOAD_LIMITS_LABEL),
+              value1: uploads.limitsLabel,
             })
           }}<br />{{
             $t(

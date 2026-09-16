@@ -11,6 +11,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import type { SharedImage, SharePage, ShareSaveResult } from "@/types/shares";
 import LocaleSwitcher from "@/components/LocaleSwitcher.vue";
 import AssetImage from "@/components/media/AssetImage.vue";
+import AssetLoadMore from "@/components/media/AssetLoadMore.vue";
 import SharedImageViewer from "@/components/media/SharedImageViewer.vue";
 import DataState from "@/components/workspace/DataState.vue";
 
@@ -47,6 +48,7 @@ async function load(more = false) {
     if (current.signal.aborted) return;
     page.value = {
       ...response,
+      nextCursor: response.nextCursor === cursor ? null : response.nextCursor,
       items: more
         ? [
             ...(page.value?.items ?? []),
@@ -257,18 +259,15 @@ onBeforeUnmount(() => {
             </div>
           </button>
         </div>
-        <el-alert
-          v-if="error"
-          :title="error"
-          type="error"
-          :closable="false"
-          class="mt-5"
+        <AssetLoadMore
+          v-if="page.items.length"
+          :count="page.items.length"
+          :has-more="Boolean(page.nextCursor)"
+          :loading="loading"
+          :disabled="saving || Boolean(viewing)"
+          :error="error"
+          @load="load(true)"
         />
-        <div v-if="page.nextCursor" class="mt-6 text-center">
-          <el-button :loading="loading" @click="load(true)">{{
-            $t("加载更多")
-          }}</el-button>
-        </div>
       </template>
     </section>
     <SharedImageViewer

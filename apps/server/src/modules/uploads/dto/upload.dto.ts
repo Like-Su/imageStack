@@ -9,7 +9,6 @@ import {
   Matches,
   Max,
 } from 'class-validator';
-import { UPLOAD_MAX_BYTES } from '../upload.constants';
 
 export class CreateUploadSessionDto {
   @IsOptional()
@@ -29,7 +28,7 @@ export class CreateUploadSessionDto {
 
   @IsInt()
   @Min(1)
-  @Max(UPLOAD_MAX_BYTES)
+  @Max(Number.MAX_SAFE_INTEGER)
   size: number;
 
   @IsOptional()

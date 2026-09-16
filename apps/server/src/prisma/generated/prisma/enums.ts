@@ -41,6 +41,7 @@ export type UploadStatus = (typeof UploadStatus)[keyof typeof UploadStatus];
 
 export const StorageProviderType = {
   LOCAL_FS: 'LOCAL_FS',
+  RUSTFS: 'RUSTFS',
 } as const;
 
 export type StorageProviderType =

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { ImageOff, Image, LoaderCircle } from "lucide-vue-next";
+import { ImageOff, Image } from "lucide-vue-next";
+import { translate } from "@/i18n";
 import { mediaApi } from "@/api/media";
 import { sharesApi } from "@/api/shares";
 import { ApiError, getErrorMessage } from "@/api/request";
 import { useAuthStore } from "@/stores/auth";
 import { cachedThumbnail, cacheThumbnail } from "@/composables/thumbnailCache";
 import { sharedRead } from "@/api/sharedRead";
+import ImageLoading from "./ImageLoading.vue";
+import LoadingImage from "./LoadingImage.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -62,7 +65,7 @@ async function retrieve(current: AbortController, attempt = 0, force = false) {
     if (current.signal.aborted) return;
     if (!shareToken && !cached) cacheThumbnail(key, blob);
     source.value = URL.createObjectURL(blob);
-    state.value = "ready";
+    state.value = "loading";
   } catch (error) {
     if (current.signal.aborted) return;
     if (
@@ -110,6 +113,11 @@ function reload() {
   loadVisible();
 }
 
+function failedToDisplay() {
+  state.value = "error";
+  errorMessage.value = translate("预览不可用");
+}
+
 defineExpose({ reload });
 
 watch(visible, (shown) => {
@@ -117,6 +125,7 @@ watch(visible, (shown) => {
   else {
     clear();
     controller = null;
+    if (state.value !== "error") state.value = "loading";
   }
 });
 
@@ -160,31 +169,35 @@ onBeforeUnmount(() => {
   <!-- 防止用户按住图片出现 拖动照片 -->
   <div
     ref="host"
-    class="relative size-full overflow-hidden bg-panel2"
+    class="relative size-full overflow-hidden bg-panel2 hover:scale-110 transition-transform duration-300"
     :title="errorMessage || undefined"
+    :aria-busy="visible && (state === 'loading' || state === 'processing')"
     @mousedown.prevent
   >
-    <img
-      v-if="source && state === 'ready'"
+    <LoadingImage
+      v-if="source"
       :src="source"
       :alt="name"
-      class="size-full"
-      :class="contain ? 'object-contain' : 'object-cover'"
-      decoding="async"
-      @error="state = 'error'"
+      :contain="contain"
+      @load="state = 'ready'"
+      @error="failedToDisplay"
+    />
+    <ImageLoading
+      v-else-if="visible && state !== 'error'"
+      :label="
+        state === 'processing'
+          ? $t('缩略图生成中')
+          : `${name}：${$t('图片加载中')}`
+      "
+      :show-label="state === 'processing'"
     />
     <div
       v-else
       class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-faint"
       role="img"
-      :aria-label="`${name}：${state === 'error' ? $t('预览不可用') : $t('缩略图生成中')}`"
+      :aria-label="`${name}：${state === 'error' ? $t('预览不可用') : $t('图片加载中')}`"
     >
       <ImageOff v-if="state === 'error'" class="size-6" aria-hidden="true" />
-      <LoaderCircle
-        v-else-if="visible && state === 'loading'"
-        class="size-5 animate-spin"
-        aria-hidden="true"
-      />
       <Image v-else class="size-6" aria-hidden="true" />
       <span
         v-if="state === 'processing' || state === 'error'"

@@ -2,14 +2,13 @@ import { translate } from "@/i18n";
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import { mediaApi } from "@/api/media";
+import { systemApi } from "@/api/system";
 import { ApiError, getErrorMessage } from "@/api/request";
-import {
-  UPLOAD_IMAGE_MAX_BYTES,
-  UPLOAD_VIDEO_MAX_BYTES,
-  uploadMediaKind,
-} from "@/config/workspace";
+import { uploadMediaKind } from "@/config/workspace";
+import { formatBytes } from "@/composables/mediaFormat";
 import { useWorkspaceStore } from "./workspace";
 import type { Album, UploadCompletion, UploadSession } from "@/types/media";
+import type { SystemCapabilities } from "@/types/system";
 import { hashFile } from "@/uploads/hash-file";
 import type { FileDigest } from "@/uploads/hash-file";
 import { uploadDelay, uploadParts } from "@/uploads/upload-parts";
@@ -39,6 +38,15 @@ export const useUploadsStore = defineStore("uploads", () => {
     {},
   );
   const entries = ref<UploadEntry[]>([]);
+  const limits = ref<SystemCapabilities["upload"] | null>(null);
+  const limitsLabel = computed(() =>
+    limits.value
+      ? translate("图片 ≤ {value1}；视频 ≤ {value2}，视频时长不限制", {
+          value1: formatBytes(limits.value.imageMaxBytes),
+          value2: formatBytes(limits.value.videoMaxBytes),
+        })
+      : translate("文件大小以服务器配置为准，视频时长不限制"),
+  );
   const open = ref(false);
   const collapsed = ref(false);
   const active = computed(
@@ -56,6 +64,26 @@ export const useUploadsStore = defineStore("uploads", () => {
   let refreshTimer: number | undefined;
   let refreshPending = false;
   let albumRefreshPending = false;
+  let limitsRequest: Promise<void> | undefined;
+
+  async function loadLimits() {
+    if (!workspace.can("asset:list")) return;
+    if (limitsRequest) return limitsRequest;
+    const version = generation;
+    const request: Promise<void> = systemApi
+      .capabilities()
+      .then((capabilities) => {
+        if (version === generation) limits.value = capabilities.upload;
+      })
+      .catch(() => {
+        if (version === generation) limits.value = null;
+      })
+      .finally(() => {
+        if (limitsRequest === request) limitsRequest = undefined;
+      });
+    limitsRequest = request;
+    return request;
+  }
 
   function canUpload(albumId?: string) {
     if (!albumId) return workspace.can("upload:create");
@@ -89,13 +117,16 @@ export const useUploadsStore = defineStore("uploads", () => {
       const files = Array.from(input.files ?? []);
       input.value = "";
       input.onchange = null;
-      if (version === generation && files.length) add(files, albumId);
+      if (version === generation && files.length) void add(files, albumId);
     };
     input.click();
   }
 
-  function add(files: File[], albumId?: string) {
+  async function add(files: File[], albumId?: string) {
     if (!canUpload(albumId)) return;
+    const version = generation;
+    await loadLimits();
+    if (version !== generation || !canUpload(albumId)) return;
     const available = Math.max(0, 100 - entries.value.length);
     if (files.length > available)
       workspace.notify(
@@ -105,16 +136,24 @@ export const useUploadsStore = defineStore("uploads", () => {
     for (const file of files.slice(0, available)) {
       const kind = uploadMediaKind(file.name);
       const maxBytes =
-        kind === "video" ? UPLOAD_VIDEO_MAX_BYTES : UPLOAD_IMAGE_MAX_BYTES;
+        kind === "video"
+          ? limits.value?.videoMaxBytes
+          : limits.value?.imageMaxBytes;
       const error = !kind
         ? translate("请选择受支持的图片或 MP4 / MOV / MKV 视频")
-        : file.size < 1 || file.size > maxBytes
-          ? kind === "video"
-            ? translate("视频需大于 0 B 且不超过 512 MiB")
-            : translate("图片需大于 0 B 且不超过 10 MiB")
-          : file.name.length > 255 || /[\\/\u0000-\u001f\u007f]/.test(file.name)
-            ? translate("文件名过长或含有不支持的字符")
-            : "";
+        : file.size < 1
+          ? translate("文件大小必须大于 0 B")
+          : maxBytes !== undefined && file.size > maxBytes
+            ? translate(
+                kind === "video"
+                  ? "视频不得超过 {value1}"
+                  : "图片不得超过 {value1}",
+                { value1: formatBytes(maxBytes) },
+              )
+            : file.name.length > 255 ||
+                /[\\/\u0000-\u001f\u007f]/.test(file.name)
+              ? translate("文件名过长或含有不支持的字符")
+              : "";
       entries.value.push({
         id: ++nextId,
         name: file.name,
@@ -466,6 +505,8 @@ export const useUploadsStore = defineStore("uploads", () => {
     refreshPending = false;
     albumRefreshPending = false;
     albumAccess.value = {};
+    limits.value = null;
+    limitsRequest = undefined;
     for (const controller of controllers.values()) controller.abort();
     controllers.clear();
     entries.value = [];
@@ -478,6 +519,8 @@ export const useUploadsStore = defineStore("uploads", () => {
     collapsed,
     active,
     completed,
+    limitsLabel,
+    loadLimits,
     canUpload,
     setAlbumAccess,
     forgetAlbum,

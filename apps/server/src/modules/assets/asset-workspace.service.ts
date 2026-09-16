@@ -1,9 +1,10 @@
-import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { withSerializable } from '../../common/prisma/transaction';
 import { MediaJobsService } from '../jobs/media-jobs.service';
-import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { storageProviderTypes } from '../storage/storage.provider';
+import type { StorageLocation } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { assetWhere, requireOwnedAssets } from './asset-scope';
 import { albumWhere } from '../collections/album-scope';
 import { IMAGE_MIME_TYPES } from '../../common/media-formats';
@@ -28,7 +29,7 @@ export class AssetWorkspaceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jobs: MediaJobsService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   overview(userId: string) {
@@ -94,7 +95,8 @@ export class AssetWorkspaceService {
         FROM "FileNode"
         WHERE "ownerId" = ${userId} AND "deleted" = false
           AND "type" = 'FILE' AND "mediaType" = 'IMAGE'
-          AND "storageProvider" = 'LOCAL_FS' AND "storageKey" IS NOT NULL
+          AND "storageProvider" IN (${Prisma.join(storageProviderTypes.map((type) => Prisma.sql`${type}::"StorageProviderType"`))})
+          AND "storageKey" IS NOT NULL
           AND "mimeType" IN (${Prisma.join(IMAGE_MIME_TYPES)})
       )
       SELECT floor(latitude * 10)::int AS "latitudeCell",
@@ -144,6 +146,8 @@ export class AssetWorkspaceService {
       const files = await transaction.fileNode.findMany({
         where: { ...assetWhere(userId, true), id: { in: ids } },
         select: {
+          storageProvider: true,
+          storageBucket: true,
           storageKey: true,
           thumbnailKey: true,
           previewKey: true,
@@ -162,52 +166,71 @@ export class AssetWorkspaceService {
       });
       return files;
     });
-    const keys = new Set(
-      removed.flatMap((file) =>
-        [
-          file.storageKey,
-          file.thumbnailKey,
-          file.previewKey,
-          file.hlsKey,
-        ].filter((key): key is string => Boolean(key)),
-      ),
-    );
-    const hlsCounts = new Map(
-      removed
-        .filter((file) => file.hlsKey)
-        .map((file) => [file.hlsKey, file.hlsSegmentCount]),
-    );
-    let cleanupPending = 0;
-    let references: Set<string>;
-    try {
-      references = await referencedStorageKeys(this.prisma, [...keys]);
-    } catch (error) {
-      for (const key of keys)
-        this.logger.error(
-          `回收站引用检查失败，保留待清理对象：${key}`,
-          error instanceof Error ? error.stack : String(error),
-        );
-      return { count: removed.length, cleanupPending: keys.size };
+    const locations = new Map<
+      string,
+      {
+        location: StorageLocation;
+        keys: Set<string>;
+        hlsCounts: Map<string, number>;
+      }
+    >();
+    for (const file of removed) {
+      const identifier = JSON.stringify([
+        file.storageProvider,
+        file.storageBucket,
+      ]);
+      let group = locations.get(identifier);
+      if (!group) {
+        group = { location: file, keys: new Set(), hlsCounts: new Map() };
+        locations.set(identifier, group);
+      }
+      for (const key of [
+        file.storageKey,
+        file.thumbnailKey,
+        file.previewKey,
+        file.hlsKey,
+      ])
+        if (key) group.keys.add(key);
+      if (file.hlsKey) group.hlsCounts.set(file.hlsKey, file.hlsSegmentCount);
     }
-    for (const key of keys) {
+    let cleanupPending = 0;
+    for (const { location, keys, hlsCounts } of locations.values()) {
+      let references: Set<string>;
       try {
-        if (!references.has(key)) {
+        references = await referencedStorageKeys(
+          this.prisma,
+          [...keys],
+          location,
+        );
+      } catch (error) {
+        for (const key of keys)
+          this.logger.error(
+            `回收站引用检查失败，保留待清理对象：${location.storageProvider}/${location.storageBucket ?? '-'} ${key}`,
+            error instanceof Error ? error.stack : String(error),
+          );
+        cleanupPending += keys.size;
+        continue;
+      }
+      for (const key of keys) {
+        try {
+          if (references.has(key)) continue;
+          const storage = this.storage.for(location);
           const objects = hlsCounts.has(key)
-            ? hlsObjectKeys(key, hlsCounts.get(key))
+            ? hlsObjectKeys(key, hlsCounts.get(key)!)
             : [key];
           for (let offset = 0; offset < objects.length; offset += 16)
             await Promise.all(
               objects
                 .slice(offset, offset + 16)
-                .map((objectKey) => this.storage.delete(objectKey)),
+                .map((objectKey) => storage.delete(objectKey)),
             );
+        } catch (error) {
+          cleanupPending += 1;
+          this.logger.error(
+            `回收站记录已删除，存储对象待管理员清理：${location.storageProvider}/${location.storageBucket ?? '-'} ${key}`,
+            error instanceof Error ? error.stack : String(error),
+          );
         }
-      } catch (error) {
-        cleanupPending += 1;
-        this.logger.error(
-          `回收站记录已删除，存储对象待管理员清理：${key}`,
-          error instanceof Error ? error.stack : String(error),
-        );
       }
     }
     return { count: removed.length, cleanupPending };

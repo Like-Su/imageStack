@@ -6,18 +6,33 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import AppModal from "@/components/workspace/AppModal.vue";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetImage from "./AssetImage.vue";
+import AssetLoadMore from "./AssetLoadMore.vue";
+import AssetSortControl from "./AssetSortControl.vue";
 
-withDefaults(
-  defineProps<{ title?: string; busy?: boolean; error?: string }>(),
-  { title: "选择图库媒体" },
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    busy?: boolean;
+    error?: string;
+    albumId?: string;
+    multiple?: boolean;
+    initialSelection?: string[];
+  }>(),
+  {
+    title: "选择图库媒体",
+    multiple: true,
+    initialSelection: () => [],
+  },
 );
 const emit = defineEmits<{ close: []; submit: [ids: string[]] }>();
 const workspace = useWorkspaceStore();
 const searchText = ref("");
 const submitted = ref("");
-const selected = ref(new Set<string>());
+const selected = ref(
+  new Set(props.initialSelection.slice(0, props.multiple ? 100 : 1)),
+);
 const feed = useAssetFeed(() => ({
-  query: {},
+  query: { albumId: props.albumId },
   search: submitted.value || undefined,
 }));
 const {
@@ -26,15 +41,19 @@ const {
   error: loadError,
   hasMore,
   loadingMore,
+  refreshing,
   moreError,
 } = feed;
 
 function toggle(id: string) {
+  if (props.busy) return;
   if (selected.value.has(id)) selected.value.delete(id);
+  else if (!props.multiple) selected.value = new Set([id]);
   else if (selected.value.size < 100) selected.value.add(id);
 }
 
 function submit() {
+  if (props.busy || !selected.value.size) return;
   workspace.rememberAssets(
     items.value.filter((asset) => selected.value.has(asset.id)),
   );
@@ -46,7 +65,11 @@ function submit() {
   <AppModal
     open
     :title="title"
-    :description="$t('一次最多选择 100 项；只添加关联，不复制原文件。')"
+    :description="
+      multiple
+        ? $t('一次最多选择 100 项；只添加关联，不复制原文件。')
+        : $t('选择一项相册内的资源作为封面，视频将使用缩略图。')
+    "
     :busy="busy"
     @update:open="emit('close')"
   >
@@ -73,12 +96,17 @@ function submit() {
           <Search />
         </el-button>
       </form>
+      <AssetSortControl class="mb-4" :disabled="busy" />
       <DataState
         v-if="loading || loadError || !items.length"
         :loading="loading"
         :error="loadError"
         :title="$t('没有找到媒体')"
-        :description="$t('先在图库上传图片，或换一个关键词。')"
+        :description="
+          albumId
+            ? $t('请先向相册添加资源，或换一个关键词。')
+            : $t('先在图库上传图片，或换一个关键词。')
+        "
         @retry="feed.reload"
       />
       <div v-else class="grid max-h-80 grid-cols-3 gap-2 overflow-y-auto p-1">
@@ -92,7 +120,10 @@ function submit() {
               ? 'border-accent ring-1 ring-accent'
               : 'border-line'
           "
-          :disabled="busy || (selected.size >= 100 && !selected.has(asset.id))"
+          :disabled="
+            busy ||
+            (multiple && selected.size >= 100 && !selected.has(asset.id))
+          "
           :aria-label="$t('选择 {value1}', { value1: asset.name })"
           :aria-pressed="selected.has(asset.id)"
           @click="toggle(asset.id)"
@@ -110,17 +141,16 @@ function submit() {
             >{{ asset.name }}</span
           >
         </button>
+        <AssetLoadMore
+          class="col-span-3"
+          :count="items.length"
+          :has-more="hasMore"
+          :loading="loadingMore || refreshing"
+          :disabled="busy"
+          :error="moreError"
+          @load="feed.loadMore"
+        />
       </div>
-      <p v-if="moreError" class="mt-3 text-xs text-err">{{ moreError }}</p>
-      <el-button
-        :loading="loadingMore"
-        v-if="hasMore"
-        native-type="button"
-        class="mt-3 w-full"
-        :disabled="loadingMore || busy"
-        @click="feed.loadMore"
-        >{{ $t("加载更多") }}</el-button
-      >
       <p v-if="error" class="mt-3 text-xs leading-6 text-err" role="alert">
         {{ error }}
       </p>
@@ -134,7 +164,7 @@ function submit() {
           native-type="button"
           :disabled="busy || !selected.size"
           @click="submit"
-          >{{ $t("添加所选媒体") }}</el-button
+          >{{ multiple ? $t("添加所选媒体") : $t("设为封面") }}</el-button
         >
       </div>
     </div>

@@ -4,6 +4,7 @@ import { sharesApi } from "@/api/shares";
 import { getErrorMessage } from "@/api/request";
 import type { SharedImage } from "@/types/shares";
 import DataState from "@/components/workspace/DataState.vue";
+import LoadingImage from "./LoadingImage.vue";
 
 const props = defineProps<{ token: string; image: SharedImage }>();
 const emit = defineEmits<{ close: [] }>();
@@ -56,12 +57,13 @@ onBeforeUnmount(clear);
       :error="error"
       @retry="load"
     />
-    <img
-      v-else-if="source"
-      :src="source"
-      :alt="image.name"
-      class="mx-auto max-h-[75dvh] max-w-full object-contain"
-      @error="error = $t('浏览器无法显示此原图，仍可保存到你的图库。')"
-    />
+    <div v-else-if="source" class="h-[75dvh]">
+      <LoadingImage
+        :src="source"
+        :alt="image.name"
+        contain
+        @error="error = $t('浏览器无法显示此原图，仍可保存到你的图库。')"
+      />
+    </div>
   </el-dialog>
 </template>

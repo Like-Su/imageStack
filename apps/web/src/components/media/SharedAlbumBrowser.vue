@@ -12,6 +12,8 @@ import type { Album, AssetDetail, AssetSummary } from "@/types/media";
 import AppModal from "@/components/workspace/AppModal.vue";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetGrid from "./AssetGrid.vue";
+import AssetLoadMore from "./AssetLoadMore.vue";
+import AssetSortControl from "./AssetSortControl.vue";
 import OriginalMediaViewer from "./OriginalMediaViewer.vue";
 import RenameAssetDialog from "./RenameAssetDialog.vue";
 
@@ -25,7 +27,8 @@ const feed = useAssetFeed(() => ({
     ...(mediaType.value === "all" ? {} : { type: mediaType.value }),
   },
 }));
-const { items, loading, loadingMore, error, moreError, hasMore } = feed;
+const { items, loading, loadingMore, refreshing, error, moreError, hasMore } =
+  feed;
 const selected = ref(new Set<string>());
 const selectedIds = computed(() => [...selected.value]);
 const single = computed(() =>
@@ -178,6 +181,7 @@ async function removeSelected() {
         <el-radio-button value="image">{{ $t("图片") }}</el-radio-button>
         <el-radio-button value="video">{{ $t("视频") }}</el-radio-button>
       </el-radio-group>
+      <AssetSortControl :disabled="busy" />
       <el-button
         native-type="button"
         :disabled="loading || busy"
@@ -252,18 +256,15 @@ async function removeSelected() {
       @select="toggle"
       @open="open"
     />
-    <p v-if="moreError" class="text-xs text-err" role="alert">
-      {{ moreError }}
-    </p>
-    <div v-if="hasMore" class="flex justify-center">
-      <el-button
-        native-type="button"
-        :loading="loadingMore"
-        :disabled="loadingMore || busy"
-        @click="feed.loadMore()"
-        >{{ moreError ? $t("重新加载") : $t("加载更多") }}</el-button
-      >
-    </div>
+    <AssetLoadMore
+      v-if="items.length"
+      :count="items.length"
+      :has-more="hasMore"
+      :loading="loadingMore || refreshing"
+      :disabled="busy"
+      :error="moreError"
+      @load="feed.loadMore"
+    />
     <RenameAssetDialog
       v-if="renaming && canRename"
       :key="renaming.id"

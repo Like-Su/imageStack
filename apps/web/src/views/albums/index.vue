@@ -21,6 +21,7 @@ import type { Album } from "@/types/media";
 import PageHeader from "@/components/workspace/PageHeader.vue";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetImage from "@/components/media/AssetImage.vue";
+import LoadingImage from "@/components/media/LoadingImage.vue";
 import AlbumForm from "@/components/media/AlbumForm.vue";
 
 const workspace = useWorkspaceStore();
@@ -209,8 +210,13 @@ async function remove(album: Album) {
             <RouterLink
               :to="{ name: 'album-detail', params: { id: album.id } }"
               class="relative block aspect-[4/3] overflow-hidden bg-panel2"
-              ><AssetImage
-                v-if="album.coverAssetId"
+              ><LoadingImage
+                v-if="album.coverSource === 'custom' && album.coverUrl"
+                :src="album.coverUrl"
+                :alt="album.name"
+                loading="lazy"
+              /><AssetImage
+                v-else-if="album.coverAssetId"
                 :asset-id="album.coverAssetId"
                 :version="album.coverThumbnailRevision ?? undefined"
                 :name="album.name"

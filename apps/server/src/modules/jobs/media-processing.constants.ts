@@ -1,5 +1,6 @@
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { MEDIA_MIME_TYPES } from '../../common/media-formats';
+import { storageProviderTypes } from '../storage/storage.provider';
 
 export const MEDIA_QUEUE_NAME = 'media-processing';
 export const MEDIA_JOB_NAME = 'asset.ingest';
@@ -32,7 +33,7 @@ export type MediaProcessingResult =
 export const mediaAssetWhere = {
   type: 'FILE',
   mediaType: { in: ['IMAGE', 'VIDEO'] },
-  storageProvider: 'LOCAL_FS',
+  storageProvider: { in: storageProviderTypes },
   storageKey: { not: null },
   mimeType: { in: MEDIA_MIME_TYPES },
 } satisfies Prisma.FileNodeWhereInput;

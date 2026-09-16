@@ -20,6 +20,13 @@ import { albumWhere, requireAlbumAccess } from '../collections/album-scope';
 import { buildAssetFilters } from './asset-filters';
 import { ListAssetsDto } from './dto/assets-query.dto';
 import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
+import {
+  assetCursorWhere,
+  assetOrderBy,
+  assetSort,
+  decodeAssetPageCursor,
+  encodeAssetPageCursor,
+} from './asset-pagination';
 import { ThumbnailsService } from './thumbnails.service';
 import {
   assetMediaSelect,
@@ -143,8 +150,9 @@ export class AssetsService {
     query: ListAssetsDto,
     options: AssetPageOptions,
   ) {
+    const sort = assetSort(query);
     const cursor = query.cursor
-      ? decodeAssetCursor(query.cursor, userId, options.cursorScope)
+      ? decodeAssetPageCursor(query.cursor, userId, sort, options.cursorScope)
       : null;
 
     const where: Prisma.FileNodeWhereInput = {
@@ -153,23 +161,14 @@ export class AssetsService {
           ? mediaAssetWhere()
           : assetWhere(userId, options.deleted),
         buildAssetFilters(userId, query, options.keywords),
-        ...(cursor
-          ? [
-              {
-                OR: [
-                  { createdAt: { lt: cursor.createdAt } },
-                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
-                ],
-              },
-            ]
-          : []),
+        ...(cursor ? [assetCursorWhere(cursor, sort)] : []),
       ],
     };
 
     const rows = await this.prisma.fileNode.findMany({
       where,
       select: listSelect(userId),
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy: assetOrderBy(sort),
       take: query.limit + 1,
     });
 
@@ -182,7 +181,7 @@ export class AssetsService {
       hasMore,
       nextCursor:
         hasMore && last
-          ? encodeAssetCursor(last, userId, options.cursorScope)
+          ? encodeAssetPageCursor(last, userId, sort, options.cursorScope)
           : null,
     };
   }
@@ -306,6 +305,8 @@ export class AssetsService {
     }
 
     return {
+      storageProvider: asset.storageProvider,
+      storageBucket: asset.storageBucket,
       key: asset.storageKey,
       mimeType: asset.mimeType,
     };

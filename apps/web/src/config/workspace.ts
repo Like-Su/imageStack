@@ -16,8 +16,6 @@ import {
 } from "lucide-vue-next";
 
 export const PERSON_TAG_PREFIX = "人物:";
-export const UPLOAD_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
-export const UPLOAD_VIDEO_MAX_BYTES = 512 * 1024 * 1024;
 export const UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024;
 export const UPLOAD_CHUNK_CONCURRENCY = 3;
 const imageExtensions = [
@@ -51,7 +49,6 @@ export const UPLOAD_ACCEPT = [
 export const UPLOAD_IMAGE_LABEL =
   "JPEG（含 JFIF / PJPEG / PJP）、PNG / APNG、WebP、GIF、AVIF、SVG";
 export const UPLOAD_VIDEO_LABEL = "MP4 / MOV / MKV";
-export const UPLOAD_LIMITS_LABEL = "图片 ≤ 10 MiB；视频 ≤ 512 MiB、4 小时";
 
 export function uploadMediaKind(fileName: string): "image" | "video" | null {
   const extension = /\.([^.]+)$/.exec(fileName)?.[1]?.toLowerCase() ?? "";

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createWriteStream } from 'node:fs';
 import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
@@ -6,15 +6,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { z } from 'zod';
-import {
-  VIDEO_MAX_BYTES,
-  VIDEO_MAX_DURATION_MS,
-} from '../../common/media-formats';
 import type { VideoFormat } from '../../common/media-formats';
 import type { FileNode } from '../../prisma/generated/prisma/client';
 import { VideoProcessorService } from '../jobs/video-processor.service';
-import { STORAGE_PROVIDER, StorageError } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageError } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import {
   VIDEO_ASR_MAX_RESPONSE_BYTES,
   VIDEO_AUDIO_CHUNK_SECONDS,
@@ -85,7 +81,7 @@ export class VideoTranscriptionService {
   constructor(
     private readonly config: ConfigService,
     private readonly videos: VideoProcessorService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   async transcribe(
@@ -101,12 +97,7 @@ export class VideoTranscriptionService {
     };
     const format = formats[asset.mimeType ?? ''];
     const duration = Number(asset.durationMs) / 1000;
-    if (
-      !format ||
-      !Number.isFinite(duration) ||
-      duration <= 0 ||
-      duration * 1000 > VIDEO_MAX_DURATION_MS
-    )
+    if (!format || !Number.isFinite(duration) || duration <= 0)
       throw new VideoSummaryError('视频格式或时长无效，无法进行语音转写', true);
     signal.throwIfAborted();
     const directory = await mkdtemp(join(tmpdir(), 'image-stack-transcript-'));
@@ -179,10 +170,11 @@ export class VideoTranscriptionService {
       !asset.storageKey ||
       !asset.size ||
       asset.size <= 0n ||
-      asset.size > BigInt(VIDEO_MAX_BYTES)
+      asset.size > BigInt(this.config.getOrThrow<number>('VIDEO_ASSET_SIZE'))
     )
       throw new VideoSummaryError('原视频大小或存储信息无效', true);
     const source = await this.storage
+      .for(asset)
       .read(asset.storageKey)
       .catch((error: unknown) => {
         if (error instanceof StorageError && error.code === 'NOT_FOUND')
