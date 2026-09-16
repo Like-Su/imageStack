@@ -25,6 +25,8 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import type { AssetQuery, AssetSummary } from "@/types/media";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetGrid from "./AssetGrid.vue";
+import AssetLoadMore from "./AssetLoadMore.vue";
+import AssetSortControl from "./AssetSortControl.vue";
 import AlbumPicker from "./AlbumPicker.vue";
 import TagAssignmentDialog from "./TagAssignmentDialog.vue";
 import RenameAssetDialog from "./RenameAssetDialog.vue";
@@ -97,7 +99,16 @@ const feed = useAssetFeed(() => ({
   trash: props.trash,
   search: props.search,
 }));
-const { items, loading, loadingMore, error, moreError, hasMore, tookMs } = feed;
+const {
+  items,
+  loading,
+  loadingMore,
+  refreshing,
+  error,
+  moreError,
+  hasMore,
+  tookMs,
+} = feed;
 const hasFilters = computed(
   () => preset.value !== "all" || Boolean(range.value.from || range.value.to),
 );
@@ -294,6 +305,7 @@ async function removeFromTag() {
             {{ $t(filter.label) }}
           </button>
         </div>
+        <AssetSortControl :disabled="isBusy" />
         <el-button
           text
           circle
@@ -493,7 +505,7 @@ async function removeFromTag() {
       >
         {{ $t("已加载") }}<span class="text-ghost">{{ items.length }}</span
         >{{
-          $t("项结果 · 关键词匹配 · 本次查询 {value1} ms · 按上传时间倒序", {
+          $t("项结果 · 关键词匹配 · 本次查询 {value1} ms", {
             value1: tookMs ?? 0,
           })
         }}
@@ -559,35 +571,15 @@ async function removeFromTag() {
         @select="toggle"
         @open="workspace.selectedAsset = $event"
       />
-      <div
+      <AssetLoadMore
         v-if="items.length"
-        class="mt-5 flex flex-col items-center gap-3 py-2"
-      >
-        <p v-if="moreError" class="text-xs text-err" role="alert">
-          {{ moreError }}
-        </p>
-        <el-button
-          :loading="loadingMore"
-          v-if="hasMore"
-          native-type="button"
-          class="min-w-36"
-          :disabled="loadingMore || isBusy"
-          @click="feed.loadMore"
-        >
-          {{
-            moreError
-              ? $t("重试加载更多")
-              : loadingMore
-                ? $t("正在加载…")
-                : $t("加载更多")
-          }}</el-button
-        ><span class="text-[11px] text-faint">{{
-          $t("已显示 {value1} 项{value2} · 最新上传优先", {
-            value1: items.length,
-            value2: hasMore ? "" : $t(" · 已加载全部"),
-          })
-        }}</span>
-      </div>
+        :count="items.length"
+        :has-more="hasMore"
+        :loading="loadingMore || refreshing"
+        :disabled="isBusy"
+        :error="moreError"
+        @load="feed.loadMore"
+      />
     </div>
     <RenameAssetDialog
       v-if="renamingAsset && !trash && workspace.can('asset:edit')"

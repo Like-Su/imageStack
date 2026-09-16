@@ -268,6 +268,7 @@ export const AlbumScalarFieldEnum = {
   description: 'description',
   ownerId: 'ownerId',
   coverAssetId: 'coverAssetId',
+  coverImage: 'coverImage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
 } as const;
@@ -312,6 +313,8 @@ export const UploadSessionScalarFieldEnum = {
   mimeType: 'mimeType',
   hash: 'hash',
   storageKey: 'storageKey',
+  storageProvider: 'storageProvider',
+  storageBucket: 'storageBucket',
   status: 'status',
   chunkSize: 'chunkSize',
   chunkCount: 'chunkCount',

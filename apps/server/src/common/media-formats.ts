@@ -1,7 +1,6 @@
-export const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+import type { ConfigService } from '@nestjs/config';
+
 export const IMAGE_MAX_FRAMES = 1000;
-export const VIDEO_MAX_BYTES = 512 * 1024 * 1024;
-export const VIDEO_MAX_DURATION_MS = 4 * 60 * 60 * 1000;
 
 export const IMAGE_MIME_TYPES = [
   'image/jpeg',
@@ -58,6 +57,14 @@ export function isVideoFormat(format: MediaFormat): format is VideoFormat {
   return format === 'mp4' || format === 'mov' || format === 'mkv';
 }
 
-export function mediaByteLimit(format: MediaFormat): number {
-  return isVideoFormat(format) ? VIDEO_MAX_BYTES : IMAGE_MAX_BYTES;
+export function mediaByteLimit(
+  format: MediaFormat,
+  config: ConfigService,
+): number {
+  return Math.min(
+    config.getOrThrow<number>(
+      isVideoFormat(format) ? 'VIDEO_ASSET_SIZE' : 'ASSETE_SIZE',
+    ),
+    config.getOrThrow<number>('STORAGE_MAX_FILE_BYTES'),
+  );
 }

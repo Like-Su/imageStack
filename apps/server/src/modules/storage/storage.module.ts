@@ -1,17 +1,28 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { STORAGE_PROVIDER } from './storage.provider';
 import { LocalFsStorageProvider } from './local-fs-storage.provider';
+import { RustFsStorageProvider } from './rustfs-storage.provider';
+import { StorageProviderRegistry } from './storage-provider.registry';
+import { StorageService } from './storage.service';
+import type { StorageProvider } from './storage.provider';
+
+const strategies = [LocalFsStorageProvider, RustFsStorageProvider];
 
 @Module({
   imports: [ConfigModule],
   providers: [
-    LocalFsStorageProvider,
+    ...strategies,
     {
-      provide: STORAGE_PROVIDER,
-      useExisting: LocalFsStorageProvider,
+      provide: StorageProviderRegistry,
+      useFactory: (...providers: StorageProvider[]) => {
+        const registry = new StorageProviderRegistry();
+        for (const provider of providers) registry.register(provider);
+        return registry;
+      },
+      inject: strategies,
     },
+    StorageService,
   ],
-  exports: [STORAGE_PROVIDER],
+  exports: [StorageService],
 })
 export class StorageModule {}

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -9,7 +9,6 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { inspectImageContent } from '../../common/image-inspection';
-import { IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '../../common/media-formats';
 import type { VideoFormat } from '../../common/media-formats';
 import {
   hlsObjectKeys,
@@ -17,12 +16,9 @@ import {
   hlsSegmentName,
 } from '../../common/video-stream';
 import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
-import {
-  createStorageKey,
-  STORAGE_PROVIDER,
-  StorageError,
-} from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { createStorageKey, StorageError } from '../storage/storage.provider';
+import type { StorageLocation } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { referencedStorageKeys } from '../storage/storage-references';
 import { extractExif } from './exif-metadata';
 import { VideoProcessorService } from './video-processor.service';
@@ -58,8 +54,7 @@ export class MediaProcessorService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly videos: VideoProcessorService,
-    @Inject(STORAGE_PROVIDER)
-    private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   async process(data: MediaJobData): Promise<MediaProcessingResult> {
@@ -85,6 +80,8 @@ export class MediaProcessorService {
       id: asset.id,
       ownerId: asset.ownerId,
       storageKey: asset.storageKey,
+      storageProvider: asset.storageProvider,
+      storageBucket: asset.storageBucket,
       thumbnailKey: asset.thumbnailKey,
       thumbnailVersion: asset.thumbnailVersion,
       previewKey: asset.previewKey,
@@ -150,6 +147,7 @@ export class MediaProcessorService {
     let linkAttempted = false;
 
     try {
+      const storage = this.storage.for(asset);
       let prepared: PreparedMedia;
       if (asset.mediaType === 'VIDEO') {
         temporaryDirectory = await mkdtemp(
@@ -166,7 +164,7 @@ export class MediaProcessorService {
 
       if (prepared.thumbnail) {
         const key = createStorageKey('derived');
-        const stored = await this.storage.put(
+        const stored = await storage.put(
           key,
           Readable.from([prepared.thumbnail]),
         );
@@ -185,7 +183,7 @@ export class MediaProcessorService {
       if (prepared.previewPath) {
         const key = createStorageKey('derived');
         const metadata = await stat(prepared.previewPath);
-        const stored = await this.storage.put(
+        const stored = await storage.put(
           key,
           createReadStream(prepared.previewPath),
         );
@@ -204,7 +202,7 @@ export class MediaProcessorService {
             hlsSegmentName(index),
           );
           const metadata = await stat(segmentPath);
-          const stored = await this.storage.put(
+          const stored = await storage.put(
             segmentKey,
             createReadStream(segmentPath),
           );
@@ -213,7 +211,7 @@ export class MediaProcessorService {
             throw new MediaProcessingError('HLS 视频分段写入不完整');
         }
         const metadata = await stat(prepared.hls.playlistPath);
-        const stored = await this.storage.put(
+        const stored = await storage.put(
           key,
           createReadStream(prepared.hls.playlistPath),
         );
@@ -249,14 +247,14 @@ export class MediaProcessorService {
       });
 
       if (updated.count !== 1) {
-        await this.discardAll(candidateKeys);
+        await this.discardAll(candidateKeys, asset);
       } else {
         await this.discardReplaced(asset, thumbnailKey, previewKey, hlsKey);
       }
       return { kind: updated.count === 1 ? 'complete' : 'skip' };
     } catch (error) {
       if (!linkAttempted) {
-        await this.discardAll(candidateKeys);
+        await this.discardAll(candidateKeys, asset);
       } else if (candidateKeys.length) {
         this.logger.warn(`媒体关联结果未确认，保留候选派生文件：${asset.id}`);
       }
@@ -343,16 +341,18 @@ export class MediaProcessorService {
   }
 
   private async readOriginal(asset: FileNode): Promise<Buffer> {
+    const maxBytes = this.config.getOrThrow<number>('ASSETE_SIZE');
     if (
       !asset.storageKey ||
       asset.size === null ||
       asset.size <= 0n ||
-      asset.size > BigInt(IMAGE_MAX_BYTES)
+      asset.size > BigInt(maxBytes)
     ) {
       throw new MediaProcessingError('原图大小或存储信息无效', true);
     }
 
     const source = await this.storage
+      .for(asset)
       .read(asset.storageKey)
       .catch((error: unknown) => {
         if (error instanceof StorageError && error.code === 'NOT_FOUND') {
@@ -380,10 +380,7 @@ export class MediaProcessorService {
         }
 
         receivedBytes += chunk.length;
-        if (
-          receivedBytes > IMAGE_MAX_BYTES ||
-          BigInt(receivedBytes) > asset.size
-        ) {
+        if (receivedBytes > maxBytes || BigInt(receivedBytes) > asset.size) {
           throw new MediaProcessingError('原图超过处理大小限制', true);
         }
         chunks.push(chunk);
@@ -406,7 +403,10 @@ export class MediaProcessorService {
   ): Promise<PreparedMedia> {
     let image: Awaited<ReturnType<typeof inspectImageContent>>;
     try {
-      image = await inspectImageContent(bytes);
+      image = await inspectImageContent(
+        bytes,
+        this.config.getOrThrow<number>('ASSETE_SIZE'),
+      );
     } catch (error) {
       throw new MediaProcessingError(
         error instanceof Error ? error.message : '图片损坏或超过处理限制',
@@ -428,7 +428,7 @@ export class MediaProcessorService {
     if (
       !asset.thumbnailKey ||
       asset.thumbnailVersion < THUMBNAIL_PROFILE.version ||
-      !(await this.storage.exists(asset.thumbnailKey))
+      !(await this.storage.for(asset).exists(asset.thumbnailKey))
     ) {
       try {
         thumbnail = await image.decoder
@@ -461,11 +461,12 @@ export class MediaProcessorService {
     asset: FileNode,
     directory: string,
   ): Promise<PreparedMedia> {
+    const maxBytes = BigInt(this.config.getOrThrow<number>('VIDEO_ASSET_SIZE'));
     if (
       !asset.storageKey ||
       asset.size === null ||
       asset.size <= 0n ||
-      asset.size > BigInt(VIDEO_MAX_BYTES)
+      asset.size > maxBytes
     )
       throw new MediaProcessingError('视频大小或存储信息无效', true);
     const formats: Record<string, VideoFormat> = {
@@ -476,6 +477,7 @@ export class MediaProcessorService {
     const format = formats[asset.mimeType ?? ''];
     if (!format) throw new MediaProcessingError('视频格式不受支持', true);
     const source = await this.storage
+      .for(asset)
       .read(asset.storageKey)
       .catch((error: unknown) => {
         if (error instanceof StorageError && error.code === 'NOT_FOUND')
@@ -498,7 +500,7 @@ export class MediaProcessorService {
           if (!Buffer.isBuffer(chunk))
             throw new MediaProcessingError('视频读取格式无效', true);
           received += BigInt(chunk.length);
-          if (received > asset.size || received > BigInt(VIDEO_MAX_BYTES))
+          if (received > asset.size || received > maxBytes)
             throw new MediaProcessingError('视频超过处理大小限制', true);
           yield chunk;
         }
@@ -519,13 +521,14 @@ export class MediaProcessorService {
       thumbnail:
         !asset.thumbnailKey ||
         asset.thumbnailVersion < THUMBNAIL_PROFILE.version ||
-        !(await this.storage.exists(asset.thumbnailKey)),
+        !(await this.storage.for(asset).exists(asset.thumbnailKey)),
       preview:
-        !asset.previewKey || !(await this.storage.exists(asset.previewKey)),
+        !asset.previewKey ||
+        !(await this.storage.for(asset).exists(asset.previewKey)),
       hls:
         !asset.hlsKey ||
         asset.hlsSegmentCount < 1 ||
-        !(await this.storage.exists(asset.hlsKey)),
+        !(await this.storage.for(asset).exists(asset.hlsKey)),
     });
     return {
       ...prepared,
@@ -537,9 +540,9 @@ export class MediaProcessorService {
     };
   }
 
-  private async discard(key: string): Promise<void> {
+  private async discard(key: string, location: StorageLocation): Promise<void> {
     try {
-      await this.storage.delete(key);
+      await this.storage.for(location).delete(key);
     } catch (error) {
       this.logger.warn(
         `候选派生文件清理失败：${error instanceof Error ? error.message : String(error)}`,
@@ -547,10 +550,12 @@ export class MediaProcessorService {
     }
   }
 
-  private async discardAll(keys: string[]) {
+  private async discardAll(keys: string[], location: StorageLocation) {
     for (let offset = 0; offset < keys.length; offset += 16)
       await Promise.all(
-        keys.slice(offset, offset + 16).map((key) => this.discard(key)),
+        keys
+          .slice(offset, offset + 16)
+          .map((key) => this.discard(key, location)),
       );
   }
 
@@ -567,15 +572,19 @@ export class MediaProcessorService {
     try {
       const retiredHls =
         asset.hlsKey && asset.hlsKey !== hlsKey ? asset.hlsKey : null;
-      const references = await referencedStorageKeys(this.prisma, [
-        ...retired,
-        ...(retiredHls ? [retiredHls] : []),
-      ]);
+      const references = await referencedStorageKeys(
+        this.prisma,
+        [...retired, ...(retiredHls ? [retiredHls] : [])],
+        asset,
+      );
       for (const key of retired) {
-        if (!references.has(key)) await this.discard(key);
+        if (!references.has(key)) await this.discard(key, asset);
       }
       if (retiredHls && !references.has(retiredHls))
-        await this.discardAll(hlsObjectKeys(retiredHls, asset.hlsSegmentCount));
+        await this.discardAll(
+          hlsObjectKeys(retiredHls, asset.hlsSegmentCount),
+          asset,
+        );
     } catch (error) {
       this.logger.warn(`旧派生文件清理暂缓：${String(error)}`);
     }

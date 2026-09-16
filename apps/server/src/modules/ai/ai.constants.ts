@@ -1,4 +1,5 @@
 import type { Prisma } from '../../prisma/generated/prisma/client';
+import { storageProviderTypes } from '../storage/storage.provider';
 
 export const AI_INDEX_BATCH_SIZE = 100;
 export const AI_INDEX_INTERVAL_MS = 5000;
@@ -11,7 +12,7 @@ export const aiImageWhere = {
   type: 'FILE',
   mediaType: 'IMAGE',
   deleted: false,
-  storageProvider: 'LOCAL_FS',
+  storageProvider: { in: storageProviderTypes },
   storageKey: { not: null },
   processingStatus: 'READY',
 } satisfies Prisma.FileNodeWhereInput;

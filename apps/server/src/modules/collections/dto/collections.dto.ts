@@ -12,6 +12,7 @@ import {
   NotContains,
   ValidateIf,
 } from 'class-validator';
+import { ALBUM_COVER_MAX_LENGTH } from '../album-cover';
 
 function trimInput({ obj, key }: TransformFnParams): unknown {
   const value: unknown = obj[key];
@@ -32,6 +33,12 @@ export class CreateAlbumDto {
   @MaxLength(2000)
   @NotContains('\u0000')
   description?: string | null;
+
+  @Transform(trimInput)
+  @IsOptional()
+  @IsString()
+  @MaxLength(ALBUM_COVER_MAX_LENGTH)
+  coverImage?: string | null;
 }
 
 export class UpdateAlbumDto {
@@ -57,6 +64,12 @@ export class UpdateAlbumDto {
   @MaxLength(128)
   @NotContains('\u0000')
   coverAssetId?: string | null;
+
+  @Transform(trimInput)
+  @IsOptional()
+  @IsString()
+  @MaxLength(ALBUM_COVER_MAX_LENGTH)
+  coverImage?: string | null;
 }
 
 export class CreateTagDto {

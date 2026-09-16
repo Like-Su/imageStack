@@ -3,6 +3,7 @@ import { computed, ref, shallowRef } from "vue";
 import { defineStore } from "pinia";
 import { ElMessage } from "element-plus";
 import { mediaApi } from "@/api/media";
+import { systemApi } from "@/api/system";
 import {
   invalidateCollectionCache,
   updateCollectionCache,
@@ -22,6 +23,7 @@ import type {
 } from "@/types/media";
 import type { WorkspaceChange, WorkspaceResource } from "@/types/workspace";
 import type { AdminRecord } from "@/types/iam";
+import type { StorageSpace } from "@/types/system";
 
 type NoticeKind = "success" | "error" | "info";
 interface Confirmation {
@@ -35,6 +37,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   const auth = useAuthStore();
   const overview = shallowRef<LibraryOverview | null>(null);
   const overviewError = ref("");
+  const storageSpace = shallowRef<StorageSpace | null>(null);
+  const storageError = ref("");
+  const storageLoading = ref(false);
   const selectedAsset = shallowRef<AssetSummary | null>(null);
   const confirmation = shallowRef<Confirmation | null>(null);
   const favoriteBusy = ref(new Set<string>());
@@ -46,6 +51,11 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   let overviewController: AbortController | null = null;
   let overviewPromise: Promise<void> | null = null;
   let overviewLoadedAt = 0;
+  let overviewReloadRequested = false;
+  let storageController: AbortController | null = null;
+  let storagePromise: Promise<void> | null = null;
+  let storageLoadedAt = 0;
+  let storageReloadRequested = false;
   let confirmationResolve: ((answer: boolean) => void) | null = null;
   const assets = new Map<string, AssetSummary>();
   const assetAlbums = new Map<string, Set<string>>();
@@ -75,7 +85,11 @@ export const useWorkspaceStore = defineStore("workspace", () => {
 
   function loadOverview(force = false): Promise<void> {
     if (!can("asset:list")) return Promise.resolve();
-    if (overviewPromise && !force) return overviewPromise;
+    void loadStorage(force);
+    if (overviewPromise) {
+      overviewReloadRequested ||= force;
+      return overviewPromise;
+    }
     if (!force && overview.value && Date.now() - overviewLoadedAt < 5000)
       return Promise.resolve();
     overviewController?.abort();
@@ -84,7 +98,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     const pending = (async () => {
       try {
         const result = await mediaApi.overview(controller.signal);
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || overviewReloadRequested) return;
         overview.value = result;
         overviewLoadedAt = Date.now();
         overviewError.value = "";
@@ -92,10 +106,53 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         if (!controller.signal.aborted)
           overviewError.value = getErrorMessage(error);
       } finally {
-        if (overviewController === controller) overviewPromise = null;
+        if (overviewController === controller) {
+          overviewPromise = null;
+          if (overviewReloadRequested && !controller.signal.aborted) {
+            overviewReloadRequested = false;
+            await loadOverview(true);
+          }
+        }
       }
     })();
     overviewPromise = pending;
+    return pending;
+  }
+
+  function loadStorage(force = false): Promise<void> {
+    if (!can("asset:list")) return Promise.resolve();
+    if (storagePromise) {
+      storageReloadRequested ||= force;
+      return storagePromise;
+    }
+    if (!force && storageSpace.value && Date.now() - storageLoadedAt < 5000)
+      return Promise.resolve();
+    storageController?.abort();
+    const controller = new AbortController();
+    storageController = controller;
+    storageLoading.value = true;
+    const pending = (async () => {
+      try {
+        const result = await systemApi.storage(controller.signal);
+        if (controller.signal.aborted || storageReloadRequested) return;
+        storageSpace.value = result;
+        storageLoadedAt = Date.now();
+        storageError.value = "";
+      } catch (error) {
+        if (!controller.signal.aborted)
+          storageError.value = getErrorMessage(error);
+      } finally {
+        if (storageController === controller) {
+          storagePromise = null;
+          storageLoading.value = false;
+          if (storageReloadRequested && !controller.signal.aborted) {
+            storageReloadRequested = false;
+            await loadStorage(true);
+          }
+        }
+      }
+    })();
+    storagePromise = pending;
     return pending;
   }
 
@@ -215,7 +272,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   ) {
     if (!overview.value) return;
     overviewController?.abort();
+    overviewController = null;
     overviewPromise = null;
+    overviewReloadRequested = false;
     overviewLoadedAt = Date.now();
     overview.value = update(overview.value);
   }
@@ -268,6 +327,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     );
     publish({ type: "assets", ids, patch, before, albumIds, removed });
     if (removed) for (const id of ids) assetAlbums.delete(id);
+    if (removed) void loadStorage(true);
     if (removed || patch.deleted !== undefined)
       invalidate(["albums", "tags", "places", "ai"], true);
     if (before.length !== ids.length) invalidate(["overview"]);
@@ -416,8 +476,18 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     clearSharedReads();
     clearThumbnailCache();
     overviewController?.abort();
+    overviewController = null;
     overviewPromise = null;
+    overviewReloadRequested = false;
     overviewLoadedAt = 0;
+    storageController?.abort();
+    storageController = null;
+    storagePromise = null;
+    storageReloadRequested = false;
+    storageLoadedAt = 0;
+    storageSpace.value = null;
+    storageError.value = "";
+    storageLoading.value = false;
     window.clearTimeout(invalidationTimer);
     invalidated.clear();
     changeBatchDepth = 0;
@@ -434,6 +504,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   return {
     overview,
     overviewError,
+    storageSpace,
+    storageError,
+    storageLoading,
     selectedAsset,
     confirmation,
     favoriteBusy,
@@ -441,6 +514,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     can,
     notify,
     loadOverview,
+    loadStorage,
     invalidate,
     beginChanges,
     endChanges,

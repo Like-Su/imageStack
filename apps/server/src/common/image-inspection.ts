@@ -3,7 +3,7 @@ import {
   UnprocessableEntityException,
   UnsupportedMediaTypeException,
 } from '@nestjs/common';
-import { IMAGE_MAX_BYTES, IMAGE_MAX_FRAMES } from './media-formats';
+import { IMAGE_MAX_FRAMES } from './media-formats';
 import type { ImageFormat } from './media-formats';
 import { sharp } from './sharp';
 import { assertSafeSvg } from './svg-validation';
@@ -119,10 +119,13 @@ function pngFrames(bytes: Buffer): number | null {
 
 export async function inspectImageContent(
   bytes: Buffer,
+  maxBytes: number,
   expectedFormat?: ImageFormat,
 ) {
-  if (!bytes.length || bytes.length > IMAGE_MAX_BYTES)
-    throw new UnprocessableEntityException('图片不得超过 10 MiB');
+  if (!bytes.length || bytes.length > maxBytes)
+    throw new UnprocessableEntityException(
+      `图片需大于 0 B 且不超过 ${maxBytes} B`,
+    );
   const format = detectImageFormat(bytes);
   if (expectedFormat && format !== expectedFormat)
     throw new UnsupportedMediaTypeException('图片扩展名与实际格式不一致');

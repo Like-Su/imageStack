@@ -1,4 +1,5 @@
 import {
+  computed,
   onActivated,
   onDeactivated,
   onScopeDispose,
@@ -9,6 +10,7 @@ import {
 import { mediaApi } from "@/api/media";
 import { getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { usePreferencesStore } from "@/stores/preferences";
 import type { AssetQuery, AssetSummary } from "@/types/media";
 import type { WorkspaceChange } from "@/types/workspace";
 import { updateAsset } from "./workspaceUpdates";
@@ -17,6 +19,18 @@ export function useAssetFeed(
   options: () => { query: AssetQuery; trash?: boolean; search?: string },
 ) {
   const workspace = useWorkspaceStore();
+  const preferences = usePreferencesStore();
+  const settings = computed(() => {
+    const current = options();
+    return {
+      ...current,
+      query: {
+        ...current.query,
+        sortBy: current.query.sortBy ?? preferences.values.assetSortBy,
+        sortOrder: current.query.sortOrder ?? preferences.values.assetSortOrder,
+      },
+    };
+  });
   const items = shallowRef<AssetSummary[]>([]);
   const loading = ref(false);
   const loadingMore = ref(false);
@@ -33,7 +47,7 @@ export function useAssetFeed(
   let pendingChanges: WorkspaceChange[] = [];
 
   function matches(asset: AssetSummary) {
-    const { query, trash } = options();
+    const { query, trash } = settings.value;
     const date = Date.parse(asset[query.timeField ?? "createdAt"] ?? "");
     return (
       asset.deleted === Boolean(trash) &&
@@ -57,7 +71,7 @@ export function useAssetFeed(
   function applyChange(change: WorkspaceChange) {
     if (change.type === "admin" || (change.type === "album" && change.value))
       return false;
-    const { query, search } = options();
+    const { query, search } = settings.value;
     const removedIds = new Set(
       change.type === "assets" && change.removed ? change.ids : [],
     );
@@ -93,12 +107,29 @@ export function useAssetFeed(
               ? workspace.knownAssets(change.ids)
               : [];
     const canInsert =
-      search === undefined && !query.placeId && !query.uncategorized;
-    const compare = (left: AssetSummary, right: AssetSummary) =>
-      right.createdAt.localeCompare(left.createdAt) ||
-      right.id.localeCompare(left.id);
-    if (canInsert) {
-      const seen = new Set(updated.map((asset) => asset.id));
+      query.sortBy !== "name" &&
+      search === undefined &&
+      !query.placeId &&
+      !query.uncategorized;
+    const direction = query.sortOrder === "asc" ? 1 : -1;
+    const compare = (left: AssetSummary, right: AssetSummary) => {
+      let primary = 0;
+      if (query.sortBy === "size") {
+        if (left.size === null && right.size !== null) return 1;
+        if (left.size !== null && right.size === null) return -1;
+        if (left.size !== null && right.size !== null) {
+          const leftSize = BigInt(left.size);
+          const rightSize = BigInt(right.size);
+          primary = leftSize < rightSize ? -1 : leftSize > rightSize ? 1 : 0;
+        }
+      } else {
+        primary = left.createdAt.localeCompare(right.createdAt);
+      }
+      return direction * (primary || left.id.localeCompare(right.id));
+    };
+    let inserted = false;
+    const seen = new Set(updated.map((asset) => asset.id));
+    if (canInsert && candidates.length) {
       const last = previous[previous.length - 1];
       for (const asset of candidates) {
         const albumMatches =
@@ -115,15 +146,26 @@ export function useAssetFeed(
         ) {
           updated.push(asset);
           seen.add(asset.id);
+          inserted = true;
         }
       }
     }
+    const sortFieldChanged =
+      change.type === "assets" &&
+      (change.patch[query.sortBy] !== undefined ||
+        change.patch.id !== undefined);
     if (
       updated.length !== previous.length ||
       updated.some((asset, index) => asset !== previous[index])
-    )
-      items.value = updated.sort(compare);
+    ) {
+      if (query.sortBy !== "name" && (inserted || sortFieldChanged))
+        updated.sort(compare);
+      items.value = updated;
+    }
     const serverFilterChanged =
+      sortFieldChanged ||
+      (query.sortBy === "name" &&
+        candidates.some((asset) => !seen.has(asset.id) && matches(asset))) ||
       (change.type === "assets" &&
         change.patch.name !== undefined &&
         search !== undefined) ||
@@ -158,9 +200,9 @@ export function useAssetFeed(
     controller = current;
     reloadRequested = false;
     pendingChanges = [];
-    const settings = options();
+    const currentSettings = settings.value;
     const query = {
-      ...settings.query,
+      ...currentSettings.query,
       limit: 40,
       cursor: append ? (cursor ?? undefined) : undefined,
     };
@@ -182,9 +224,9 @@ export function useAssetFeed(
     }
     try {
       const result =
-        settings.search !== undefined
-          ? await mediaApi.search(settings.search, query, current.signal)
-          : await mediaApi.assets(query, current.signal, settings.trash);
+        currentSettings.search !== undefined
+          ? await mediaApi.search(currentSettings.search, query, current.signal)
+          : await mediaApi.assets(query, current.signal, currentSettings.trash);
       if (current.signal.aborted) return;
       const page =
         "mode" in result
@@ -194,12 +236,13 @@ export function useAssetFeed(
       const seen = new Set(existing.map((item) => item.id));
       items.value = [...existing, ...page.filter((item) => !seen.has(item.id))];
       cursor = result.nextCursor;
-      hasMore.value = result.hasMore && Boolean(cursor);
+      hasMore.value =
+        result.hasMore && Boolean(cursor) && cursor !== query.cursor;
       tookMs.value = "tookMs" in result ? result.tookMs : null;
       dirty = false;
       for (const change of pendingChanges) applyChange(change);
       pendingChanges = [];
-      workspace.rememberAssets(items.value, settings.query.albumId);
+      workspace.rememberAssets(items.value, currentSettings.query.albumId);
     } catch (cause) {
       if (!current.signal.aborted) {
         if (append || quiet) moreError.value = getErrorMessage(cause);
@@ -217,7 +260,7 @@ export function useAssetFeed(
   }
 
   watch(
-    () => JSON.stringify(options()),
+    () => JSON.stringify(settings.value),
     () => {
       dirty = true;
       void load();
@@ -228,13 +271,19 @@ export function useAssetFeed(
     if (loading.value || loadingMore.value || refreshing.value)
       pendingChanges.push(change);
     const serverFilterChanged = applyChange(change);
-    if (serverFilterChanged && options().search !== undefined)
-      workspace.invalidate(["search"]);
+    if (serverFilterChanged) {
+      if (settings.value.search !== undefined) workspace.invalidate(["search"]);
+      else if (active) {
+        if (loading.value || loadingMore.value || refreshing.value)
+          reloadRequested = true;
+        else void load(false, true);
+      }
+    }
   });
   const unsubscribeInvalidation = workspace.onInvalidate((resources, lazy) => {
     if (
       !resources.has("assets") &&
-      !(resources.has("search") && options().search !== undefined)
+      !(resources.has("search") && settings.value.search !== undefined)
     )
       return;
     dirty = true;
@@ -273,7 +322,7 @@ export function useAssetFeed(
     hasMore,
     tookMs,
     reload: () => load(),
-    loadMore: () => load(true),
+    loadMore: () => (dirty ? load() : load(true)),
     poll: () => load(false, true),
   };
 }

@@ -162,6 +162,7 @@ model UserPermission {
 // 存储提供器类型
 enum StorageProviderType {
   LOCAL_FS
+  RUSTFS
 }
 
 enum MediaType {
@@ -330,6 +331,7 @@ model Album {
 
   coverAssetId String?
   coverAsset   FileNode? @relation("AlbumCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  coverImage   String?
 
   assets     AlbumAsset[]
   shareLinks ShareLink[]
@@ -399,6 +401,8 @@ model UploadSession {
   hash String?
 
   storageKey String
+  storageProvider StorageProviderType @default(LOCAL_FS)
+  storageBucket String?
 
   status UploadStatus @default(PENDING)
 

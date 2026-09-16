@@ -15,7 +15,6 @@ import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { inspectImageContent } from '../../common/image-inspection';
-import { IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '../../common/media-formats';
 import type { ImageFormat } from '../../common/media-formats';
 import {
   UPLOAD_READ_TIMEOUT_MS,
@@ -58,12 +57,13 @@ async function* uploadChunks(
 export async function readUploadBody(
   request: Readable,
   expectedBytes: number,
+  maxBytes: number,
 ): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of uploadChunks(
     request,
     expectedBytes,
-    IMAGE_MAX_BYTES,
+    maxBytes,
     UPLOAD_READ_TIMEOUT_MS,
   ))
     chunks.push(chunk);
@@ -74,6 +74,7 @@ export async function stageVideoUpload(
   request: Readable,
   expectedBytes: number,
   expectedHash: string | null,
+  maxBytes: number,
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'image-stack-upload-'));
   const path = join(directory, 'source');
@@ -85,7 +86,7 @@ export async function stageVideoUpload(
       for await (const chunk of uploadChunks(
         request,
         expectedBytes,
-        VIDEO_MAX_BYTES,
+        maxBytes,
         UPLOAD_VIDEO_READ_TIMEOUT_MS,
       )) {
         hasher.update(chunk);
@@ -109,12 +110,13 @@ export async function stageVideoUpload(
 export async function inspectImage(
   bytes: Buffer,
   expectedHash: string | null,
+  maxBytes: number,
   format?: ImageFormat,
 ) {
   const hash = await blake3(bytes);
   if (expectedHash && hash !== expectedHash)
     throw new UnprocessableEntityException('文件 BLAKE3 校验失败');
-  const image = await inspectImageContent(bytes, format);
+  const image = await inspectImageContent(bytes, maxBytes, format);
   return {
     mediaType: 'IMAGE' as const,
     mimeType: image.mimeType,

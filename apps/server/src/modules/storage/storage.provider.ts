@@ -1,7 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
+import { StorageProviderType } from '../../prisma/generated/prisma/enums';
 
-export const STORAGE_PROVIDER = Symbol('STORAGE_PROVIDER');
+export const StorageType = StorageProviderType;
+export type StorageType = StorageProviderType;
+export const storageProviderTypes = Object.values(StorageType);
+
+export interface StorageLocation {
+  storageProvider: StorageType | null;
+  storageBucket: string | null;
+}
 
 export type StorageNamespace = 'originals' | 'derived' | 'uploads';
 
@@ -33,17 +41,27 @@ export interface StorageUsage {
   totalBytes: bigint;
 }
 
+export interface StorageSpace {
+  scope: 'filesystem' | 'bucket';
+  usedBytes: bigint;
+  totalBytes: bigint | null;
+  availableBytes: bigint | null;
+}
+
 export interface StorageReadRange {
   start: number;
   end: number;
 }
 
 export interface StorageProvider {
+  readonly type: StorageType;
+  readonly bucket: string | null;
   put(key: string, input: Readable): Promise<StoredObject>;
   read(key: string, range?: StorageReadRange): Promise<StorageReadResult>;
   stat(key: string): Promise<StorageStat | null>;
   exists(key: string): Promise<boolean>;
   delete(key: string): Promise<boolean>;
+  space(): Promise<StorageSpace>;
 }
 
 export type StorageErrorCode =
@@ -53,6 +71,8 @@ export type StorageErrorCode =
   | 'TOO_LARGE'
   | 'ALREADY_EXISTS'
   | 'INVALID_RANGE'
+  | 'UNAVAILABLE'
+  | 'UNSUPPORTED_PROVIDER'
   | 'NOT_FOUND';
 
 export class StorageError extends Error {

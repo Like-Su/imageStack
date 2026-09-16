@@ -1,11 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
-import { IMAGE_MAX_BYTES } from '../../common/media-formats';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
-import { STORAGE_PROVIDER, StorageError } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageError } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import {
   AI_INDEX_BATCH_SIZE,
   AI_INDEX_LEASE_MS,
@@ -36,7 +35,7 @@ export class AiIndexService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly vision: AiVisionService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   get enabled() {
@@ -197,6 +196,8 @@ export class AiIndexService {
           ...aiImageWhere,
           ownerId,
           storageKey: record.asset.storageKey,
+          storageProvider: record.asset.storageProvider,
+          storageBucket: record.asset.storageBucket,
           hash: record.asset.hash,
         },
       },
@@ -307,10 +308,11 @@ export class AiIndexService {
     if (
       !asset.storageKey ||
       !asset.size ||
-      asset.size > BigInt(IMAGE_MAX_BYTES)
+      asset.size > BigInt(this.config.getOrThrow<number>('ASSETE_SIZE'))
     )
       throw new AiRecognitionError('原图大小或存储信息无效', true);
     const opened = await this.storage
+      .for(asset)
       .read(asset.storageKey)
       .catch((error: unknown) => {
         if (error instanceof StorageError && error.code === 'NOT_FOUND')

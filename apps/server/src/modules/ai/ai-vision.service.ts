@@ -79,7 +79,10 @@ export class AiVisionService {
     this.assertConfigured();
     signal.throwIfAborted();
     try {
-      await inspectImageContent(bytes);
+      await inspectImageContent(
+        bytes,
+        this.config.getOrThrow<number>('ASSETE_SIZE'),
+      );
     } catch {
       throw new AiRecognitionError('图片内容无效或不适合安全识别', true);
     }

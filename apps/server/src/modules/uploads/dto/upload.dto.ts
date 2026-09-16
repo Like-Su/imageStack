@@ -9,7 +9,6 @@ import {
   Matches,
   Max,
 } from 'class-validator';
-import { UPLOAD_MAX_BYTES } from '../upload.constants';
 
 export class CreateUploadSessionDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -23,7 +22,7 @@ export class CreateUploadSessionDto {
 
   @IsInt()
   @Min(1)
-  @Max(UPLOAD_MAX_BYTES)
+  @Max(Number.MAX_SAFE_INTEGER)
   size: number;
 
   @IsOptional()

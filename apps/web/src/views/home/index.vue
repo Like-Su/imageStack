@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { translate } from "@/i18n";
 import { computed } from "vue";
-import { ArrowDownWideNarrow } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import PageHeader from "@/components/workspace/PageHeader.vue";
 import AssetBrowser from "@/components/media/AssetBrowser.vue";
@@ -20,10 +19,9 @@ const description = computed(() =>
 
 <template>
   <section>
-    <PageHeader :title="$t('图库')" :description="description"
-      ><ViewToggle /><span class="mh-button !cursor-default"
-        ><ArrowDownWideNarrow />{{ $t("最新上传优先") }}</span
-      ></PageHeader
-    ><AssetBrowser />
+    <PageHeader :title="$t('图库')" :description="description">
+      <ViewToggle />
+    </PageHeader>
+    <AssetBrowser />
   </section>
 </template>

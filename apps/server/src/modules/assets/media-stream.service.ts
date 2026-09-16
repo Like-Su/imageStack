@@ -3,7 +3,6 @@ import {
   ForbiddenException,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,7 +12,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { PermissionCode, RedisKey, RoleCode } from '../../common/constants';
-import { VIDEO_MAX_DURATION_MS } from '../../common/media-formats';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
 import {
@@ -28,12 +26,11 @@ import { assetMediaSelect, type MediaAsset } from './asset-media';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { UserService } from '../iam/user/user.service';
 import { MediaJobsService } from '../jobs/media-jobs.service';
-import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { assetWhere } from './asset-scope';
 import type { MediaStreamDto } from './dto/media-stream.dto';
 
-const STREAM_TICKET_TTL_MS = VIDEO_MAX_DURATION_MS + 15 * 60 * 1000;
+const STREAM_TICKET_TTL_MS = (4 * 60 + 15) * 60 * 1000;
 
 interface StreamTicket {
   assetId: string;
@@ -53,7 +50,7 @@ export class MediaStreamService {
     private readonly redis: RedisService,
     private readonly users: UserService,
     private readonly jobs: MediaJobsService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   async createTicket(
@@ -95,6 +92,8 @@ export class MediaStreamService {
         (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
       );
       return {
+        storageProvider: asset.storageProvider,
+        storageBucket: asset.storageBucket,
         key: asset.storageKey,
         mimeType: asset.mimeType,
         disposition:
@@ -118,6 +117,8 @@ export class MediaStreamService {
     if (index < 0 || index >= asset.hlsSegmentCount)
       throw new NotFoundException('视频分段不存在');
     return {
+      storageProvider: asset.storageProvider,
+      storageBucket: asset.storageBucket,
       key: hlsSegmentKey(asset.hlsKey, index),
       mimeType: 'video/mp2t',
       disposition: 'inline',
@@ -210,7 +211,7 @@ export class MediaStreamService {
     if (
       asset.hlsKey &&
       asset.hlsSegmentCount > 0 &&
-      (await this.storage.exists(asset.hlsKey))
+      (await this.storage.for(asset).exists(asset.hlsKey))
     )
       return;
     if (asset.processingStatus === 'FAILED')
@@ -249,7 +250,7 @@ export class MediaStreamService {
   }
 
   private async playlist(asset: MediaAsset, ticket: string) {
-    const opened = await this.storage.read(asset.hlsKey);
+    const opened = await this.storage.for(asset).read(asset.hlsKey);
     const chunks: Buffer[] = [];
     let size = 0;
     try {

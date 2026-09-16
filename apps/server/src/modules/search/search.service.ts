@@ -23,6 +23,8 @@ export class SearchService {
         JSON.stringify({
           resource: 'keyword-search-with-ai-index',
           keywords,
+          sortBy: query.sortBy ?? 'createdAt',
+          sortOrder: query.sortOrder ?? 'desc',
           type: query.type,
           favorite: query.favorite,
           uncategorized: query.uncategorized,

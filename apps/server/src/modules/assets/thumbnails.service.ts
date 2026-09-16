@@ -1,17 +1,17 @@
-import {
-  Inject,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { MediaAsset } from './asset-media';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { THUMBNAIL_PROFILE } from '../jobs/media-processing.constants';
-import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
+import type { StorageLocation, StorageStat } from '../storage/storage.provider';
 
 export type ThumbnailResponse =
-  | { key: string; mimeType: 'image/webp' | 'video/mp4' }
+  | (StorageLocation & {
+      key: string;
+      mimeType: 'image/webp' | 'video/mp4';
+      stat: StorageStat;
+    })
   | { assetId: string; status: 'PENDING' | 'PROCESSING' };
 
 @Injectable()
@@ -19,8 +19,7 @@ export class ThumbnailsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mediaJobs: MediaJobsService,
-    @Inject(STORAGE_PROVIDER)
-    private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   async get(
@@ -28,16 +27,20 @@ export class ThumbnailsService {
     variant: 'thumbnail' | 'preview' = 'thumbnail',
   ): Promise<ThumbnailResponse> {
     const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;
+    const metadata = key ? await this.storage.for(asset).stat(key) : null;
     if (
       key &&
-      (await this.storage.exists(key)) &&
+      metadata &&
       (variant === 'preview' ||
         asset.thumbnailVersion >= THUMBNAIL_PROFILE.version ||
         asset.processingStatus === 'FAILED')
     ) {
       return {
+        storageProvider: asset.storageProvider,
+        storageBucket: asset.storageBucket,
         key,
         mimeType: variant === 'preview' ? 'video/mp4' : 'image/webp',
+        stat: metadata,
       };
     }
 

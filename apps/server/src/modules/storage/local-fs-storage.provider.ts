@@ -11,39 +11,48 @@ import {
   rename,
   rm,
   stat,
+  statfs,
 } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { StorageError } from './storage.provider';
+import { StorageError, StorageType } from './storage.provider';
 import type {
   StoredObject,
   StorageProvider,
   StorageReadRange,
   StorageReadResult,
   StorageStat,
+  StorageSpace,
   StorageUsage,
 } from './storage.provider';
 
 @Injectable()
 export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
-  private readonly root: string;
+  readonly type = StorageType.LOCAL_FS;
+  readonly bucket = null;
+  private readonly configuredRoot?: string;
   private readonly maxFileBytes: bigint;
 
-  constructor(private readonly configService: ConfigService) {
-    const configuredRoot =
-      this.configService.getOrThrow<string>('STORAGE_ROOT');
+  private get root() {
+    if (!this.configuredRoot)
+      throw new StorageError('UNAVAILABLE', '本地存储未配置 STORAGE_ROOT');
+    return this.configuredRoot;
+  }
 
-    this.root = resolve(configuredRoot);
+  constructor(private readonly configService: ConfigService) {
+    const configuredRoot = this.configService.get<string>('STORAGE_ROOT');
+
+    this.configuredRoot = configuredRoot ? resolve(configuredRoot) : undefined;
 
     // STORAGE_ROOT 必须是绝对路径
-    if (!this.root || !this.isAbsolutePath(this.root)) {
+    if (configuredRoot && !this.isAbsolutePath(configuredRoot)) {
       throw new Error('STORAGE_ROOT 必须是绝对路径');
     }
 
     // 禁止直接使用文件系统根目录
-    if (this.root === resolve(this.root, '..')) {
+    if (configuredRoot && this.root === resolve(this.root, '..')) {
       throw new Error('STORAGE_ROOT 不能是文件系统根目录');
     }
 
@@ -60,6 +69,7 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
    * 初始化存储目录
    */
   async onModuleInit(): Promise<void> {
+    if (!this.configuredRoot) return;
     await mkdir(this.root, {
       recursive: true,
     });
@@ -284,6 +294,23 @@ export class LocalFsStorageProvider implements StorageProvider, OnModuleInit {
       }
 
       throw error;
+    }
+  }
+
+  async space(): Promise<StorageSpace> {
+    try {
+      const metadata = await statfs(this.root, { bigint: true });
+      const totalBytes = metadata.blocks * metadata.bsize;
+      if (totalBytes <= 0n)
+        throw new StorageError('UNAVAILABLE', '无法读取存储磁盘容量');
+      return {
+        scope: 'filesystem',
+        usedBytes: (metadata.blocks - metadata.bfree) * metadata.bsize,
+        totalBytes,
+        availableBytes: metadata.bavail * metadata.bsize,
+      };
+    } catch {
+      throw new StorageError('UNAVAILABLE', '无法读取存储磁盘容量');
     }
   }
 

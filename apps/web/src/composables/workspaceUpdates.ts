@@ -88,7 +88,14 @@ export function updateAlbums(
       return {
         ...album,
         count: Math.max(0, album.count + delta),
-        ...(coverRemoved ? { coverAssetId: null, coverUrl: null } : {}),
+        ...(coverRemoved
+          ? {
+              coverSource: "auto" as const,
+              coverAssetId: null,
+              coverUrl: null,
+              coverThumbnailRevision: null,
+            }
+          : {}),
       };
     });
   }

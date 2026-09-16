@@ -19,6 +19,6 @@ export class CursorPaginationDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
-  @MaxLength(512)
+  @MaxLength(4096)
   cursor?: string;
 }

@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Param,
   Post,
   Query,
@@ -16,17 +15,19 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { Open } from '../iam/auth/decorators/open.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { STORAGE_PROVIDER } from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { MediaStreamDto } from './dto/media-stream.dto';
 import { MediaStreamService } from './media-stream.service';
-import { streamStoredMedia } from './asset-file-response';
+import {
+  isMediaResponseClosed,
+  streamStoredMedia,
+} from './asset-file-response';
 
 @Controller('assets')
 export class MediaStreamController {
   constructor(
     private readonly streams: MediaStreamService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   @Post(':id/stream-ticket')
@@ -47,9 +48,10 @@ export class MediaStreamController {
     @Param('fileName') fileName: string,
     @Query('ticket') ticket: string,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const resource = await this.streams.resource(assetId, fileName, ticket);
+    if (isMediaResponseClosed(request, response)) return;
     response.setHeader('Referrer-Policy', 'no-referrer');
     if ('playlist' in resource) {
       response.setHeader(
@@ -57,7 +59,8 @@ export class MediaStreamController {
         'application/vnd.apple.mpegurl; charset=utf-8',
       );
       response.setHeader('Cache-Control', 'private, no-store');
-      return resource.playlist;
+      response.send(resource.playlist);
+      return;
     }
     return streamStoredMedia(this.storage, resource, request, response);
   }

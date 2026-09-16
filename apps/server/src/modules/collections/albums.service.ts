@@ -8,19 +8,24 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { withSerializable } from '../../common/prisma/transaction';
 import type { Prisma } from '../../prisma/generated/prisma/client';
 import { assetWhere, requireOwnedAssets } from '../assets/asset-scope';
+import {
+  thumbnailRevision,
+  thumbnailRevisionSelect,
+} from '../assets/asset-media';
 import { AssetsService } from '../assets/assets.service';
 import { rethrowCollectionError } from './collection-errors';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/collections.dto';
+import { normalizeAlbumCover } from './album-cover';
 
 function albumInclude(userId: string) {
   return {
     coverAsset: {
       where: assetWhere(userId),
-      select: { id: true },
+      select: { id: true, ...thumbnailRevisionSelect },
     },
     assets: {
       where: { asset: assetWhere(userId) },
-      select: { assetId: true },
+      select: { assetId: true, asset: { select: thumbnailRevisionSelect } },
       orderBy: [{ asset: { createdAt: 'desc' } }, { assetId: 'desc' }],
       take: 1,
     },
@@ -72,12 +77,17 @@ export class AlbumsService {
   }
 
   async create(userId: string, body: CreateAlbumDto) {
+    const coverImage =
+      body.coverImage == null
+        ? body.coverImage
+        : await normalizeAlbumCover(body.coverImage);
     const album = await this.prisma.album
       .create({
         data: {
           ownerId: userId,
           name: body.name,
           description: body.description,
+          coverImage,
         },
         include: albumInclude(userId),
       })
@@ -86,14 +96,23 @@ export class AlbumsService {
     return this.summary(album);
   }
 
-  update(albumId: string, userId: string, body: UpdateAlbumDto) {
+  async update(albumId: string, userId: string, body: UpdateAlbumDto) {
     if (
       body.name === undefined &&
       body.description === undefined &&
-      body.coverAssetId === undefined
+      body.coverAssetId === undefined &&
+      body.coverImage === undefined
     ) {
       throw new BadRequestException('至少提供一个要更新的相册字段');
     }
+
+    if (body.coverImage != null && body.coverAssetId != null) {
+      throw new BadRequestException('自定义图片和相册资源不能同时设为封面');
+    }
+    const coverImage =
+      body.coverImage == null
+        ? body.coverImage
+        : await normalizeAlbumCover(body.coverImage);
 
     return withSerializable(this.prisma, async (transaction) => {
       await this.requireOwned(transaction, albumId, userId);
@@ -118,7 +137,13 @@ export class AlbumsService {
         data: {
           name: body.name,
           description: body.description,
-          coverAssetId: body.coverAssetId,
+          coverAssetId: coverImage ? null : body.coverAssetId,
+          coverImage:
+            coverImage !== undefined
+              ? coverImage
+              : body.coverAssetId !== undefined
+                ? null
+                : undefined,
         },
         include: albumInclude(userId),
       });
@@ -212,15 +237,26 @@ export class AlbumsService {
   }
 
   private summary(album: AlbumRow) {
-    const coverAssetId =
-      album.coverAsset?.id ?? album.assets[0]?.assetId ?? null;
+    const coverAssetId = album.coverImage
+      ? null
+      : (album.coverAsset?.id ?? album.assets[0]?.assetId ?? null);
 
     return {
       id: album.id,
       name: album.name,
       description: album.description,
+      coverSource: album.coverImage
+        ? 'custom'
+        : album.coverAsset
+          ? 'asset'
+          : 'auto',
       coverAssetId,
-      coverUrl: coverAssetId ? this.assets.thumbnailUrl(coverAssetId) : null,
+      coverThumbnailRevision: album.coverImage
+        ? null
+        : thumbnailRevision(album.coverAsset ?? album.assets[0]?.asset),
+      coverUrl:
+        album.coverImage ??
+        (coverAssetId ? this.assets.thumbnailUrl(coverAssetId) : null),
       count: album._count.assets,
       createdAt: album.createdAt.toISOString(),
       updatedAt: album.updatedAt.toISOString(),

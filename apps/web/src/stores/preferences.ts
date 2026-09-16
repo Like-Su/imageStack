@@ -2,9 +2,12 @@ import { translate } from "@/i18n";
 import { ref, watch } from "vue";
 import { defineStore } from "pinia";
 import { useAuthStore } from "./auth";
+import type { AssetSortBy, AssetSortOrder } from "@/types/media";
 
 interface Preferences {
   viewMode: "grid" | "list";
+  assetSortBy: AssetSortBy;
+  assetSortOrder: AssetSortOrder;
   sidebarCollapsed: boolean;
   showNames: boolean;
   denseGrid: boolean;
@@ -14,6 +17,8 @@ interface Preferences {
 
 const defaults = (): Preferences => ({
   viewMode: "grid",
+  assetSortBy: "createdAt",
+  assetSortOrder: "desc",
   sidebarCollapsed: false,
   showNames: false,
   denseGrid: false,
@@ -40,6 +45,17 @@ export const usePreferencesStore = defineStore("preferences", () => {
           const record = stored as Record<string, unknown>;
           if (record.viewMode === "grid" || record.viewMode === "list")
             next.viewMode = record.viewMode;
+          if (
+            record.assetSortBy === "createdAt" ||
+            record.assetSortBy === "name" ||
+            record.assetSortBy === "size"
+          )
+            next.assetSortBy = record.assetSortBy;
+          if (
+            record.assetSortOrder === "asc" ||
+            record.assetSortOrder === "desc"
+          )
+            next.assetSortOrder = record.assetSortOrder;
           for (const key of [
             "sidebarCollapsed",
             "showNames",

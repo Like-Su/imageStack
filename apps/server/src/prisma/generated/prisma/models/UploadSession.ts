@@ -46,6 +46,8 @@ export type UploadSessionMinAggregateOutputType = {
   mimeType: string | null;
   hash: string | null;
   storageKey: string | null;
+  storageProvider: $Enums.StorageProviderType | null;
+  storageBucket: string | null;
   status: $Enums.UploadStatus | null;
   chunkSize: number | null;
   chunkCount: number | null;
@@ -64,6 +66,8 @@ export type UploadSessionMaxAggregateOutputType = {
   mimeType: string | null;
   hash: string | null;
   storageKey: string | null;
+  storageProvider: $Enums.StorageProviderType | null;
+  storageBucket: string | null;
   status: $Enums.UploadStatus | null;
   chunkSize: number | null;
   chunkCount: number | null;
@@ -82,6 +86,8 @@ export type UploadSessionCountAggregateOutputType = {
   mimeType: number;
   hash: number;
   storageKey: number;
+  storageProvider: number;
+  storageBucket: number;
   status: number;
   chunkSize: number;
   chunkCount: number;
@@ -113,6 +119,8 @@ export type UploadSessionMinAggregateInputType = {
   mimeType?: true;
   hash?: true;
   storageKey?: true;
+  storageProvider?: true;
+  storageBucket?: true;
   status?: true;
   chunkSize?: true;
   chunkCount?: true;
@@ -131,6 +139,8 @@ export type UploadSessionMaxAggregateInputType = {
   mimeType?: true;
   hash?: true;
   storageKey?: true;
+  storageProvider?: true;
+  storageBucket?: true;
   status?: true;
   chunkSize?: true;
   chunkCount?: true;
@@ -149,6 +159,8 @@ export type UploadSessionCountAggregateInputType = {
   mimeType?: true;
   hash?: true;
   storageKey?: true;
+  storageProvider?: true;
+  storageBucket?: true;
   status?: true;
   chunkSize?: true;
   chunkCount?: true;
@@ -264,6 +276,8 @@ export type UploadSessionGroupByOutputType = {
   mimeType: string | null;
   hash: string | null;
   storageKey: string;
+  storageProvider: $Enums.StorageProviderType;
+  storageBucket: string | null;
   status: $Enums.UploadStatus;
   chunkSize: number | null;
   chunkCount: number | null;
@@ -305,6 +319,10 @@ export type UploadSessionWhereInput = {
   mimeType?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   hash?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   storageKey?: Prisma.StringFilter<'UploadSession'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFilter<'UploadSession'>
+    | $Enums.StorageProviderType;
+  storageBucket?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   status?: Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
   chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
   chunkCount?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
@@ -330,6 +348,8 @@ export type UploadSessionOrderByWithRelationInput = {
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
   hash?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
+  storageBucket?: Prisma.SortOrderInput | Prisma.SortOrder;
   status?: Prisma.SortOrder;
   chunkSize?: Prisma.SortOrderInput | Prisma.SortOrder;
   chunkCount?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -357,6 +377,11 @@ export type UploadSessionWhereUniqueInput = Prisma.AtLeast<
     mimeType?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
     hash?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
     storageKey?: Prisma.StringFilter<'UploadSession'> | string;
+    storageProvider?:
+      | Prisma.EnumStorageProviderTypeFilter<'UploadSession'>
+      | $Enums.StorageProviderType;
+    storageBucket?:
+      Prisma.StringNullableFilter<'UploadSession'> | string | null;
     status?:
       Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
     chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
@@ -384,6 +409,8 @@ export type UploadSessionOrderByWithAggregationInput = {
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder;
   hash?: Prisma.SortOrderInput | Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
+  storageBucket?: Prisma.SortOrderInput | Prisma.SortOrder;
   status?: Prisma.SortOrder;
   chunkSize?: Prisma.SortOrderInput | Prisma.SortOrder;
   chunkCount?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -420,6 +447,11 @@ export type UploadSessionScalarWhereWithAggregatesInput = {
   hash?:
     Prisma.StringNullableWithAggregatesFilter<'UploadSession'> | string | null;
   storageKey?: Prisma.StringWithAggregatesFilter<'UploadSession'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeWithAggregatesFilter<'UploadSession'>
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.StringNullableWithAggregatesFilter<'UploadSession'> | string | null;
   status?:
     | Prisma.EnumUploadStatusWithAggregatesFilter<'UploadSession'>
     | $Enums.UploadStatus;
@@ -449,6 +481,8 @@ export type UploadSessionCreateInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -469,6 +503,8 @@ export type UploadSessionUncheckedCreateInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -488,6 +524,11 @@ export type UploadSessionUpdateInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -511,6 +552,11 @@ export type UploadSessionUncheckedUpdateInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -532,6 +578,8 @@ export type UploadSessionCreateManyInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -550,6 +598,11 @@ export type UploadSessionUpdateManyMutationInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -570,6 +623,11 @@ export type UploadSessionUncheckedUpdateManyInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -605,6 +663,8 @@ export type UploadSessionCountOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder;
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
+  storageBucket?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
   chunkSize?: Prisma.SortOrder;
   chunkCount?: Prisma.SortOrder;
@@ -629,6 +689,8 @@ export type UploadSessionMaxOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder;
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
+  storageBucket?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
   chunkSize?: Prisma.SortOrder;
   chunkCount?: Prisma.SortOrder;
@@ -647,6 +709,8 @@ export type UploadSessionMinOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder;
   hash?: Prisma.SortOrder;
   storageKey?: Prisma.SortOrder;
+  storageProvider?: Prisma.SortOrder;
+  storageBucket?: Prisma.SortOrder;
   status?: Prisma.SortOrder;
   chunkSize?: Prisma.SortOrder;
   chunkCount?: Prisma.SortOrder;
@@ -834,6 +898,10 @@ export type UploadSessionUncheckedUpdateOneWithoutFileNestedInput = {
   >;
 };
 
+export type EnumStorageProviderTypeFieldUpdateOperationsInput = {
+  set?: $Enums.StorageProviderType;
+};
+
 export type EnumUploadStatusFieldUpdateOperationsInput = {
   set?: $Enums.UploadStatus;
 };
@@ -871,6 +939,8 @@ export type UploadSessionCreateWithoutUserInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -889,6 +959,8 @@ export type UploadSessionUncheckedCreateWithoutUserInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -958,6 +1030,10 @@ export type UploadSessionScalarWhereInput = {
   mimeType?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   hash?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   storageKey?: Prisma.StringFilter<'UploadSession'> | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFilter<'UploadSession'>
+    | $Enums.StorageProviderType;
+  storageBucket?: Prisma.StringNullableFilter<'UploadSession'> | string | null;
   status?: Prisma.EnumUploadStatusFilter<'UploadSession'> | $Enums.UploadStatus;
   chunkSize?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
   chunkCount?: Prisma.IntNullableFilter<'UploadSession'> | number | null;
@@ -976,6 +1052,8 @@ export type UploadSessionCreateWithoutFileInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -995,6 +1073,8 @@ export type UploadSessionUncheckedCreateWithoutFileInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -1041,6 +1121,11 @@ export type UploadSessionUpdateWithoutFileInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1063,6 +1148,11 @@ export type UploadSessionUncheckedUpdateWithoutFileInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1082,6 +1172,8 @@ export type UploadSessionCreateWithoutPartsInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -1101,6 +1193,8 @@ export type UploadSessionUncheckedCreateWithoutPartsInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -1147,6 +1241,11 @@ export type UploadSessionUpdateWithoutPartsInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1169,6 +1268,11 @@ export type UploadSessionUncheckedUpdateWithoutPartsInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1188,6 +1292,8 @@ export type UploadSessionCreateManyUserInput = {
   mimeType?: string | null;
   hash?: string | null;
   storageKey: string;
+  storageProvider?: $Enums.StorageProviderType;
+  storageBucket?: string | null;
   status?: $Enums.UploadStatus;
   chunkSize?: number | null;
   chunkCount?: number | null;
@@ -1206,6 +1312,11 @@ export type UploadSessionUpdateWithoutUserInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1227,6 +1338,11 @@ export type UploadSessionUncheckedUpdateWithoutUserInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1248,6 +1364,11 @@ export type UploadSessionUncheckedUpdateManyWithoutUserInput = {
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   storageKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  storageProvider?:
+    | Prisma.EnumStorageProviderTypeFieldUpdateOperationsInput
+    | $Enums.StorageProviderType;
+  storageBucket?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   status?:
     Prisma.EnumUploadStatusFieldUpdateOperationsInput | $Enums.UploadStatus;
   chunkSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1310,6 +1431,8 @@ export type UploadSessionSelect<
     mimeType?: boolean;
     hash?: boolean;
     storageKey?: boolean;
+    storageProvider?: boolean;
+    storageBucket?: boolean;
     status?: boolean;
     chunkSize?: boolean;
     chunkCount?: boolean;
@@ -1338,6 +1461,8 @@ export type UploadSessionSelectCreateManyAndReturn<
     mimeType?: boolean;
     hash?: boolean;
     storageKey?: boolean;
+    storageProvider?: boolean;
+    storageBucket?: boolean;
     status?: boolean;
     chunkSize?: boolean;
     chunkCount?: boolean;
@@ -1364,6 +1489,8 @@ export type UploadSessionSelectUpdateManyAndReturn<
     mimeType?: boolean;
     hash?: boolean;
     storageKey?: boolean;
+    storageProvider?: boolean;
+    storageBucket?: boolean;
     status?: boolean;
     chunkSize?: boolean;
     chunkCount?: boolean;
@@ -1386,6 +1513,8 @@ export type UploadSessionSelectScalar = {
   mimeType?: boolean;
   hash?: boolean;
   storageKey?: boolean;
+  storageProvider?: boolean;
+  storageBucket?: boolean;
   status?: boolean;
   chunkSize?: boolean;
   chunkCount?: boolean;
@@ -1407,6 +1536,8 @@ export type UploadSessionOmit<
   | 'mimeType'
   | 'hash'
   | 'storageKey'
+  | 'storageProvider'
+  | 'storageBucket'
   | 'status'
   | 'chunkSize'
   | 'chunkCount'
@@ -1460,6 +1591,8 @@ export type $UploadSessionPayload<
       mimeType: string | null;
       hash: string | null;
       storageKey: string;
+      storageProvider: $Enums.StorageProviderType;
+      storageBucket: string | null;
       status: $Enums.UploadStatus;
       chunkSize: number | null;
       chunkCount: number | null;
@@ -2108,6 +2241,11 @@ export interface UploadSessionFieldRefs {
   readonly mimeType: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly hash: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly storageKey: Prisma.FieldRef<'UploadSession', 'String'>;
+  readonly storageProvider: Prisma.FieldRef<
+    'UploadSession',
+    'StorageProviderType'
+  >;
+  readonly storageBucket: Prisma.FieldRef<'UploadSession', 'String'>;
   readonly status: Prisma.FieldRef<'UploadSession', 'UploadStatus'>;
   readonly chunkSize: Prisma.FieldRef<'UploadSession', 'Int'>;
   readonly chunkCount: Prisma.FieldRef<'UploadSession', 'Int'>;

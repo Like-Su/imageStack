@@ -7,8 +7,17 @@ export interface ExtensionCapability {
   detail: string;
 }
 
+export interface StorageSpace {
+  provider: string;
+  scope: "filesystem" | "bucket";
+  usedBytes: string;
+  totalBytes: string | null;
+  availableBytes: string | null;
+}
+
 export interface SystemCapabilities {
   storageProvider: string;
+  storageProviders: string[];
   searchMode: string;
   peopleMode: string;
   trashRetentionDays: number | null;
@@ -17,7 +26,7 @@ export interface SystemCapabilities {
     maxBytes: number;
     imageMaxBytes: number;
     videoMaxBytes: number;
-    videoMaxDurationMs: number;
+    videoMaxDurationMs: number | null;
     maxPixels: number | null;
     maxFrames: number;
     extensions: string[];

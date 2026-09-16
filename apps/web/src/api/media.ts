@@ -136,14 +136,18 @@ export const mediaApi = {
   albums: readAlbums,
   album: (albumId: string, signal?: AbortSignal) =>
     request<Album>(`/albums/${identifier(albumId)}/summary`, { signal }),
-  createAlbum: (body: { name: string; description?: string }) =>
-    request<Album>("/albums", { method: "POST", body }),
+  createAlbum: (body: {
+    name: string;
+    description?: string;
+    coverImage?: string | null;
+  }) => request<Album>("/albums", { method: "POST", body }),
   updateAlbum: (
     albumId: string,
     body: {
       name?: string;
       description?: string | null;
       coverAssetId?: string | null;
+      coverImage?: string | null;
     },
   ) =>
     request<Album>(`/albums/${identifier(albumId)}`, { method: "PATCH", body }),

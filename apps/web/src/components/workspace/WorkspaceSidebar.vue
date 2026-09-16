@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { Aperture, HardDrive, X } from "lucide-vue-next";
+import { Aperture, X } from "lucide-vue-next";
 import { navigation } from "@/config/workspace";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
-import { formatBytes } from "@/composables/mediaFormat";
+import StorageUsage from "./StorageUsage.vue";
 
 defineProps<{ mobile?: boolean; collapsed?: boolean }>();
 const emit = defineEmits<{ navigate: [] }>();
@@ -19,16 +19,6 @@ const visibleNavigation = computed(() =>
 );
 const selected = computed(() =>
   String(route.meta.section ?? route.name ?? "home"),
-);
-const totalBytes = computed(
-  () =>
-    Number(workspace.overview?.bytes ?? 0) +
-    Number(workspace.overview?.trashBytes ?? 0),
-);
-const activeRatio = computed(() =>
-  totalBytes.value
-    ? (Number(workspace.overview?.bytes ?? 0) / totalBytes.value) * 100
-    : 0,
 );
 
 function activateMenuItem(event: KeyboardEvent) {
@@ -125,39 +115,18 @@ function activateMenuItem(event: KeyboardEvent) {
       </el-menu>
     </nav>
     <div v-if="!collapsed" class="shrink-0 border-t border-line p-3">
-      <div class="rounded-xl bg-panel2 p-3">
-        <div class="flex items-center justify-between text-[11px] text-soft">
-          <span class="flex items-center gap-1.5"
-            ><HardDrive class="size-3.5" />{{ $t("原图存储") }}</span
-          ><span class="text-ghost">{{
-            workspace.overview ? formatBytes(totalBytes) : "—"
-          }}</span>
-        </div>
-        <el-progress
-          class="mt-2"
-          :percentage="activeRatio"
-          :stroke-width="6"
-          :show-text="false"
-          color="var(--app-accent)"
-          aria-hidden="true"
-        />
-        <p class="mt-2 text-[10px] leading-5 text-faint">
-          {{ $t("当前账户 · 图库与回收站") }}<br />{{
-            $t("不含缩略图，不代表磁盘总容量")
-          }}
-        </p>
-        <el-button
-          v-if="workspace.overviewError"
-          link
-          type="danger"
-          size="small"
-          native-type="button"
-          :title="workspace.overviewError"
-          @click="workspace.loadOverview(true)"
-        >
-          {{ $t("统计获取失败，点击重试") }}
-        </el-button>
-      </div>
+      <StorageUsage v-if="workspace.can('asset:list')" />
+      <el-button
+        v-if="workspace.overviewError"
+        link
+        type="danger"
+        size="small"
+        native-type="button"
+        :title="workspace.overviewError"
+        @click="workspace.loadOverview(true)"
+      >
+        {{ $t("图库统计获取失败，点击重试") }}
+      </el-button>
     </div>
   </div>
 </template>

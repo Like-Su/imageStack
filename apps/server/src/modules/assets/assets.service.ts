@@ -12,11 +12,23 @@ import type { Prisma } from '../../prisma/generated/prisma/client';
 import { assetWhere, requireOwnedAssets } from './asset-scope';
 import { buildAssetFilters } from './asset-filters';
 import { ListAssetsDto } from './dto/assets-query.dto';
-import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
+import {
+  assetCursorWhere,
+  assetOrderBy,
+  assetSort,
+  decodeAssetPageCursor,
+  encodeAssetPageCursor,
+} from './asset-pagination';
 import { ThumbnailsService } from './thumbnails.service';
-import { assetMediaSelect, type MediaAsset } from './asset-media';
+import {
+  assetMediaSelect,
+  thumbnailRevision,
+  thumbnailRevisionSelect,
+  type MediaAsset,
+} from './asset-media';
 
 const listSelect = {
+  ...thumbnailRevisionSelect,
   id: true,
   name: true,
   mediaType: true,
@@ -89,31 +101,23 @@ export class AssetsService {
     query: ListAssetsDto,
     options: AssetPageOptions,
   ) {
+    const sort = assetSort(query);
     const cursor = query.cursor
-      ? decodeAssetCursor(query.cursor, userId, options.cursorScope)
+      ? decodeAssetPageCursor(query.cursor, userId, sort, options.cursorScope)
       : null;
 
     const where: Prisma.FileNodeWhereInput = {
       AND: [
         assetWhere(userId, options.deleted),
         buildAssetFilters(userId, query, options.keywords),
-        ...(cursor
-          ? [
-              {
-                OR: [
-                  { createdAt: { lt: cursor.createdAt } },
-                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
-                ],
-              },
-            ]
-          : []),
+        ...(cursor ? [assetCursorWhere(cursor, sort)] : []),
       ],
     };
 
     const rows = await this.prisma.fileNode.findMany({
       where,
       select: listSelect,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy: assetOrderBy(sort),
       take: query.limit + 1,
     });
 
@@ -126,7 +130,7 @@ export class AssetsService {
       hasMore,
       nextCursor:
         hasMore && last
-          ? encodeAssetCursor(last, userId, options.cursorScope)
+          ? encodeAssetPageCursor(last, userId, sort, options.cursorScope)
           : null,
     };
   }
@@ -239,6 +243,8 @@ export class AssetsService {
     }
 
     return {
+      storageProvider: asset.storageProvider,
+      storageBucket: asset.storageBucket,
       key: asset.storageKey,
       mimeType: asset.mimeType,
     };
@@ -338,6 +344,7 @@ export class AssetsService {
         source: 'MANUAL' as const,
       })),
       thumbUrl: this.thumbnailUrl(asset.id, asset.deleted),
+      thumbnailRevision: thumbnailRevision(asset),
     };
   }
 }

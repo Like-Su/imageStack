@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
   Logger,
   ServiceUnavailableException,
@@ -12,13 +11,14 @@ import { blake3 } from 'hash-wasm';
 import { Readable } from 'node:stream';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { UploadSession } from '../../prisma/generated/prisma/client';
-import {
-  createStorageKey,
-  STORAGE_PROVIDER,
-} from '../storage/storage.provider';
-import type { StorageProvider } from '../storage/storage.provider';
+import { createStorageKey } from '../storage/storage.provider';
+import type { StorageLocation } from '../storage/storage.provider';
+import { StorageService } from '../storage/storage.service';
 import { assertUploadHeaders, readUploadBody } from './upload-validation';
-import { UPLOAD_PART_MAX_CONCURRENT } from './upload.constants';
+import {
+  UPLOAD_CHUNK_BYTES,
+  UPLOAD_PART_MAX_CONCURRENT,
+} from './upload.constants';
 
 @Injectable()
 export class UploadPartsService {
@@ -27,10 +27,11 @@ export class UploadPartsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly storage: StorageService,
   ) {}
 
   async put(session: UploadSession, index: number, request: Request) {
+    const storage = this.storage.for(session);
     if (
       !session.chunkSize ||
       !Number.isSafeInteger(index) ||
@@ -53,7 +54,7 @@ export class UploadPartsService {
     this.active += 1;
     let candidate: string | undefined;
     try {
-      const bytes = await readUploadBody(request, size);
+      const bytes = await readUploadBody(request, size, UPLOAD_CHUNK_BYTES);
       if ((await blake3(bytes)) !== hash)
         throw new UnprocessableEntityException('分片 BLAKE3 校验失败');
       const existing = await this.prisma.uploadPart.findUnique({
@@ -62,13 +63,11 @@ export class UploadPartsService {
       if (existing) {
         if (existing.hash !== hash || existing.size !== size)
           throw new ConflictException('已上传的同序号分片与本次内容不一致');
-        if (
-          (await this.storage.stat(existing.storageKey))?.size === BigInt(size)
-        )
+        if ((await storage.stat(existing.storageKey))?.size === BigInt(size))
           return { index, size, hash };
       }
       candidate = createStorageKey('uploads');
-      const stored = await this.storage.put(candidate, Readable.from([bytes]));
+      const stored = await storage.put(candidate, Readable.from([bytes]));
       if (stored.size !== BigInt(size))
         throw new ServiceUnavailableException('分片存储不完整');
       const key = candidate;
@@ -92,7 +91,7 @@ export class UploadPartsService {
         return part?.storageKey;
       });
       candidate = undefined;
-      if (oldKey) await this.discard(oldKey);
+      if (oldKey) await this.discard(oldKey, session);
       return { index, size, hash };
     } finally {
       this.active -= 1;
@@ -100,7 +99,7 @@ export class UploadPartsService {
         const key = candidate;
         await this.prisma.uploadPart
           .findUnique({ where: { storageKey: key } })
-          .then((part) => (part ? undefined : this.discard(key)))
+          .then((part) => (part ? undefined : this.discard(key, session)))
           .catch(() => undefined);
       }
     }
@@ -124,7 +123,7 @@ export class UploadPartsService {
       )
     )
       throw new ConflictException('分片尚未上传完整，请查询并补传缺失分片');
-    const storage = this.storage;
+    const storage = this.storage.for(session);
     async function* content() {
       for (const part of parts) {
         const opened = await storage.read(part.storageKey).catch(() => {
@@ -143,22 +142,48 @@ export class UploadPartsService {
   }
 
   async cleanup(sessionId: string) {
-    const parts = await this.prisma.uploadPart.findMany({
-      where: { sessionId },
+    const session = await this.prisma.uploadSession.findUnique({
+      where: { id: sessionId },
+      select: {
+        storageProvider: true,
+        storageBucket: true,
+        parts: { select: { index: true, storageKey: true } },
+      },
     });
-    for (const part of parts) {
-      await this.storage.delete(part.storageKey);
-      await this.prisma.uploadPart.deleteMany({
-        where: { sessionId, index: part.index, storageKey: part.storageKey },
-      });
+    if (!session || !session.parts.length) return;
+    const { parts } = session;
+    const storage = this.storage.for(session);
+    let failure: PromiseRejectedResult | undefined;
+    for (let offset = 0; offset < parts.length; offset += 4) {
+      const results = await Promise.allSettled(
+        parts.slice(offset, offset + 4).map(async (part) => {
+          await storage.delete(part.storageKey);
+          return part;
+        }),
+      );
+      const removed = results.flatMap((result) =>
+        result.status === 'fulfilled' ? [result.value] : [],
+      );
+      if (removed.length)
+        await this.prisma.uploadPart.deleteMany({
+          where: { sessionId, OR: removed },
+        });
+      failure ??= results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected',
+      );
     }
+    if (failure) throw failure.reason;
   }
 
-  private async discard(key: string) {
-    await this.storage.delete(key).catch((error: unknown) => {
-      this.logger.warn(
-        `分片清理暂缓：${error instanceof Error ? error.message : String(error)}`,
-      );
-    });
+  private async discard(key: string, location: StorageLocation) {
+    await this.storage
+      .for(location)
+      .delete(key)
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `分片清理暂缓：${error instanceof Error ? error.message : String(error)}`,
+        );
+      });
   }
 }

@@ -29,6 +29,7 @@ import PageHeader from "@/components/workspace/PageHeader.vue";
 import SettingRow from "@/components/workspace/SettingRow.vue";
 import LocaleSwitcher from "@/components/LocaleSwitcher.vue";
 import ProfileEditor from "@/components/workspace/ProfileEditor.vue";
+import StorageUsage from "@/components/workspace/StorageUsage.vue";
 
 const auth = useAuthStore();
 const workspace = useWorkspaceStore();
@@ -246,6 +247,7 @@ async function logout(allDevices = false) {
                 $t("服务器能力 · 只读")
               }}</span>
             </h2>
+            <StorageUsage v-if="workspace.can('asset:list')" class="mb-4" />
             <dl class="space-y-3 text-xs">
               <div class="flex justify-between gap-3">
                 <dt class="text-soft">{{ $t("存储提供器") }}</dt>
@@ -272,10 +274,12 @@ async function logout(allDevices = false) {
                 <dd>
                   {{
                     capabilities
-                      ? $t("{value1} 小时", {
-                          value1:
-                            capabilities.upload.videoMaxDurationMs / 3600000,
-                        })
+                      ? capabilities.upload.videoMaxDurationMs === null
+                        ? $t("不限制")
+                        : $t("{value1} 小时", {
+                            value1:
+                              capabilities.upload.videoMaxDurationMs / 3600000,
+                          })
                       : "—"
                   }}
                 </dd>
@@ -326,7 +330,7 @@ async function logout(allDevices = false) {
             <p class="mt-4 text-[11px] leading-6 text-faint">
               {{
                 $t(
-                  "不包含缩略图、兼容视频预览及其他用户数据。存储路径与服务器容量需由部署环境管理。",
+                  "图库与回收站原文件仅统计当前账户，不含派生文件；上方容量统计当前存储磁盘或存储桶，不是个人配额。",
                 )
               }}
             </p>
