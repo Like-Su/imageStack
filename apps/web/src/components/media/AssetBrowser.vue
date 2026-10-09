@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import {
   CalendarDays,
   CheckSquare,
+  Download,
   FolderPlus,
   FolderMinus,
   Image,
@@ -22,6 +23,7 @@ import { useAssetFeed } from "@/composables/useAssetFeed";
 import { useAssetActions } from "@/composables/useAssetActions";
 import { useUploadsStore } from "@/stores/uploads";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { isVisualMedia } from "@/config/workspace";
 import type { AssetQuery, AssetSummary } from "@/types/media";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetGrid from "./AssetGrid.vue";
@@ -30,6 +32,7 @@ import AssetSortControl from "./AssetSortControl.vue";
 import AlbumPicker from "./AlbumPicker.vue";
 import TagAssignmentDialog from "./TagAssignmentDialog.vue";
 import RenameAssetDialog from "./RenameAssetDialog.vue";
+import DownloadAssetsDialog from "./DownloadAssetsDialog.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -43,9 +46,8 @@ const props = withDefaults(
 );
 const workspace = useWorkspaceStore();
 const uploads = useUploadsStore();
-const { busy, moveToTrash, restore, purge } = useAssetActions(
-  () => items.value,
-);
+const { busy, downloading, download, moveToTrash, restore, purge } =
+  useAssetActions(() => items.value);
 const preset = ref("all");
 const currentYear = new Date().getFullYear();
 function disabledDate(date: Date) {
@@ -58,6 +60,10 @@ const presets = [
   { id: "all", label: "全部" },
   { id: "image", label: "图片" },
   { id: "video", label: "视频" },
+  { id: "audio", label: "音频" },
+  { id: "document", label: "文档" },
+  { id: "archive", label: "压缩包" },
+  { id: "other", label: "其他文件" },
   { id: "recent", label: "最近上传" },
   { id: "uncategorized", label: "未分类" },
   { id: "large", label: "大文件" },
@@ -72,18 +78,33 @@ const rangeError = ref("");
 const selecting = ref(false);
 const selected = ref(new Set<string>());
 const selectedIds = computed(() => Array.from(selected.value));
+const selectedAssets = computed(() =>
+  items.value.filter((asset) => selected.value.has(asset.id)),
+);
+const canSetCover = computed(
+  () =>
+    selectedAssets.value.length === 1 &&
+    isVisualMedia(selectedAssets.value[0]!.type),
+);
 const albumPicker = ref(false);
 const tagPicker = ref(false);
 const renamingAsset = ref<AssetSummary | null>(null);
 const dialogIds = ref<string[]>([]);
 const collectionBusy = ref(false);
-const isBusy = computed(() => busy.value || collectionBusy.value);
+const downloadAssets = ref<AssetSummary[]>([]);
+const isBusy = computed(
+  () => busy.value || downloading.value || collectionBusy.value,
+);
 
 const filters = computed<AssetQuery>(() => ({
   ...props.query,
   ...range.value,
   ...(preset.value === "image" ? { type: "image" as const } : {}),
   ...(preset.value === "video" ? { type: "video" as const } : {}),
+  ...(preset.value === "audio" ? { type: "audio" as const } : {}),
+  ...(preset.value === "document" ? { type: "document" as const } : {}),
+  ...(preset.value === "archive" ? { type: "archive" as const } : {}),
+  ...(preset.value === "other" ? { type: "other" as const } : {}),
   ...(preset.value === "recent"
     ? {
         from: new Date(Date.now() - 7 * 86400_000).toISOString(),
@@ -157,7 +178,7 @@ function toggle(id: string) {
   else if (selected.value.size < 100) selected.value.add(id);
   else
     workspace.notify(
-      translate("一次最多选择 100 项媒体，请分批操作。"),
+      translate("一次最多选择 100 个文件，请分批操作。"),
       "info",
     );
 }
@@ -172,6 +193,19 @@ function openRenameDialog() {
   if (isBusy.value || selected.value.size !== 1) return;
   renamingAsset.value =
     items.value.find((asset) => selected.value.has(asset.id)) ?? null;
+}
+function openDownloads() {
+  if (
+    isBusy.value ||
+    !selectedAssets.value.length ||
+    !workspace.can("asset:download")
+  )
+    return;
+  if (selectedAssets.value.length === 1) {
+    void download(selectedAssets.value[0]!);
+  } else {
+    downloadAssets.value = [...selectedAssets.value];
+  }
 }
 function openAlbumPicker() {
   workspace.rememberAssets(
@@ -216,8 +250,7 @@ async function removeFromAlbum() {
 }
 
 async function setCover() {
-  if (!props.query.albumId || selectedIds.value.length !== 1 || isBusy.value)
-    return;
+  if (!props.query.albumId || !canSetCover.value || isBusy.value) return;
   collectionBusy.value = true;
   const albumId = props.query.albumId;
   const coverAssetId = selectedIds.value[0]!;
@@ -424,6 +457,15 @@ async function removeFromTag() {
           >
           <template v-else>
             <el-button
+              v-if="workspace.can('asset:download')"
+              native-type="button"
+              :disabled="isBusy"
+              :loading="downloading"
+              @click="openDownloads"
+            >
+              <Download v-if="!downloading" />{{ $t("下载") }}
+            </el-button>
+            <el-button
               v-if="selected.size === 1 && workspace.can('asset:edit')"
               native-type="button"
               :disabled="isBusy"
@@ -465,9 +507,7 @@ async function removeFromTag() {
             >
             <el-button
               v-if="
-                query.albumId &&
-                selected.size === 1 &&
-                workspace.can('asset:category')
+                query.albumId && canSetCover && workspace.can('asset:category')
               "
               native-type="button"
               :disabled="isBusy"
@@ -528,14 +568,14 @@ async function removeFromTag() {
         :error="error"
         :title="
           hasFilters
-            ? $t('没有符合筛选条件的媒体')
-            : (emptyTitle ?? $t('你的图库，等待第一张照片'))
+            ? $t('没有符合筛选条件的文件')
+            : (emptyTitle ?? $t('上传文件，开始整理你的资源库'))
         "
         :description="
           hasFilters
             ? $t('尝试更换筛选条件，或检查图片是否包含拍摄时间。')
             : (emptyDescription ??
-              $t('上传照片，将重要的回忆与创作整理在同一个地方。'))
+              $t('支持图片、视频、文档、压缩包、音频及其他文件。'))
         "
         @retry="feed.reload"
       >
@@ -559,7 +599,7 @@ async function removeFromTag() {
           @click="uploads.chooseFiles(query.albumId)"
         >
           <Upload />{{
-            query.albumId ? $t("上传到相册") : $t("上传第一张照片")
+            query.albumId ? $t("上传到相册") : $t("上传文件")
           }}</el-button
         >
       </DataState>
@@ -581,6 +621,11 @@ async function removeFromTag() {
         @load="feed.loadMore"
       />
     </div>
+    <DownloadAssetsDialog
+      v-if="downloadAssets.length"
+      :assets="downloadAssets"
+      @close="downloadAssets = []"
+    />
     <RenameAssetDialog
       v-if="renamingAsset && !trash && workspace.can('asset:edit')"
       :key="renamingAsset.id"

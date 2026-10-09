@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { notifyWorkspaceChange } from '../../common/workspace-notifications';
 import { inspectImageContent } from '../../common/image-inspection';
 import type { VideoFormat } from '../../common/media-formats';
@@ -16,11 +16,17 @@ import {
   hlsSegmentKey,
   hlsSegmentName,
 } from '../../common/video-stream';
-import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
-import { createStorageKey, StorageError } from '../storage/storage.provider';
-import type { StorageLocation } from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
-import { referencedStorageKeys } from '../storage/storage-references';
+import type {
+  FileNode,
+  Prisma,
+} from '../../infrastructure/prisma/generated/prisma/client';
+import {
+  createStorageKey,
+  StorageError,
+} from '../../infrastructure/storage/storage.provider';
+import type { StorageLocation } from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
+import { referencedStorageKeys } from '../../infrastructure/storage/storage-references';
 import { extractExif } from './exif-metadata';
 import { VideoProcessorService } from './video-processor.service';
 import type { PreparedHls } from './video-processor.service';

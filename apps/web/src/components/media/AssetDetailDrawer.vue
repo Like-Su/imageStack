@@ -18,7 +18,12 @@ import {
   Pencil,
 } from "lucide-vue-next";
 import { mediaApi } from "@/api/media";
-import { PERSON_TAG_PREFIX, processingLabels } from "@/config/workspace";
+import {
+  PERSON_TAG_PREFIX,
+  isVisualMedia,
+  mediaTypeLabels,
+  processingLabels,
+} from "@/config/workspace";
 import { useRemoteData } from "@/composables/useRemoteData";
 import { updateAssetDetail } from "@/composables/workspaceUpdates";
 import { useAssetActions } from "@/composables/useAssetActions";
@@ -72,6 +77,9 @@ const sharing = ref(false);
 const renaming = ref(false);
 const tagBusy = ref(false);
 const imagePreview = ref<InstanceType<typeof AssetImage>>();
+const visual = computed(() =>
+  Boolean(asset.value && isVisualMedia(asset.value.type)),
+);
 
 watch(assetId, () => {
   albumPicker.value = false;
@@ -107,17 +115,25 @@ const location = computed(() => {
 const metadata = computed(() => [
   [translate("文件大小"), formatBytes(asset.value?.size)],
   [
-    translate("媒体尺寸"),
-    asset.value?.width && asset.value.height
-      ? `${asset.value.width} × ${asset.value.height}`
-      : "—",
+    translate("文件类型"),
+    asset.value ? translate(mediaTypeLabels[asset.value.type]) : "—",
   ],
+  ...(visual.value
+    ? [
+        [
+          translate("媒体尺寸"),
+          asset.value?.width && asset.value.height
+            ? `${asset.value.width} × ${asset.value.height}`
+            : "—",
+        ],
+        [translate("拍摄时间"), formatDate(asset.value?.takenAt, true)],
+      ]
+    : []),
   ...(asset.value?.type === "VIDEO"
     ? [[translate("视频时长"), formatDuration(asset.value.durationMs)]]
     : []),
-  [translate("拍摄时间"), formatDate(asset.value?.takenAt, true)],
   [translate("上传时间"), formatDate(asset.value?.createdAt, true)],
-  ...(asset.value?.type === "VIDEO"
+  ...(asset.value?.type !== "IMAGE"
     ? []
     : [
         [translate("相机品牌"), exifValue("Make")],
@@ -170,11 +186,13 @@ function reload() {
         <AssetImage
           ref="imagePreview"
           :asset-id="asset.id"
+          :type="asset.type"
           :name="asset.name"
           :trash="asset.deleted"
           :version="asset.thumbnailRevision ?? asset.status"
           contain
         /><el-button
+          v-if="visual"
           text
           circle
           native-type="button"
@@ -189,7 +207,7 @@ function reload() {
         <div>
           <el-button
             type="primary"
-            v-if="!asset.deleted"
+            v-if="!asset.deleted && visual"
             class="mb-3 w-full"
             native-type="button"
             :disabled="!workspace.can('asset:download')"
@@ -199,6 +217,12 @@ function reload() {
               asset.type === "VIDEO" ? $t("查看原视频") : $t("查看原图片")
             }}
           </el-button>
+          <p
+            v-if="!visual && !asset.deleted"
+            class="mb-3 text-xs leading-6 text-soft"
+          >
+            {{ $t("此类型暂不支持在线预览，可下载原文件查看。") }}
+          </p>
           <div class="mb-4 flex items-center gap-2">
             <template v-if="!asset.deleted"
               ><el-button
@@ -209,7 +233,11 @@ function reload() {
                 @click="download(asset)"
               >
                 <Download v-if="!downloading" />{{
-                  asset.type === "VIDEO" ? $t("下载原视频") : $t("下载原图片")
+                  asset.type === "VIDEO"
+                    ? $t("下载原视频")
+                    : asset.type === "IMAGE"
+                      ? $t("下载原图片")
+                      : $t("下载原文件")
                 }}</el-button
               ><el-button
                 text
@@ -301,7 +329,9 @@ function reload() {
             ><span class="text-[10px] text-faint">{{
               asset.type === "VIDEO"
                 ? $t("视频封面与兼容预览")
-                : $t("缩略图与 EXIF")
+                : asset.type === "IMAGE"
+                  ? $t("缩略图与 EXIF")
+                  : $t("原文件已保存")
             }}</span>
           </div>
           <p
@@ -403,7 +433,11 @@ function reload() {
         <section>
           <h4 class="mb-3 text-xs font-medium">
             {{
-              asset.type === "VIDEO" ? $t("视频信息") : $t("文件信息 · EXIF")
+              asset.type === "VIDEO"
+                ? $t("视频信息")
+                : asset.type === "IMAGE"
+                  ? $t("文件信息 · EXIF")
+                  : $t("文件信息")
             }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
@@ -437,7 +471,7 @@ function reload() {
     @close="renaming = false"
   />
   <OriginalMediaViewer
-    v-if="originalViewer && asset && !asset.deleted"
+    v-if="originalViewer && asset && !asset.deleted && visual"
     :asset="asset"
     @close="originalViewer = false"
   />

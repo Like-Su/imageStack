@@ -1,4 +1,5 @@
 export const RedisKey = {
+  archiveDownload: (ticket: string) => `assets:archive-download:${ticket}`,
   // 验证码
   captcha: (captchaId: string) => `captcha:${captchaId}`,
   // 激活 token -> email

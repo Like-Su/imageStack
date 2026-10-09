@@ -5,9 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { RoleCode, PermissionCodeList } from '../../common/constants';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
-import { Prisma, UserStatus } from '../../prisma/generated/prisma/client';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
+import {
+  Prisma,
+  UserStatus,
+} from '../../infrastructure/prisma/generated/prisma/client';
 import type { RequestUser } from './auth/auth.type';
 
 export const builtinRoles = new Set<string>(Object.values(RoleCode));

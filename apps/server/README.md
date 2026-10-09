@@ -1,5 +1,9 @@
 # 项目架构说明
 
+## 基础设施分层
+
+存储、Redis、PostgreSQL/Prisma、RabbitMQ 连接管理及 SMTP 邮件发送统一位于 `src/infrastructure/`，由 `InfrastructureModule` 装配。业务模块保留任务处理、认证邮件模板、权限和数据查询等业务职责；`common` 提供 HTTP 公共能力、DTO 和共享工具。目录说明、依赖边界及其他外部依赖的评估见 [基础设施层](src/infrastructure/README.md)。
+
 ## 存储策略与 RustFS
 
 在 `apps/server/.env` 中设置 `STORAGE_DRIVER=LOCAL_FS` 使用本地存储，或设置 `STORAGE_DRIVER=RUST_FS` 使用 RustFS，修改后重启后端生效。配置统一使用 `STORAGE_*` 命名：本地目录使用 `STORAGE_ROOT`；对象存储使用 `STORAGE_ENDPOINT`、`STORAGE_BUCKET`、`STORAGE_ACCESS_KEY` 和 `STORAGE_SECRET_KEY`。
@@ -94,31 +98,40 @@ pnpm --dir apps/server run db:generate
 - 父级权限不自动包含子权限；新增自定义权限编码不会自动创建业务能力，相关业务接口必须显式校验该编码。资源的所有权校验不因授权管理而放宽。
 - 用户/角色修改、权限编码变化及权限删除会在同一事务内递增受影响用户的会话版本。旧 access/refresh token 随即失效；权限缓存按会话版本隔离，避免缓存回填恢复旧授权。旧激活链接也不能重新启用管理员已停用的账户。
 
-## 多格式图片与视频
+## 多类型文件上传
 
 视频转写/总结状态由 PostgreSQL 提交通知驱动鉴权 SSE 推送，包含进度和摘要，不再逐连接定时查询事件。前端按需读取完整转写，支持断线补发、长连接鉴权复核及重连退避；接口与部署注意事项见 [VIDEO_SUMMARY.md](../../VIDEO_SUMMARY.md)。
 
-上传、图库/搜索、收藏/相册/标签、回收站与后台处理使用同一组媒体类型：
+上传、图库/搜索、收藏/相册/标签和回收站支持多种文件类型；仅图片和视频进入媒体后台处理：
 
-| 类型                        | 扩展名                                     | 限制                                     |
-| --------------------------- | ------------------------------------------ | ---------------------------------------- |
-| JPEG                        | `.jpg`、`.jpeg`、`.jfif`、`.pjpeg`、`.pjp` | `ASSETE_SIZE`（默认 10MB）               |
-| PNG / APNG、WebP、GIF、AVIF | `.png`、`.apng`、`.webp`、`.gif`、`.avif`  | `ASSETE_SIZE`，动图最多 1000 帧          |
-| SVG                         | `.svg`                                     | `ASSETE_SIZE`，仅安全静态图形和内联样式  |
-| 视频                        | `.mp4`、`.mov`、`.mkv`（不区分大小写）     | `VIDEO_ASSET_SIZE`（默认 1GB），不限时长 |
+| 类型                        | 扩展名                                                                                                                   | 限制                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| JPEG                        | `.jpg`、`.jpeg`、`.jfif`、`.pjpeg`、`.pjp`                                                                               | `ASSETE_SIZE`（默认 10MB）                          |
+| PNG / APNG、WebP、GIF、AVIF | `.png`、`.apng`、`.webp`、`.gif`、`.avif`                                                                                | `ASSETE_SIZE`，动图最多 1000 帧                     |
+| SVG                         | `.svg`                                                                                                                   | `ASSETE_SIZE`，仅安全静态图形和内联样式             |
+| 视频                        | `.mp4`、`.mov`、`.mkv`（不区分大小写）                                                                                   | `VIDEO_ASSET_SIZE`（默认 1GB），不限时长            |
+| 文档                        | `.pdf`、`.doc/.docx`、`.xls/.xlsx`、`.ppt/.pptx`、`.txt`、`.md`、`.csv`、`.odt/.ods/.odp`、`.rtf`、`.json/.xml`、`.epub` | `FILE_ASSET_SIZE`（默认 1GB）                       |
+| 压缩包                      | `.zip`、`.rar`、`.7z`、`.tar`、`.gz/.tgz`、`.bz2`、`.xz`、`.zst`                                                         | `FILE_ASSET_SIZE`                                   |
+| 音频                        | `.mp3`、`.wav`、`.ogg/.oga/.opus`、`.m4a`、`.aac`、`.flac`                                                               | `FILE_ASSET_SIZE`                                   |
+| 其他文件                    | 其他扩展名或无扩展名的非空文件                                                                                           | `FILE_ASSET_SIZE`；按普通文件保存，不尝试解码或执行 |
 
 在服务端 `apps/server/.env` 配置上传大小，修改后重启服务生效：
 
 ```dotenv
-# 支持 B/MB/GB 单位，默认 10MB（除视频外的文件类型）
+# 支持 B/MB/GB 单位，图片文件默认 10MB
 ASSETE_SIZE=10MB
 # 视频文件大小上限，默认 1GB，不限制视频时长
 VIDEO_ASSET_SIZE=1GB
+FILE_ASSET_SIZE=1GB
 ```
 
 单位不区分大小写，按 1024 换算（1MB = 1024² B，1GB = 1024³ B），换算结果必须为大于 0 的安全整数字节数；非法配置会在启动时被拒绝。实际上传上限取对应配置与存储层 `STORAGE_MAX_FILE_BYTES` 的较小值，配置大于 1GB 的上传时也需相应调高存储上限。前端从 `GET /system/capabilities` 获取实际大小上限，不再使用写死的大小限制。
 
-图片和视频上传不限制像素或分辨率，视频不设置时长上限；图片校验、缩略图和 AI 识别均不设置输入像素上限，能力接口的 `upload.maxPixels` 和 `upload.videoMaxDurationMs` 返回 `null` 表示不限制。文件大小、动图帧数、内容校验和解码超时保护仍保留。文件扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流和有效时长；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
+图片和视频上传不限制像素或分辨率，视频不设置时长上限；图片校验、缩略图和 AI 识别均不设置输入像素上限，能力接口的 `upload.maxPixels` 和 `upload.videoMaxDurationMs` 返回 `null` 表示不限制。文件大小、动图帧数、内容校验和解码超时保护仍保留。上述图片和视频扩展名只用于预检，服务端还会识别签名、解码图片或通过 ffprobe 校验真实视频流和有效时长；AVIF 必须使用 AV1。JPEG 扩展名统一保存为 `image/jpeg`，APNG 使用 `image/apng`。
+
+普通文件按扩展名标记为 `DOCUMENT`、`ARCHIVE`、`AUDIO` 或 `OTHER`；不解析文档、不解压文件、不执行内容，也不提供病毒扫描。通过私有临时文件流式计算 BLAKE3、核对实际大小，入库即为 `READY`，不需要 Sharp/FFmpeg 或媒体队列。沿用超过 5 MiB 自动分片、24 小时续传及同账户同文件名、同内容的秒传机制；不同名称的相同内容保留为独立文件。原文件接口和下载票据均对普通文件强制使用 `Content-Disposition: attachment`，不会将 HTML/XML 等作为本站页面执行。前端提供分类图标、元数据和下载入口，不宣称支持文档在线预览。相册和标签可以关联普通文件，但封面仍限图片/视频。
+
+能力接口新增 `upload.fileMaxBytes` 与 `upload.acceptsAnyFile`，`extensions`/`mimeTypes` 列举可识别分类，而非普通文件上传白名单。筛选参数 `type` 支持 `image`、`video`、`audio`、`document`、`archive`、`other`。
 
 - 原文件字节保持不变，BLAKE3 校验覆盖完整内容。图片缩略图取首帧并纠正 EXIF 方向，不将 GIF/APNG 原文件转为静态图；地点聚合仍只使用图片已有 GPS。
 - `PATCH /api/assets/:id` 修改图片或视频名称，请求体为 `{ "name": "新的名称.jpg" }`，返回 `id`、`name` 和 `updatedAt`。需要 `asset:edit` 权限，仅可修改未删除的自有媒体；名称去除首尾空白后最多 255 个字符，禁止路径分隔符和控制字符，并须保留原扩展名（不区分大小写）。只更新已有 `FileNode.name`，不修改原文件、存储路径、相册或分享链接，无需数据库迁移。
@@ -126,6 +139,25 @@ VIDEO_ASSET_SIZE=1GB
 - 视频通过私有临时文件流式接收与计算哈希，不将大视频整体放入 Node 内存。后台同样流式读取，生成最长边 1024px、质量 90 的 WebP 封面和不超过 1920×1080 的 H.264/AAC MP4 兼容预览；若预览超出 `VIDEO_ASSET_SIZE` 或存储上限、超时或解码失败，任务会重试/失败，原文件仍可下载。HLS 播放列表仍保留 1 MiB 的资源保护上限，分段数量不再由四小时时长推导。
 - `GET /api/assets/:id/file` 始终返回原文件；新增 `GET /api/assets/:id/preview` 返回视频兼容预览。二者均要求登录、`asset:download` 权限和未删除的自有资源，支持单段 Range。预览未就绪返回 `202` 与 `Retry-After: 3`，失败返回 `422`，不会返回原视频冒充兼容文件。
 - 资产摘要/详情增加 `durationMs`，详情增加 `previewUrl`，上传结果包含 `mediaType` 与 `durationMs`；时长按毫秒字符串返回。复用已有 `FileNode.previewKey` 和 `durationMs`，不需要新数据库迁移。
+
+### 批量下载
+
+多选工具栏提供「下载」，可选择打包 ZIP 或逐个下载；每批最多 100 项，仅允许下载当前用户未删除的文件，均需要 `asset:download` 权限。
+
+- `POST /api/assets/downloads/archive-ticket`，请求体 `{ "ids": ["文件 ID"] }`，校验文件所有权和存储可用性，返回 `path`、`fileName`、`expiresAt`。使用返回路径（加 API 前缀）由浏览器直接下载，不在前端积攒 Blob。
+- `GET /api/assets/downloads/archive?ticket=...` 使用 Redis 保存的 15 分钟随机凭证，访问时重新校验登录会话、权限、资源所有权及删除状态。访问凭证可能随登录令牌更早到期；不要公开分享下载地址。
+- 服务端使用 `yazl` 逐个读取原文件并流式生成 ZIP，自动支持 ZIP64；文档/其他文件压缩，图片、视频、音频和已有压缩包直接打包。文件名去除路径/控制字符并处理同名冲突，UTF-8 中文名称可保留，不覆盖库中原文件。
+- 每个服务进程最多同时生成两个 ZIP；中断连接会关闭读取流。ZIP 不支持 Range 续传，失败后重新发起；单独下载沿用原文件流式票据和 Range 支持。浏览器可能要求允许本站下载多个文件，页面显示的是发起状态，不冒充已保存完成。
+
+发布前需同步依赖、执行新增的枚举迁移并重新生成 Prisma Client，再重启后端：
+
+```bash
+pnpm install
+pnpm --dir apps/server run db:migrate
+pnpm --dir apps/server run db:generate
+```
+
+迁移 `20260916100000_general_file_uploads` 只为 `MediaType` 增加 `DOCUMENT`、`ARCHIVE`、`OTHER`，不修改已有文件数据。
 
 ### 部署前提
 

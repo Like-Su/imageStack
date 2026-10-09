@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { BusinessException } from './common/exceptions/business.exception';
-import { RedisService } from './common/redis/redis.service';
-import { PrismaService } from './common/prisma/prisma.service';
+import { RedisService } from './infrastructure/redis/redis.service';
+import { PrismaService } from './infrastructure/prisma/prisma.service';
 import { Open } from './modules/iam/auth/decorators/open.decorator';
 
 @Controller()

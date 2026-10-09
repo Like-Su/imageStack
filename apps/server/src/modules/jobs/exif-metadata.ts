@@ -1,5 +1,5 @@
 import { parse } from 'exifr';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { MediaProcessingError } from './media-processing.constants';
 
 const exifFields = [

@@ -15,14 +15,21 @@ import type { Request, Response } from 'express';
 
 // Custom Module
 import {
-  ForgetDto,
-  LoginDto,
-  LogoutDto,
-  RefreshTokenDto,
-  RegisterDto,
-  ResetDto,
-  SendResetPasswordMailDto,
-} from './dto/auth.dto';
+  forgetSchema,
+  loginSchema,
+  logoutSchema,
+  refreshTokenSchema,
+  registerSchema,
+  resetSchema,
+  sendResetPasswordMailSchema,
+  type ForgetInput,
+  type LoginInput,
+  type LogoutInput,
+  type RefreshTokenInput,
+  type RegisterInput,
+  type ResetInput,
+  type SendResetPasswordMailInput,
+} from './schemas/auth.schema';
 import { AuthService } from './auth.service';
 import { Open } from './decorators/open.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -64,15 +71,15 @@ export class AuthController {
   @Open()
   @Post('login')
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  async login(@Body() dto: LoginDto) {
+  async login(@Body({ schema: loginSchema }) dto: LoginInput) {
     return this.authService.login(dto);
   }
 
   // 注册
   @Open()
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return await this.authService.register(registerDto);
+  async register(@Body({ schema: registerSchema }) body: RegisterInput) {
+    return await this.authService.register(body);
   }
 
   @Open()
@@ -80,7 +87,10 @@ export class AuthController {
   @HttpCode(HttpStatus.ACCEPTED)
   @Header('Cache-Control', 'no-store')
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
-  sendResetPasswordMail(@Body() dto: SendResetPasswordMailDto) {
+  sendResetPasswordMail(
+    @Body({ schema: sendResetPasswordMailSchema })
+    dto: SendResetPasswordMailInput,
+  ) {
     return this.authService.sendResetPasswordMail(dto);
   }
 
@@ -90,11 +100,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  async forget(@Body() forgetDto: ForgetDto) {
+  async forget(@Body({ schema: forgetSchema }) body: ForgetInput) {
     return this.authService.forgetPassword(
-      forgetDto.email,
-      forgetDto.emailCode,
-      forgetDto.password,
+      body.email,
+      body.emailCode,
+      body.password,
     );
   }
 
@@ -104,11 +114,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  async reset(@Body() resetDto: ResetDto) {
+  async reset(@Body({ schema: resetSchema }) body: ResetInput) {
     return this.authService.forgetPassword(
-      resetDto.email,
-      resetDto.emailCode,
-      resetDto.password,
+      body.email,
+      body.emailCode,
+      body.password,
     );
   }
 
@@ -122,13 +132,16 @@ export class AuthController {
   // 无感登录
   @Open()
   @Post('refresh')
-  refresh(@Body() dto: RefreshTokenDto) {
+  refresh(@Body({ schema: refreshTokenSchema }) dto: RefreshTokenInput) {
     return this.authService.refresh(dto.refreshToken);
   }
 
   // 登出
   @Post('logout')
-  logout(@CurrentUser() user: RequestUser, @Body() dto: LogoutDto) {
+  logout(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: logoutSchema }) dto: LogoutInput,
+  ) {
     return this.authService.logout(user, dto.refreshToken);
   }
 

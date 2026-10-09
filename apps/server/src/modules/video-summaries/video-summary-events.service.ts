@@ -6,17 +6,17 @@ import {
 } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CoalescedReads } from '../../common/coalesced-reads';
 import {
   workspaceNotificationResources,
   type WorkspaceNotificationResource,
 } from '../../common/workspace-notifications';
-import { RedisService } from '../../common/redis/redis.service';
+import { RedisService } from '../../infrastructure/redis/redis.service';
 import { PermissionCode, RedisKey, RoleCode } from '../../common/constants';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { UserService } from '../iam/user/user.service';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { summaryVideoWhere } from './video-summary.constants';
 import { VideoSummaryNotifierService } from './video-summary-notifier.service';
 import {

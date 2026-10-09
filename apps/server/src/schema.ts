@@ -1,6 +1,6 @@
 import { isAbsolute } from 'node:path';
 import { z } from 'zod';
-import { StorageType } from './modules/storage/storage.provider';
+import { StorageType } from './infrastructure/storage/storage.provider';
 
 const optionalStorageValue = (schema: z.ZodType<string>) =>
   z.preprocess(
@@ -87,6 +87,7 @@ export const envSchema = z
 
     ASSETE_SIZE: assetSizeSchema('10MB'),
     VIDEO_ASSET_SIZE: assetSizeSchema('1GB'),
+    FILE_ASSET_SIZE: assetSizeSchema('1GB'),
 
     MEDIA_PROCESSING_CONCURRENCY: z.coerce
       .number()

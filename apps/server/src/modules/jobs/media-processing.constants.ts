@@ -1,6 +1,6 @@
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { MEDIA_MIME_TYPES } from '../../common/media-formats';
-import { storageProviderTypes } from '../storage/storage.provider';
+import { storageProviderTypes } from '../../infrastructure/storage/storage.provider';
 
 export const MEDIA_QUEUE_NAME = 'media-processing';
 export const MEDIA_JOB_NAME = 'asset.ingest';

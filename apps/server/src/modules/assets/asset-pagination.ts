@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
-import type { ListAssetsDto } from './dto/assets-query.dto';
+import type { ListAssetsQuery } from './schemas/assets-query.schema';
 
 type AssetSort = {
   sortBy: 'createdAt' | 'name' | 'size';
@@ -63,7 +63,7 @@ const cursorSchema = z.discriminatedUnion('sortBy', [
 ]);
 
 export function assetSort(
-  query: Pick<ListAssetsDto, 'sortBy' | 'sortOrder'>,
+  query: Pick<ListAssetsQuery, 'sortBy' | 'sortOrder'>,
 ): AssetSort {
   return {
     sortBy: query.sortBy ?? 'createdAt',

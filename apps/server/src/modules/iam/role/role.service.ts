@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma/prisma.service';
+import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { RoleCode } from '../../../common/constants';
 import type { RequestUser } from '../auth/auth.type';
 import {
@@ -15,7 +15,7 @@ import {
   roleSummary,
   withIamMutation,
 } from '../iam-admin';
-import { CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
+import type { CreateRoleInput, UpdateRoleInput } from './schemas/role.schema';
 
 @Injectable()
 export class RoleService {
@@ -38,7 +38,7 @@ export class RoleService {
     return roleSummary(role);
   }
 
-  create(actor: RequestUser, body: CreateRoleDto) {
+  create(actor: RequestUser, body: CreateRoleInput) {
     return withIamMutation(this.prisma, actor, async (transaction) => {
       if (builtinRoles.has(body.roleCode))
         throw new BadRequestException('内置角色编码不可用于新角色');
@@ -72,7 +72,7 @@ export class RoleService {
     });
   }
 
-  update(actor: RequestUser, roleId: string, body: UpdateRoleDto) {
+  update(actor: RequestUser, roleId: string, body: UpdateRoleInput) {
     if (!Object.values(body).some((value) => value !== undefined))
       throw new BadRequestException('请至少修改一个字段');
     return withIamMutation(this.prisma, actor, async (transaction) => {

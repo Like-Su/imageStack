@@ -7,7 +7,11 @@ import {
   formatDate,
   formatDuration,
 } from "@/composables/mediaFormat";
-import { processingLabels } from "@/config/workspace";
+import {
+  isVisualMedia,
+  mediaTypeLabels,
+  processingLabels,
+} from "@/config/workspace";
 import type { AssetSummary } from "@/types/media";
 import AssetImage from "./AssetImage.vue";
 import VirtualAssetRows from "./VirtualAssetRows.vue";
@@ -41,7 +45,8 @@ const workspace = useWorkspaceStore();
       :class="{
         'is-selected': selected.has(asset.id),
         'is-selecting': selecting,
-        'show-names': preferences.values.showNames,
+        'show-names':
+          preferences.values.showNames || !isVisualMedia(asset.type),
       }"
     >
       <button
@@ -53,6 +58,7 @@ const workspace = useWorkspaceStore();
         <AssetImage
           v-if="active"
           :asset-id="asset.id"
+          :type="asset.type"
           :name="asset.name"
           :trash="asset.deleted"
           :version="asset.thumbnailRevision ?? asset.status"
@@ -66,6 +72,11 @@ const workspace = useWorkspaceStore();
             formatDuration(asset.durationMs)
           }}
         </span>
+        <span
+          v-else-if="!isVisualMedia(asset.type)"
+          class="pointer-events-none absolute top-2 left-10 rounded-md bg-panel/80 px-2 py-1 text-[10px] text-soft"
+          >{{ $t(mediaTypeLabels[asset.type]) }}</span
+        >
         <span class="media-card-caption"
           ><span class="block truncate text-xs font-medium">{{
             asset.name
@@ -145,6 +156,7 @@ const workspace = useWorkspaceStore();
             ><AssetImage
               v-if="active"
               :asset-id="asset.id"
+              :type="asset.type"
               :name="asset.name"
               :trash="asset.deleted"
               :version="asset.thumbnailRevision ?? asset.status" /></span

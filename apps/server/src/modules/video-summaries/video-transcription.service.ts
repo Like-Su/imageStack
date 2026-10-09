@@ -7,10 +7,10 @@ import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { z } from 'zod';
 import type { VideoFormat } from '../../common/media-formats';
-import type { FileNode } from '../../prisma/generated/prisma/client';
+import type { FileNode } from '../../infrastructure/prisma/generated/prisma/client';
 import { VideoProcessorService } from '../jobs/video-processor.service';
-import { StorageError } from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
+import { StorageError } from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import {
   VIDEO_ASR_MAX_RESPONSE_BYTES,
   VIDEO_AUDIO_CHUNK_SECONDS,
@@ -37,6 +37,29 @@ const asrSchema = z.object({
     .max(VIDEO_TRANSCRIPT_MAX_SEGMENTS)
     .optional(),
 });
+
+/**
+ * 组合多个 AbortSignal：任一信号中止时返回的信号即中止。
+ * 等价于 AbortSignal.any，但不依赖 TypeScript / @types/node 的类型声明。
+ */
+function anyAbortSignal(signals: AbortSignal[]): AbortSignal {
+  const controller = new AbortController();
+  const cleanups: Array<() => void> = [];
+  const abort = (reason: unknown) => {
+    for (const cleanup of cleanups) cleanup();
+    controller.abort(reason);
+  };
+  for (const signal of signals) {
+    if (signal.aborted) {
+      abort(signal.reason);
+      break;
+    }
+    const onAbort = () => abort(signal.reason);
+    signal.addEventListener('abort', onAbort, { once: true });
+    cleanups.push(() => signal.removeEventListener('abort', onAbort));
+  }
+  return controller.signal;
+}
 
 export function parseAsrResult(
   value: unknown,
@@ -248,7 +271,8 @@ export class VideoTranscriptionService {
       vad_filter: 'true',
       word_timestamps: 'false',
     }).toString();
-    const requestSignal = AbortSignal.any([
+
+    const requestSignal = anyAbortSignal([
       signal,
       AbortSignal.timeout(
         this.config.get<number>('ASR_REQUEST_TIMEOUT_MS', 1800000),

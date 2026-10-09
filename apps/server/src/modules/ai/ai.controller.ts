@@ -13,7 +13,10 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import { AiIndexService } from './ai-index.service';
-import { QueueRecognitionDto } from './dto/queue-recognition.dto';
+import {
+  queueRecognitionSchema,
+  type QueueRecognitionInput,
+} from './schemas/queue-recognition.schema';
 
 @Controller('ai')
 export class AiController {
@@ -36,7 +39,10 @@ export class AiController {
   @Post('index')
   @HttpCode(HttpStatus.ACCEPTED)
   @RequirePermission(PermissionCode.ASSET_EDIT)
-  enqueue(@CurrentUser() user: RequestUser, @Body() dto: QueueRecognitionDto) {
+  enqueue(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: queueRecognitionSchema }) dto: QueueRecognitionInput,
+  ) {
     return this.index.enqueue(user.id, dto.ids);
   }
 }

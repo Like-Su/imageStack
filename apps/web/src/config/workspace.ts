@@ -14,6 +14,7 @@ import {
   UserCog,
   KeyRound,
 } from "lucide-vue-next";
+import type { MediaType } from "@/types/media";
 
 export const PERSON_TAG_PREFIX = "人物:";
 export const UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024;
@@ -32,29 +33,29 @@ const imageExtensions = [
   "svg",
 ];
 const videoExtensions = ["mp4", "mov", "mkv"];
-export const UPLOAD_ACCEPT = [
-  ...imageExtensions.map((extension) => `.${extension}`),
-  ...videoExtensions.map((extension) => `.${extension}`),
-  "image/jpeg",
-  "image/png",
-  "image/apng",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-  "image/svg+xml",
-  "video/mp4",
-  "video/quicktime",
-  "video/x-matroska",
-].join(",");
 export const UPLOAD_IMAGE_LABEL =
   "JPEG（含 JFIF / PJPEG / PJP）、PNG / APNG、WebP、GIF、AVIF、SVG";
 export const UPLOAD_VIDEO_LABEL = "MP4 / MOV / MKV";
+export const UPLOAD_FILE_LABEL = "文档、压缩包、音频及其他文件";
 
-export function uploadMediaKind(fileName: string): "image" | "video" | null {
+export function uploadMediaKind(fileName: string): "image" | "video" | "file" {
   const extension = /\.([^.]+)$/.exec(fileName)?.[1]?.toLowerCase() ?? "";
   if (imageExtensions.includes(extension)) return "image";
   if (videoExtensions.includes(extension)) return "video";
-  return null;
+  return "file";
+}
+
+export const mediaTypeLabels: Record<MediaType, string> = {
+  IMAGE: "图片",
+  VIDEO: "视频",
+  AUDIO: "音频",
+  DOCUMENT: "文档",
+  ARCHIVE: "压缩包",
+  OTHER: "其他文件",
+};
+
+export function isVisualMedia(type: MediaType) {
+  return type === "IMAGE" || type === "VIDEO";
 }
 
 export const navigation = [

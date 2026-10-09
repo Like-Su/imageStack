@@ -41,9 +41,10 @@ export const useUploadsStore = defineStore("uploads", () => {
   const limits = ref<SystemCapabilities["upload"] | null>(null);
   const limitsLabel = computed(() =>
     limits.value
-      ? translate("图片 ≤ {value1}；视频 ≤ {value2}，视频时长不限制", {
+      ? translate("图片 ≤ {value1}；视频 ≤ {value2}；其他文件 ≤ {value3}", {
           value1: formatBytes(limits.value.imageMaxBytes),
           value2: formatBytes(limits.value.videoMaxBytes),
+          value3: formatBytes(limits.value.fileMaxBytes),
         })
       : translate("文件大小以服务器配置为准，视频时长不限制"),
   );
@@ -138,19 +139,24 @@ export const useUploadsStore = defineStore("uploads", () => {
       const maxBytes =
         kind === "video"
           ? limits.value?.videoMaxBytes
-          : limits.value?.imageMaxBytes;
-      const error = !kind
-        ? translate("请选择受支持的图片或 MP4 / MOV / MKV 视频")
-        : file.size < 1
+          : kind === "image"
+            ? limits.value?.imageMaxBytes
+            : limits.value?.fileMaxBytes;
+      const error =
+        file.size < 1
           ? translate("文件大小必须大于 0 B")
           : maxBytes !== undefined && file.size > maxBytes
             ? translate(
                 kind === "video"
                   ? "视频不得超过 {value1}"
-                  : "图片不得超过 {value1}",
+                  : kind === "image"
+                    ? "图片不得超过 {value1}"
+                    : "文件不得超过 {value1}",
                 { value1: formatBytes(maxBytes) },
               )
-            : file.name.length > 255 ||
+            : !file.name.trim() ||
+                /^\.{1,2}$/.test(file.name.trim()) ||
+                file.name.length > 255 ||
                 /[\\/\u0000-\u001f\u007f]/.test(file.name)
               ? translate("文件名过长或含有不支持的字符")
               : "";

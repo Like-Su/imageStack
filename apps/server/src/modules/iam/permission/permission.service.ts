@@ -3,15 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma/prisma.service';
-import { Prisma } from '../../../prisma/generated/prisma/client';
+import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { Prisma } from '../../../infrastructure/prisma/generated/prisma/client';
 import type { RequestUser } from '../auth/auth.type';
 import {
   builtinPermissions,
   recordIamAudit,
   withIamMutation,
 } from '../iam-admin';
-import { CreatePermissionDto, UpdatePermissionDto } from './dto/permission.dto';
+import type {
+  CreatePermissionInput,
+  UpdatePermissionInput,
+} from './schemas/permission.schema';
 
 @Injectable()
 export class PermissionService {
@@ -69,7 +72,7 @@ export class PermissionService {
     };
   }
 
-  create(actor: RequestUser, body: CreatePermissionDto) {
+  create(actor: RequestUser, body: CreatePermissionInput) {
     return withIamMutation(this.prisma, actor, async (transaction) => {
       if (builtinPermissions.has(body.permissionCode))
         throw new BadRequestException('内置权限编码不可用于新权限');
@@ -86,7 +89,11 @@ export class PermissionService {
     });
   }
 
-  update(actor: RequestUser, permissionId: string, body: UpdatePermissionDto) {
+  update(
+    actor: RequestUser,
+    permissionId: string,
+    body: UpdatePermissionInput,
+  ) {
     if (!Object.values(body).some((value) => value !== undefined))
       throw new BadRequestException('请至少修改一个字段');
     return withIamMutation(this.prisma, actor, async (transaction) => {

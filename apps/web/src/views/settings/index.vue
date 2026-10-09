@@ -270,6 +270,10 @@ async function logout(allDevices = false) {
                 <dd>{{ formatBytes(capabilities?.upload.videoMaxBytes) }}</dd>
               </div>
               <div class="flex justify-between gap-3">
+                <dt class="text-soft">{{ $t("其他文件上传上限") }}</dt>
+                <dd>{{ formatBytes(capabilities?.upload.fileMaxBytes) }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
                 <dt class="text-soft">{{ $t("视频时长上限") }}</dt>
                 <dd>
                   {{

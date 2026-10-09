@@ -1,5 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import type { Prisma, ShareLink } from '../../prisma/generated/prisma/client';
+import type {
+  Prisma,
+  ShareLink,
+} from '../../infrastructure/prisma/generated/prisma/client';
 import { PermissionCode, RoleCode } from '../../common/constants';
 import { assetWhere } from '../assets/asset-scope';
 

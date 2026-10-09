@@ -15,11 +15,17 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
 import {
-  BatchAssetTagsDto,
-  CreateTagDto,
-  UpdateTagDto,
-} from './dto/collections.dto';
-import { AssetIdsDto } from '../assets/dto/asset-ids.dto';
+  batchAssetTagsSchema,
+  createTagSchema,
+  updateTagSchema,
+  type BatchAssetTagsInput,
+  type CreateTagInput,
+  type UpdateTagInput,
+} from './schemas/collections.schema';
+import {
+  assetIdsSchema,
+  type AssetIdsInput,
+} from '../assets/schemas/asset-ids.schema';
 import { TagsService } from './tags.service';
 
 @Controller('tags')
@@ -35,7 +41,10 @@ export class TagsController {
   }
 
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: CreateTagDto) {
+  create(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: createTagSchema }) body: CreateTagInput,
+  ) {
     return this.tags.create(user.id, body);
   }
 
@@ -50,14 +59,17 @@ export class TagsController {
   update(
     @Param('id') tagId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: UpdateTagDto,
+    @Body({ schema: updateTagSchema }) body: UpdateTagInput,
   ) {
     return this.tags.update(tagId, user.id, body);
   }
 
   @Post('assets')
   @HttpCode(HttpStatus.OK)
-  addAssets(@CurrentUser() user: RequestUser, @Body() body: BatchAssetTagsDto) {
+  addAssets(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: batchAssetTagsSchema }) body: BatchAssetTagsInput,
+  ) {
     return this.tags.addToAssets(body.ids, user.id, body.names);
   }
 
@@ -65,7 +77,7 @@ export class TagsController {
   removeAssets(
     @Param('id') tagId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: AssetIdsDto,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
   ) {
     return this.tags.removeFromAssets(body.ids, tagId, user.id);
   }

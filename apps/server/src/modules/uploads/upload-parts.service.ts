@@ -9,11 +9,11 @@ import {
 import type { Request } from 'express';
 import { blake3 } from 'hash-wasm';
 import { Readable } from 'node:stream';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import type { UploadSession } from '../../prisma/generated/prisma/client';
-import { createStorageKey } from '../storage/storage.provider';
-import type { StorageLocation } from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import type { UploadSession } from '../../infrastructure/prisma/generated/prisma/client';
+import { createStorageKey } from '../../infrastructure/storage/storage.provider';
+import type { StorageLocation } from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import { assertUploadHeaders, readUploadBody } from './upload-validation';
 import {
   UPLOAD_CHUNK_BYTES,

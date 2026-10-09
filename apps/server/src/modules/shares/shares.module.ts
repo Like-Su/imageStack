@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../common/prisma/prisma.module';
+import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { AssetsModule } from '../assets/assets.module';
-import { StorageModule } from '../storage/storage.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { SharesController } from './shares.controller';
 import { SharesService } from './shares.service';
 

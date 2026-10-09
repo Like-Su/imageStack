@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../common/prisma/prisma.module';
-import { StorageModule } from '../storage/storage.module';
+import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { JobsModule } from '../jobs/jobs.module';
 import { CollectionsModule } from '../collections/collections.module';
 import { VideoSummariesModule } from '../video-summaries/video-summaries.module';

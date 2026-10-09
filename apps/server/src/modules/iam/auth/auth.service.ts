@@ -14,19 +14,19 @@ import * as svgCaptcha from 'svg-captcha';
 import { compare } from 'bcryptjs';
 
 // Custom Module
-import {
-  LoginDto,
-  RegisterDto,
-  SendResetPasswordMailDto,
-} from './dto/auth.dto';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { RedisService } from 'src/common/redis/redis.service';
+import type {
+  LoginInput,
+  RegisterInput,
+  SendResetPasswordMailInput,
+} from './schemas/auth.schema';
+import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { EmailService } from './email.service';
 import { UserService } from '../user/user.service';
 import { RedisKey } from 'src/common/constants';
-import { UserStatus } from 'src/prisma/generated/prisma/enums';
+import { UserStatus } from 'src/infrastructure/prisma/generated/prisma/enums';
 import { JwtPayload, RequestUser } from './auth.type';
-import { withSerializable } from 'src/common/prisma/transaction';
+import { withSerializable } from 'src/infrastructure/prisma/transaction';
 import {
   PASSWORD_RESET_COOLDOWN_SECONDS,
   PASSWORD_RESET_INVALID_MESSAGE,
@@ -105,7 +105,7 @@ export class AuthService {
     await this.emailService.sendEmail(email, token, 'site', expire);
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterInput) {
     const { username, email, password, enterPassword, captcha, captchaId } =
       dto;
 
@@ -162,7 +162,7 @@ export class AuthService {
     return true;
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginInput) {
     await this.verifyCaptcha(dto.captchaId, dto.captcha);
 
     const user = await this.userService.findByEmail(dto.email);
@@ -303,7 +303,7 @@ export class AuthService {
     return true;
   }
 
-  async sendResetPasswordMail(dto: SendResetPasswordMailDto) {
+  async sendResetPasswordMail(dto: SendResetPasswordMailInput) {
     await this.verifyCaptcha(dto.captchaId, dto.captcha);
 
     const email = dto.email.trim();

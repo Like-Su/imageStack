@@ -12,7 +12,12 @@ import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
 import { RoleCode } from '../../../common/constants';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequestUser } from '../auth/auth.type';
-import { CreatePermissionDto, UpdatePermissionDto } from './dto/permission.dto';
+import {
+  createPermissionSchema,
+  updatePermissionSchema,
+  type CreatePermissionInput,
+  type UpdatePermissionInput,
+} from './schemas/permission.schema';
 
 @Controller('permission')
 @RequireRole(RoleCode.ADMIN)
@@ -25,7 +30,10 @@ export class PermissionController {
   }
 
   @Post()
-  create(@CurrentUser() actor: RequestUser, @Body() body: CreatePermissionDto) {
+  create(
+    @CurrentUser() actor: RequestUser,
+    @Body({ schema: createPermissionSchema }) body: CreatePermissionInput,
+  ) {
     return this.permissions.create(actor, body);
   }
 
@@ -33,7 +41,7 @@ export class PermissionController {
   update(
     @CurrentUser() actor: RequestUser,
     @Param('id') permissionId: string,
-    @Body() body: UpdatePermissionDto,
+    @Body({ schema: updatePermissionSchema }) body: UpdatePermissionInput,
   ) {
     return this.permissions.update(actor, permissionId, body);
   }

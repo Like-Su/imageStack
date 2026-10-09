@@ -7,7 +7,7 @@ import { SystemService } from './system.service';
 import { Open } from '../iam/auth/decorators/open.decorator';
 import { SkipResponseWrap } from 'src/common/decorators/skip-response-wrap.decorator';
 import { Response } from 'express';
-import { StorageService } from '../storage/storage.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 
 @Controller('system')
 export class SystemController {

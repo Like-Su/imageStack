@@ -1,12 +1,15 @@
 import { BadRequestException } from '@nestjs/common';
-import type { Prisma } from '../../prisma/generated/prisma/client';
-import type { ListAssetsDto } from './dto/assets-query.dto';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
+import type { ListAssetsQuery } from './schemas/assets-query.schema';
 import { albumWhere } from '../collections/album-scope';
 
 const mediaTypes = {
   image: 'IMAGE',
   video: 'VIDEO',
   audio: 'AUDIO',
+  document: 'DOCUMENT',
+  archive: 'ARCHIVE',
+  other: 'OTHER',
 } as const;
 
 function dateBound(value: string | undefined): Date | undefined {
@@ -25,7 +28,7 @@ function dateBound(value: string | undefined): Date | undefined {
 
 export function buildAssetFilters(
   userId: string,
-  query: ListAssetsDto,
+  query: ListAssetsQuery,
   keywords: readonly string[] = [],
 ): Prisma.FileNodeWhereInput {
   const conditions: Prisma.FileNodeWhereInput[] = [];

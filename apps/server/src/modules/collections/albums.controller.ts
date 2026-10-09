@@ -12,9 +12,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { PermissionCode, RoleCode } from '../../common/constants';
-import { CursorPaginationDto } from '../../common/dto/cursor-pagination.dto';
-import { AssetIdsDto } from '../assets/dto/asset-ids.dto';
-import { RenameAssetDto } from '../assets/dto/rename-asset.dto';
+import {
+  cursorPaginationSchema,
+  type CursorPagination,
+} from '../../common/schemas/cursor-pagination.schema';
+import {
+  assetIdsSchema,
+  type AssetIdsInput,
+} from '../assets/schemas/asset-ids.schema';
+import {
+  renameAssetSchema,
+  type RenameAssetInput,
+} from '../assets/schemas/rename-asset.schema';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
@@ -23,11 +32,18 @@ import {
   RequireRole,
 } from '../iam/auth/decorators/roles-permissions.decorator';
 import { AlbumsService } from './albums.service';
-import { CreateAlbumDto, UpdateAlbumDto } from './dto/collections.dto';
 import {
-  AlbumMemberPermissionsDto,
-  InviteAlbumMemberDto,
-} from './dto/album-members.dto';
+  createAlbumSchema,
+  updateAlbumSchema,
+  type CreateAlbumInput,
+  type UpdateAlbumInput,
+} from './schemas/collections.schema';
+import {
+  albumMemberPermissionsSchema,
+  inviteAlbumMemberSchema,
+  type AlbumMemberPermissionsInput,
+  type InviteAlbumMemberInput,
+} from './schemas/album-members.schema';
 
 @Controller('albums')
 @RequirePermission(PermissionCode.ASSET_CATEGORY)
@@ -48,7 +64,7 @@ export class AlbumsController {
   detail(
     @Param('id') albumId: string,
     @CurrentUser() user: RequestUser,
-    @Query() query: CursorPaginationDto,
+    @Query({ schema: cursorPaginationSchema }) query: CursorPagination,
   ) {
     return this.albums.detail(albumId, user.id, query);
   }
@@ -62,7 +78,10 @@ export class AlbumsController {
   }
 
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: CreateAlbumDto) {
+  create(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: createAlbumSchema }) body: CreateAlbumInput,
+  ) {
     return this.albums.create(user, body);
   }
 
@@ -71,7 +90,7 @@ export class AlbumsController {
   update(
     @Param('id') albumId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: UpdateAlbumDto,
+    @Body({ schema: updateAlbumSchema }) body: UpdateAlbumInput,
   ) {
     return this.albums.update(albumId, user.id, body);
   }
@@ -88,7 +107,7 @@ export class AlbumsController {
   addAssets(
     @Param('id') albumId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: AssetIdsDto,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
   ) {
     return this.albums.addAssets(albumId, user.id, body.ids);
   }
@@ -98,7 +117,7 @@ export class AlbumsController {
   removeAssets(
     @Param('id') albumId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: AssetIdsDto,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
   ) {
     return this.albums.removeAssets(albumId, user.id, body.ids);
   }
@@ -110,7 +129,7 @@ export class AlbumsController {
     @Param('id') albumId: string,
     @Param('assetId') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: RenameAssetDto,
+    @Body({ schema: renameAssetSchema }) body: RenameAssetInput,
   ) {
     return this.albums.renameAsset(albumId, assetId, user.id, body.name);
   }
@@ -128,7 +147,7 @@ export class AlbumsController {
   inviteMember(
     @Param('id') albumId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: InviteAlbumMemberDto,
+    @Body({ schema: inviteAlbumMemberSchema }) body: InviteAlbumMemberInput,
   ) {
     return this.albums.inviteMember(albumId, user.id, body);
   }
@@ -139,7 +158,8 @@ export class AlbumsController {
     @Param('id') albumId: string,
     @Param('userId') memberId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: AlbumMemberPermissionsDto,
+    @Body({ schema: albumMemberPermissionsSchema })
+    body: AlbumMemberPermissionsInput,
   ) {
     return this.albums.updateMember(albumId, user.id, memberId, body);
   }

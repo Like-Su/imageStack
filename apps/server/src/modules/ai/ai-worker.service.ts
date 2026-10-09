@@ -5,7 +5,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '../../prisma/generated/prisma/client';
+import { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { AiIndexService } from './ai-index.service';
 import { AI_INDEX_INTERVAL_MS } from './ai.constants';
 

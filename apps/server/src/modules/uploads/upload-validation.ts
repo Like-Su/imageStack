@@ -70,7 +70,7 @@ export async function readUploadBody(
   return Buffer.concat(chunks, expectedBytes);
 }
 
-export async function stageVideoUpload(
+export async function stageFileUpload(
   request: Readable,
   expectedBytes: number,
   expectedHash: string | null,

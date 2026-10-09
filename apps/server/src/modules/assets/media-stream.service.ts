@@ -12,8 +12,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { PermissionCode, RedisKey, RoleCode } from '../../common/constants';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { RedisService } from '../../common/redis/redis.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { RedisService } from '../../infrastructure/redis/redis.service';
 import {
   HLS_MAX_PLAYLIST_BYTES,
   HLS_MAX_SEGMENTS,
@@ -26,21 +26,25 @@ import { assetMediaSelect, type MediaAsset } from './asset-media';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { UserService } from '../iam/user/user.service';
 import { MediaJobsService } from '../jobs/media-jobs.service';
-import { StorageService } from '../storage/storage.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import { readableAssetWhere } from './asset-scope';
 import { albumWhere } from '../collections/album-scope';
-import type { MediaStreamDto } from './dto/media-stream.dto';
+import { attachmentDisposition } from './asset-file-response';
+import type { MediaStreamInput } from './schemas/media-stream.schema';
 
 const STREAM_TICKET_TTL_MS = (4 * 60 + 15) * 60 * 1000;
 
-interface StreamTicket {
-  assetId: string;
+export interface DownloadAuthorization {
   userId: string;
-  kind: MediaStreamDto['kind'];
-  expiresAt: number;
   sessionVersion: number;
   sessionId?: string;
   tokenJti: string;
+}
+
+interface StreamTicket extends DownloadAuthorization {
+  assetId: string;
+  kind: MediaStreamInput['kind'];
+  expiresAt: number;
 }
 
 @Injectable()
@@ -57,7 +61,7 @@ export class MediaStreamService {
   async createTicket(
     assetId: string,
     user: RequestUser,
-    kind: MediaStreamDto['kind'],
+    kind: MediaStreamInput['kind'],
   ) {
     const asset = await this.findReadable(
       assetId,
@@ -97,18 +101,15 @@ export class MediaStreamService {
       !hasGlobalRead,
     );
     if (fileName === 'file' && payload.kind !== 'hls') {
-      const encodedName = encodeURIComponent(asset.name).replace(
-        /['()*]/g,
-        (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
-      );
       return {
         storageProvider: asset.storageProvider,
         storageBucket: asset.storageBucket,
         key: asset.storageKey,
         mimeType: asset.mimeType,
         disposition:
-          payload.kind === 'download'
-            ? `attachment; filename="download"; filename*=UTF-8''${encodedName}`
+          payload.kind === 'download' ||
+          (asset.mediaType !== 'IMAGE' && asset.mediaType !== 'VIDEO')
+            ? attachmentDisposition(asset.name)
             : 'inline',
       };
     }
@@ -179,7 +180,12 @@ export class MediaStreamService {
     return payload;
   }
 
-  private async authorize(ticket: StreamTicket) {
+  async authorizeDownload(ticket: DownloadAuthorization) {
+    if (!(await this.authorize(ticket)))
+      throw new ForbiddenException('没有文件下载权限');
+  }
+
+  private async authorize(ticket: DownloadAuthorization) {
     const [version, [blacklisted, revoked]] = await Promise.all([
       this.users.getSessionVersion(ticket.userId),
       this.redis.getMany([

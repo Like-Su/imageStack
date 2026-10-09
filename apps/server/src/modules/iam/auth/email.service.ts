@@ -1,4 +1,4 @@
-import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from '../../../infrastructure/mail/mail.service';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PASSWORD_RESET_TTL_SECONDS } from 'src/common/constants/auth';
@@ -17,7 +17,7 @@ function escapeHtml(value: string) {
 @Injectable()
 export class EmailService {
   constructor(
-    private readonly mailerService: MailerService,
+    private readonly mailService: MailService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -69,10 +69,9 @@ export class EmailService {
     expiresIn: number = PASSWORD_RESET_TTL_SECONDS,
   ) {
     const { subject, html, text } = this.getType(type, token, to, expiresIn);
-    await this.mailerService.sendMail({
+    await this.mailService.send({
       to,
       subject,
-      from: this.configService.getOrThrow<string>('MAIL_SEND_FROM'),
       html,
       text,
     });

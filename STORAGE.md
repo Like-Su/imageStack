@@ -30,7 +30,7 @@
 - `StorageModule` 通过 NestJS Factory 注册 `strategies` 中的 Provider，注册完成后才构造 `StorageService`，不依赖初始化钩子的执行顺序。
 - `StorageService.defaultLocation` 提供新上传使用的位置；`StorageService.for(location)` 根据已有记录选择 Provider，并检查存储桶是否匹配。业务层不导入具体 Provider，也没有按存储类型分支的读写逻辑。
 
-实现位于 `apps/server/src/modules/storage/`。
+实现位于 `apps/server/src/infrastructure/storage/`。
 
 ## 连接本地 RustFS
 
@@ -59,17 +59,17 @@ STORAGE_BUCKET=image-stack
 
 若已有本地文件，必须保留原来的 `STORAGE_ROOT`；只有全新、纯 RustFS 部署才可以留空或省略它。不要为了切换存储而删除旧目录。
 
-| 变量                                        | 说明                                                                                                                                   |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `STORAGE_DRIVER`                            | 新上传的默认策略，取值为 `LOCAL_FS` 或 `RUST_FS`；默认 `LOCAL_FS`，修改后需重启后端。                                                  |
-| `STORAGE_ROOT`                              | 本地存储的绝对路径；默认策略是 `LOCAL_FS` 时必填，历史本地文件仍需此配置。                                                             |
-| `STORAGE_MAX_FILE_BYTES`                    | 存储层文件大小上限，默认 1 GiB；实际上传上限取它与 `ASSETE_SIZE`（非视频，默认 10MB）或 `VIDEO_ASSET_SIZE`（视频，默认 1GB）的较小值。 |
-| `STORAGE_ENDPOINT`                          | HTTP/HTTPS 的 S3 API 根地址，不能包含桶路径、控制台路径、凭据、查询参数或片段。                                                        |
-| `STORAGE_BUCKET`                            | 预先创建的私有桶名称，使用合法的小写 S3 桶名。                                                                                         |
-| `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` | 应用访问凭据，仅由服务端使用。                                                                                                         |
-| `STORAGE_REGION`                            | 可选，默认 `us-east-1`，与服务端配置一致。                                                                                             |
-| `STORAGE_FORCE_PATH_STYLE`                  | 可选，默认 `true`，使用 `endpoint/bucket/key`，适合本机 IP、localhost 和 Docker 服务名。只有配置好桶子域名访问时才设为 `false`。       |
-| `STORAGE_REQUEST_TIMEOUT_MS`                | 可选，请求 socket 超时，默认 60000 ms，可配置 1000–600000 ms；不是整份大文件的总上传时限。                                             |
+| 变量                                        | 说明                                                                                                                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STORAGE_DRIVER`                            | 新上传的默认策略，取值为 `LOCAL_FS` 或 `RUST_FS`；默认 `LOCAL_FS`，修改后需重启后端。                                                                                                             |
+| `STORAGE_ROOT`                              | 本地存储的绝对路径；默认策略是 `LOCAL_FS` 时必填，历史本地文件仍需此配置。                                                                                                                        |
+| `STORAGE_MAX_FILE_BYTES`                    | 存储层文件大小上限，默认 1 GiB；实际上传上限取它与 `ASSETE_SIZE`（图片，默认 10MB）、`VIDEO_ASSET_SIZE`（视频，默认 1GB）或 `FILE_ASSET_SIZE`（文档、压缩包、音频及其他文件，默认 1GB）的较小值。 |
+| `STORAGE_ENDPOINT`                          | HTTP/HTTPS 的 S3 API 根地址，不能包含桶路径、控制台路径、凭据、查询参数或片段。                                                                                                                   |
+| `STORAGE_BUCKET`                            | 预先创建的私有桶名称，使用合法的小写 S3 桶名。                                                                                                                                                    |
+| `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` | 应用访问凭据，仅由服务端使用。                                                                                                                                                                    |
+| `STORAGE_REGION`                            | 可选，默认 `us-east-1`，与服务端配置一致。                                                                                                                                                        |
+| `STORAGE_FORCE_PATH_STYLE`                  | 可选，默认 `true`，使用 `endpoint/bucket/key`，适合本机 IP、localhost 和 Docker 服务名。只有配置好桶子域名访问时才设为 `false`。                                                                  |
+| `STORAGE_REQUEST_TIMEOUT_MS`                | 可选，请求 socket 超时，默认 60000 ms，可配置 1000–600000 ms；不是整份大文件的总上传时限。                                                                                                        |
 
 启用 `RUST_FS` 时，端点、桶名和两项凭据均必填，其余对象存储配置使用默认值即可。默认使用本地存储但仍需读取历史 RustFS 文件时，也应保留完整对象存储配置；只填写部分连接配置会在启动时校验失败。
 
@@ -124,7 +124,7 @@ pnpm --dir apps/server run start:dev
 
 ## 添加下一种存储策略
 
-1. 在 `apps/server/src/prisma/schema.prisma` 的 `StorageProviderType` 增加类型，生成对应迁移与 Prisma Client；`StorageType` 和支持类型列表会同步变化。
+1. 在 `apps/server/src/infrastructure/prisma/schema.prisma` 的 `StorageProviderType` 增加类型，生成对应迁移与 Prisma Client；`StorageType` 和支持类型列表会同步变化。
 2. 新增实现 `StorageProvider` 的 NestJS Provider，提供 `type`、`bucket`、`space()` 容量统计和统一读写方法；保持对象不可覆盖、二进制流、大小限制和 Range 返回总大小的契约。不能获取总容量时返回 `null`，不要假定无限容量。
 3. 将 Provider 加入 `StorageModule` 的 `strategies` 数组；如需连接参数，在服务端环境校验中声明。
 

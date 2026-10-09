@@ -15,7 +15,10 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { CreateUploadSessionDto } from './dto/upload.dto';
+import {
+  createUploadSessionSchema,
+  type CreateUploadSessionInput,
+} from './schemas/upload.schema';
 import { UploadsService } from './uploads.service';
 
 @Controller('uploads')
@@ -27,7 +30,7 @@ export class UploadsController {
   @Post('sessions')
   createSession(
     @CurrentUser() user: RequestUser,
-    @Body() dto: CreateUploadSessionDto,
+    @Body({ schema: createUploadSessionSchema }) dto: CreateUploadSessionInput,
   ) {
     return this.uploadsService.createSession(user.id, dto);
   }

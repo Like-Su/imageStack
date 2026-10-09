@@ -5,12 +5,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
-import { Prisma, ShareLink } from '../../prisma/generated/prisma/client';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
+import {
+  Prisma,
+  ShareLink,
+} from '../../infrastructure/prisma/generated/prisma/client';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { AssetsService } from '../assets/assets.service';
-import { CreateShareDto, SharePageDto, ShareTargetDto } from './dto/shares.dto';
+import type {
+  CreateShareInput,
+  SharePageQuery,
+  ShareTarget,
+} from './schemas/shares.schema';
 import {
   MAX_SHARED_IMAGES,
   sharedImagesWhere,
@@ -34,7 +41,7 @@ export class SharesService {
     private readonly assets: AssetsService,
   ) {}
 
-  private target(target: ShareTargetDto) {
+  private target(target: ShareTarget) {
     return target.kind === 'asset'
       ? { assetId: target.targetId, albumId: null }
       : { assetId: null, albumId: target.targetId };
@@ -68,7 +75,7 @@ export class SharesService {
     if (!account) throw new UnauthorizedException('账户状态已变化，请重新登录');
   }
 
-  async create(user: RequestUser, body: CreateShareDto) {
+  async create(user: RequestUser, body: CreateShareInput) {
     return withSerializable(this.prisma, async (transaction) => {
       await this.requireUser(transaction, user, true);
       const target = this.target(body);
@@ -113,7 +120,7 @@ export class SharesService {
     });
   }
 
-  async list(userId: string, query: ShareTargetDto) {
+  async list(userId: string, query: ShareTarget) {
     const shares = await this.prisma.shareLink.findMany({
       where: { ownerId: userId, ...this.target(query) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -171,7 +178,7 @@ export class SharesService {
     return share;
   }
 
-  async detail(token: string, query: SharePageDto) {
+  async detail(token: string, query: SharePageQuery) {
     const share = await this.resolve(this.prisma, token);
     const where = sharedImagesWhere(share);
     const [rows, total] = await Promise.all([

@@ -4,8 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { hash } from 'bcryptjs';
-import { PrismaService } from '../../../common/prisma/prisma.service';
-import { Prisma, UserStatus } from '../../../prisma/generated/prisma/client';
+import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import {
+  Prisma,
+  UserStatus,
+} from '../../../infrastructure/prisma/generated/prisma/client';
 import { RoleCode } from '../../../common/constants';
 import type { RequestUser } from '../auth/auth.type';
 import {
@@ -15,7 +18,11 @@ import {
   resolvePermissions,
   withIamMutation,
 } from '../iam-admin';
-import { CreateUserDto, ListUsersDto, UpdateUserDto } from './dto/user.dto';
+import type {
+  CreateUserInput,
+  ListUsersQuery,
+  UpdateUserInput,
+} from './schemas/user.schema';
 
 const userSelect = {
   id: true,
@@ -74,7 +81,7 @@ function summary(
 export class UserManagementService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: ListUsersDto) {
+  async list(query: ListUsersQuery) {
     const where: Prisma.UserWhereInput = {
       deleted: false,
       status: query.status,
@@ -109,7 +116,7 @@ export class UserManagementService {
     };
   }
 
-  async create(actor: RequestUser, body: CreateUserDto) {
+  async create(actor: RequestUser, body: CreateUserInput) {
     const password = await hash(body.password, 10);
     return withIamMutation(this.prisma, actor, async (transaction) => {
       const role = body.roleId
@@ -158,7 +165,7 @@ export class UserManagementService {
     });
   }
 
-  async update(actor: RequestUser, userId: string, body: UpdateUserDto) {
+  async update(actor: RequestUser, userId: string, body: UpdateUserInput) {
     if (!Object.values(body).some((value) => value !== undefined))
       throw new BadRequestException('请至少修改一个字段');
     const password =

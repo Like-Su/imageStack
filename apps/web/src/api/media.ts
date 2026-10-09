@@ -7,6 +7,7 @@ import type {
   Album,
   AlbumMember,
   AlbumMemberPermissions,
+  ArchiveDownloadTicket,
   AssetDetail,
   AssetQuery,
   AssetSummary,
@@ -96,6 +97,13 @@ export const mediaApi = {
       { signal, responseType: "blob" },
     ),
   original: originalFile,
+  archiveTicket: (ids: string[], signal?: AbortSignal) =>
+    request<ArchiveDownloadTicket>("/assets/downloads/archive-ticket", {
+      method: "POST",
+      body: { ids },
+      signal,
+      timeoutMs: 120_000,
+    }),
   streamTicket: (
     assetId: string,
     kind: MediaStreamTicket["kind"],

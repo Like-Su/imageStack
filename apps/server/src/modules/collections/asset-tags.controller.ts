@@ -11,8 +11,14 @@ import { PermissionCode } from '../../common/constants';
 import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { AddAssetTagsDto } from './dto/collections.dto';
-import { ConfirmAssetTagsDto } from './dto/confirm-asset-tags.dto';
+import {
+  addAssetTagsSchema,
+  type AddAssetTagsInput,
+} from './schemas/collections.schema';
+import {
+  confirmAssetTagsSchema,
+  type ConfirmAssetTagsInput,
+} from './schemas/confirm-asset-tags.schema';
 import { TagsService } from './tags.service';
 
 @Controller('assets')
@@ -25,7 +31,7 @@ export class AssetTagsController {
   addTags(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: AddAssetTagsDto,
+    @Body({ schema: addAssetTagsSchema }) body: AddAssetTagsInput,
   ) {
     return this.tags.addToAsset(assetId, user.id, body.names);
   }
@@ -35,7 +41,7 @@ export class AssetTagsController {
   confirmTags(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: ConfirmAssetTagsDto,
+    @Body({ schema: confirmAssetTagsSchema }) body: ConfirmAssetTagsInput,
   ) {
     return this.tags.confirmForAsset(assetId, user.id, body);
   }
