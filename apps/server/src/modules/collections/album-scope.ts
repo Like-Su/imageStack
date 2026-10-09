@@ -1,6 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { RoleCode } from '../../common/constants';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 
 export function albumWhere(userId: string): Prisma.AlbumWhereInput {
   return {

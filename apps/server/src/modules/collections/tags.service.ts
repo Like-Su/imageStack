@@ -3,22 +3,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
-import type { Prisma } from '../../prisma/generated/prisma/client';
-import { assetWhere, requireOwnedAssets } from '../assets/asset-scope';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
+import {
+  assetWhere,
+  requireOwnedAssets,
+  visualAssetWhere,
+} from '../assets/asset-scope';
 import {
   thumbnailRevision,
   thumbnailRevisionSelect,
 } from '../assets/asset-media';
 import { rethrowCollectionError } from './collection-errors';
-import { CreateTagDto, UpdateTagDto } from './dto/collections.dto';
-import { ConfirmAssetTagsDto } from './dto/confirm-asset-tags.dto';
+import type {
+  CreateTagInput,
+  UpdateTagInput,
+} from './schemas/collections.schema';
+import type { ConfirmAssetTagsInput } from './schemas/confirm-asset-tags.schema';
 
 function tagInclude(userId: string) {
   return {
     assets: {
-      where: { asset: assetWhere(userId) },
+      where: { asset: visualAssetWhere(userId) },
       select: { assetId: true, asset: { select: thumbnailRevisionSelect } },
       orderBy: [
         { asset: { createdAt: 'desc' as const } },
@@ -50,7 +57,7 @@ export class TagsService {
     return tags.map((tag) => this.summary(tag));
   }
 
-  async create(userId: string, body: CreateTagDto) {
+  async create(userId: string, body: CreateTagInput) {
     const tag = await this.prisma.tag
       .create({
         data: { ownerId: userId, name: body.name },
@@ -70,7 +77,7 @@ export class TagsService {
     return this.summary(tag);
   }
 
-  update(tagId: string, userId: string, body: UpdateTagDto) {
+  update(tagId: string, userId: string, body: UpdateTagInput) {
     if ((body.name !== undefined) === (body.mergeIntoId !== undefined)) {
       throw new BadRequestException('请选择标签改名或合并中的一个操作');
     }
@@ -135,7 +142,11 @@ export class TagsService {
     return { tags: result.tags, createdCount: result.createdCount };
   }
 
-  confirmForAsset(assetId: string, userId: string, body: ConfirmAssetTagsDto) {
+  confirmForAsset(
+    assetId: string,
+    userId: string,
+    body: ConfirmAssetTagsInput,
+  ) {
     if (body.mode === 'existing' && body.names.length) {
       throw new BadRequestException('仅使用已有标签时不能创建新标签');
     }

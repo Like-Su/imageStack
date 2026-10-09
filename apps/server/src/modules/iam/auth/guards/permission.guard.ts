@@ -9,8 +9,8 @@ import type { Request } from 'express';
 import { PERMISSIONS_KEY } from '../decorators/roles-permissions.decorator';
 import { User } from '../auth.type';
 import { RoleCode } from 'src/common/constants';
-import { PrismaService } from '../../../../common/prisma/prisma.service';
-import type { Prisma } from '../../../../prisma/generated/prisma/client';
+import { PrismaService } from '../../../../infrastructure/prisma/prisma.service';
+import type { Prisma } from '../../../../infrastructure/prisma/generated/prisma/client';
 import { albumWhere } from '../../../collections/album-scope';
 import {
   SHARED_ALBUM_ACCESS_KEY,

@@ -26,6 +26,8 @@ export interface SystemCapabilities {
     maxBytes: number;
     imageMaxBytes: number;
     videoMaxBytes: number;
+    fileMaxBytes: number;
+    acceptsAnyFile: boolean;
     videoMaxDurationMs: number | null;
     maxPixels: number | null;
     maxFrames: number;

@@ -3,6 +3,8 @@ import {
   IMAGE_MAX_FRAMES,
   MEDIA_MIME_TYPES,
   MEDIA_EXTENSIONS,
+  FILE_EXTENSIONS,
+  FILE_MIME_TYPES,
   mediaByteLimit,
 } from '../../common/media-formats';
 import {
@@ -10,8 +12,8 @@ import {
   UPLOAD_MULTIPART_TTL_MS,
 } from '../uploads/upload.constants';
 import { HLS_SEGMENT_SECONDS } from '../../common/video-stream';
-import { storageProviderTypes } from '../storage/storage.provider';
-import type { StorageType } from '../storage/storage.provider';
+import { storageProviderTypes } from '../../infrastructure/storage/storage.provider';
+import type { StorageType } from '../../infrastructure/storage/storage.provider';
 
 export function systemCapabilities(
   storageProvider: StorageType,
@@ -19,6 +21,7 @@ export function systemCapabilities(
 ) {
   const imageMaxBytes = mediaByteLimit('jpeg', config);
   const videoMaxBytes = mediaByteLimit('mp4', config);
+  const fileMaxBytes = mediaByteLimit(null, config);
   return {
     storageProvider,
     storageProviders: storageProviderTypes,
@@ -27,14 +30,16 @@ export function systemCapabilities(
     trashRetentionDays: null,
     pluginManagement: false,
     upload: {
-      maxBytes: Math.max(imageMaxBytes, videoMaxBytes),
+      maxBytes: Math.max(imageMaxBytes, videoMaxBytes, fileMaxBytes),
       imageMaxBytes,
       videoMaxBytes,
+      fileMaxBytes,
+      acceptsAnyFile: true,
       videoMaxDurationMs: null,
       maxPixels: null,
       maxFrames: IMAGE_MAX_FRAMES,
-      extensions: MEDIA_EXTENSIONS,
-      mimeTypes: MEDIA_MIME_TYPES,
+      extensions: [...MEDIA_EXTENSIONS, ...FILE_EXTENSIONS],
+      mimeTypes: [...MEDIA_MIME_TYPES, ...FILE_MIME_TYPES],
       chunkThresholdBytes: UPLOAD_CHUNK_BYTES,
       chunkSizeBytes: UPLOAD_CHUNK_BYTES,
       resumableTtlMs: UPLOAD_MULTIPART_TTL_MS,
@@ -47,7 +52,7 @@ export function systemCapabilities(
         name: '本地文件存储',
         category: '存储',
         builtin: true,
-        description: '原图片、视频与派生文件保存于本地文件系统。',
+        description: '原文件与媒体派生文件保存于本地文件系统。',
         detail:
           '本地文件按原存储根目录读取；切换默认存储不会迁移历史文件。网页不能修改磁盘路径，统计仅包含当前账户记录的原文件大小。',
       },

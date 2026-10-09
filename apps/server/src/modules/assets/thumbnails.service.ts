@@ -1,10 +1,17 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import type { MediaAsset } from './asset-media';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { THUMBNAIL_PROFILE } from '../jobs/media-processing.constants';
-import { StorageService } from '../storage/storage.service';
-import type { StorageLocation, StorageStat } from '../storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
+import type {
+  StorageLocation,
+  StorageStat,
+} from '../../infrastructure/storage/storage.provider';
 
 export type ThumbnailResponse =
   | (StorageLocation & {
@@ -26,6 +33,9 @@ export class ThumbnailsService {
     asset: MediaAsset,
     variant: 'thumbnail' | 'preview' = 'thumbnail',
   ): Promise<ThumbnailResponse> {
+    if (asset.mediaType !== 'IMAGE' && asset.mediaType !== 'VIDEO') {
+      throw new NotFoundException('此文件类型不生成缩略图，请下载原文件查看');
+    }
     const key = variant === 'preview' ? asset.previewKey : asset.thumbnailKey;
     const metadata = key ? await this.storage.for(asset).stat(key) : null;
     if (

@@ -20,14 +20,20 @@ import type { RequestUser } from '../iam/auth/auth.type';
 import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { StorageService } from '../storage/storage.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import {
-  ListAssetsDto,
-  ThumbnailQueryDto,
-  TrashIdsQueryDto,
-} from './dto/assets-query.dto';
-import { AssetIdsDto } from './dto/asset-ids.dto';
-import { RenameAssetDto } from './dto/rename-asset.dto';
+  listAssetsSchema,
+  thumbnailQuerySchema,
+  trashIdsQuerySchema,
+  type ListAssetsQuery,
+  type ThumbnailQuery,
+  type TrashIdsQuery,
+} from './schemas/assets-query.schema';
+import { assetIdsSchema, type AssetIdsInput } from './schemas/asset-ids.schema';
+import {
+  renameAssetSchema,
+  type RenameAssetInput,
+} from './schemas/rename-asset.schema';
 import { AssetsService } from './assets.service';
 import { AssetWorkspaceService } from './asset-workspace.service';
 import {
@@ -48,7 +54,10 @@ export class AssetsController {
   @Get()
   @AllowSharedAlbum('album-query', 'view')
   @Header('Cache-Control', 'no-store')
-  list(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
+  list(
+    @CurrentUser() user: RequestUser,
+    @Query({ schema: listAssetsSchema }) query: ListAssetsQuery,
+  ) {
     return this.assets.list(user.id, query);
   }
 
@@ -66,7 +75,10 @@ export class AssetsController {
 
   @Delete('trash')
   @RequirePermission(PermissionCode.ASSET_DELETE)
-  purge(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+  purge(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
+  ) {
     return this.workspace.purge(user.id, body.ids);
   }
 
@@ -79,14 +91,20 @@ export class AssetsController {
 
   @Get('trash')
   @Header('Cache-Control', 'no-store')
-  trash(@CurrentUser() user: RequestUser, @Query() query: ListAssetsDto) {
+  trash(
+    @CurrentUser() user: RequestUser,
+    @Query({ schema: listAssetsSchema }) query: ListAssetsQuery,
+  ) {
     return this.assets.list(user.id, query, true);
   }
 
   @Get('trash/ids')
   @RequirePermission(PermissionCode.ASSET_DELETE)
   @Header('Cache-Control', 'no-store')
-  trashIds(@CurrentUser() user: RequestUser, @Query() query: TrashIdsQueryDto) {
+  trashIds(
+    @CurrentUser() user: RequestUser,
+    @Query({ schema: trashIdsQuerySchema }) query: TrashIdsQuery,
+  ) {
     return this.assets.trashIds(user.id, query.cursor);
   }
 
@@ -98,14 +116,20 @@ export class AssetsController {
 
   @Delete()
   @RequirePermission(PermissionCode.ASSET_DELETE)
-  moveToTrash(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+  moveToTrash(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
+  ) {
     return this.assets.moveToTrash(user.id, body.ids);
   }
 
   @Post('restore')
   @HttpCode(HttpStatus.OK)
   @RequirePermission(PermissionCode.ASSET_DELETE)
-  restore(@CurrentUser() user: RequestUser, @Body() body: AssetIdsDto) {
+  restore(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: assetIdsSchema }) body: AssetIdsInput,
+  ) {
     return this.assets.restore(user.id, body.ids);
   }
 
@@ -114,7 +138,7 @@ export class AssetsController {
   async trashThumbnail(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Query() query: ThumbnailQueryDto,
+    @Query({ schema: thumbnailQuerySchema }) query: ThumbnailQuery,
     @Req() request: Request,
     @Res() response: Response,
   ) {
@@ -140,7 +164,7 @@ export class AssetsController {
   rename(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Body() body: RenameAssetDto,
+    @Body({ schema: renameAssetSchema }) body: RenameAssetInput,
   ) {
     return this.assets.rename(assetId, user.id, body.name);
   }
@@ -179,7 +203,7 @@ export class AssetsController {
   async thumbnail(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Query() query: ThumbnailQueryDto,
+    @Query({ schema: thumbnailQuerySchema }) query: ThumbnailQuery,
     @Req() request: Request,
     @Res() response: Response,
   ) {

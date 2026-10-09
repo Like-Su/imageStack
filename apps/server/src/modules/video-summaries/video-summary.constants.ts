@@ -1,5 +1,5 @@
-import type { Prisma } from '../../prisma/generated/prisma/client';
-import { storageProviderTypes } from '../storage/storage.provider';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
+import { storageProviderTypes } from '../../infrastructure/storage/storage.provider';
 
 export const VIDEO_SUMMARY_INTERVAL_MS = 5000;
 export const VIDEO_SUMMARY_LEASE_MS = 180000;

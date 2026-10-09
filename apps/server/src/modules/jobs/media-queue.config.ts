@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { rabbitMqConfig } from '../../infrastructure/rabbitmq/rabbitmq.config';
 import {
   MEDIA_QUEUE_NAME,
   mediaRetryDelay,
@@ -9,25 +10,8 @@ export function mediaRetryQueue(queueName: string, delayMs: number): string {
 }
 
 export function mediaQueueConfig(config: ConfigService) {
-  const connectionUrl = config.get<string>(
-    'RABBITMQ_URL',
-    'amqp://guest:guest@172.22.196.208:5672',
-  );
-
-  let url: URL;
-
-  try {
-    url = new URL(connectionUrl);
-  } catch {
-    throw new Error('RABBITMQ_URL 必须是有效的 RabbitMQ 连接地址');
-  }
-
-  if (!['amqp:', 'amqps:'].includes(url.protocol) || !url.hostname) {
-    throw new Error('RABBITMQ_URL 必须使用 amqp/amqps 协议');
-  }
-
-  const prefix = config.get<string>('RABBITMQ_QUEUE_PREFIX', 'image-stack');
-  const queueName = `${prefix}.${MEDIA_QUEUE_NAME}`;
+  const rabbitmq = rabbitMqConfig(config);
+  const queueName = `${rabbitmq.queuePrefix}.${MEDIA_QUEUE_NAME}`;
   const attempts = config.get<number>('MEDIA_PROCESSING_ATTEMPTS', 3);
   const backoffMs = config.get<number>('MEDIA_PROCESSING_BACKOFF_MS', 1000);
   const retryQueues: { name: string; delayMs: number }[] = [];
@@ -38,12 +22,10 @@ export function mediaQueueConfig(config: ConfigService) {
   }
 
   return {
-    url: connectionUrl,
     queueName,
     failedQueue: `${queueName}.failed`,
     retryQueues,
     backoffMs,
-    connectTimeoutMs: config.get<number>('RABBITMQ_CONNECT_TIMEOUT_MS', 10000),
-    publishTimeoutMs: config.get<number>('RABBITMQ_PUBLISH_TIMEOUT_MS', 5000),
+    publishTimeoutMs: rabbitmq.publishTimeoutMs,
   };
 }

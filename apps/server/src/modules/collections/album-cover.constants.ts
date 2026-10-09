@@ -1,0 +1,1 @@
+export const ALBUM_COVER_MAX_LENGTH = 65536;

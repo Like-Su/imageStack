@@ -12,8 +12,16 @@ import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
 import { RoleCode } from '../../../common/constants';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequestUser } from '../auth/auth.type';
-import { ReplaceRolePermissionsDto } from './dto/replace-role-permissions.dto';
-import { CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
+import {
+  replaceRolePermissionsSchema,
+  type ReplaceRolePermissionsInput,
+} from './schemas/replace-role-permissions.schema';
+import {
+  createRoleSchema,
+  updateRoleSchema,
+  type CreateRoleInput,
+  type UpdateRoleInput,
+} from './schemas/role.schema';
 
 @Controller('role')
 @RequireRole(RoleCode.ADMIN)
@@ -26,7 +34,10 @@ export class RoleController {
   }
 
   @Post()
-  create(@CurrentUser() actor: RequestUser, @Body() body: CreateRoleDto) {
+  create(
+    @CurrentUser() actor: RequestUser,
+    @Body({ schema: createRoleSchema }) body: CreateRoleInput,
+  ) {
     return this.roleService.create(actor, body);
   }
 
@@ -34,7 +45,7 @@ export class RoleController {
   update(
     @CurrentUser() actor: RequestUser,
     @Param('id') roleId: string,
-    @Body() body: UpdateRoleDto,
+    @Body({ schema: updateRoleSchema }) body: UpdateRoleInput,
   ) {
     return this.roleService.update(actor, roleId, body);
   }
@@ -53,7 +64,8 @@ export class RoleController {
   replacePermissions(
     @CurrentUser() actor: RequestUser,
     @Param('id') roleId: string,
-    @Body() body: ReplaceRolePermissionsDto,
+    @Body({ schema: replaceRolePermissionsSchema })
+    body: ReplaceRolePermissionsInput,
   ) {
     return this.roleService.update(actor, roleId, body);
   }

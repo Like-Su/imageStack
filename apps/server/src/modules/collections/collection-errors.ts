@@ -1,5 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '../../prisma/generated/prisma/client';
+import { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 
 export function rethrowCollectionError(
   error: unknown,

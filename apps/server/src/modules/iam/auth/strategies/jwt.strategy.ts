@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 // Custom Module
 import { UserService } from '../../user/user.service';
-import { RedisService } from 'src/common/redis/redis.service';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
 
 // types
 import type { JwtPayload, RequestUser } from '../auth.type';

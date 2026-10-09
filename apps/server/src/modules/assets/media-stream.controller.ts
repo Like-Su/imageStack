@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Query,
@@ -16,9 +18,14 @@ import { CurrentUser } from '../iam/auth/decorators/current-user.decorator';
 import { AllowSharedAlbum } from '../iam/auth/decorators/shared-album-access.decorator';
 import { Open } from '../iam/auth/decorators/open.decorator';
 import { RequirePermission } from '../iam/auth/decorators/roles-permissions.decorator';
-import { StorageService } from '../storage/storage.service';
-import { MediaStreamDto } from './dto/media-stream.dto';
+import { StorageService } from '../../infrastructure/storage/storage.service';
+import {
+  mediaStreamSchema,
+  type MediaStreamInput,
+} from './schemas/media-stream.schema';
 import { MediaStreamService } from './media-stream.service';
+import { AssetDownloadsService } from './asset-downloads.service';
+import { assetIdsSchema, type AssetIdsInput } from './schemas/asset-ids.schema';
 import {
   isMediaResponseClosed,
   streamStoredMedia,
@@ -29,7 +36,29 @@ export class MediaStreamController {
   constructor(
     private readonly streams: MediaStreamService,
     private readonly storage: StorageService,
+    private readonly downloads: AssetDownloadsService,
   ) {}
+
+  @Post('downloads/archive-ticket')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(PermissionCode.ASSET_DOWNLOAD)
+  archiveTicket(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: assetIdsSchema }) dto: AssetIdsInput,
+  ) {
+    return this.downloads.createTicket(dto.ids, user);
+  }
+
+  @Get('downloads/archive')
+  @Open()
+  @SkipResponseWrap()
+  archive(
+    @Query('ticket') ticket: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    return this.downloads.stream(ticket, request, response);
+  }
 
   @Post(':id/stream-ticket')
   @AllowSharedAlbum('asset', 'view')
@@ -37,7 +66,7 @@ export class MediaStreamController {
   ticket(
     @Param('id') assetId: string,
     @CurrentUser() user: RequestUser,
-    @Body() dto: MediaStreamDto,
+    @Body({ schema: mediaStreamSchema }) dto: MediaStreamInput,
   ) {
     return this.streams.createTicket(assetId, user, dto.kind);
   }

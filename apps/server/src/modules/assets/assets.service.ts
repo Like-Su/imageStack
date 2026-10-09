@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'node:crypto';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import {
   assetWhere,
   mediaAssetWhere,
@@ -18,7 +18,7 @@ import {
 } from './asset-scope';
 import { albumWhere, requireAlbumAccess } from '../collections/album-scope';
 import { buildAssetFilters } from './asset-filters';
-import { ListAssetsDto } from './dto/assets-query.dto';
+import type { ListAssetsQuery } from './schemas/assets-query.schema';
 import { decodeAssetCursor, encodeAssetCursor } from './assets.cursor';
 import {
   assetCursorWhere,
@@ -28,6 +28,7 @@ import {
   encodeAssetPageCursor,
 } from './asset-pagination';
 import { ThumbnailsService } from './thumbnails.service';
+import { attachmentDisposition } from './asset-file-response';
 import {
   assetMediaSelect,
   thumbnailRevision,
@@ -95,7 +96,7 @@ export class AssetsService {
     this.apiPrefix = prefix ? `/${prefix}` : '';
   }
 
-  list(userId: string, query: ListAssetsDto, deleted = false) {
+  list(userId: string, query: ListAssetsQuery, deleted = false) {
     return this.findPage(userId, query, { deleted });
   }
 
@@ -134,7 +135,7 @@ export class AssetsService {
 
   search(
     userId: string,
-    query: ListAssetsDto,
+    query: ListAssetsQuery,
     keywords: readonly string[],
     cursorScope: string,
   ) {
@@ -147,7 +148,7 @@ export class AssetsService {
 
   private async findPage(
     userId: string,
-    query: ListAssetsDto,
+    query: ListAssetsQuery,
     options: AssetPageOptions,
   ) {
     const sort = assetSort(query);
@@ -309,6 +310,10 @@ export class AssetsService {
       storageBucket: asset.storageBucket,
       key: asset.storageKey,
       mimeType: asset.mimeType,
+      disposition:
+        asset.mediaType === 'IMAGE' || asset.mediaType === 'VIDEO'
+          ? 'inline'
+          : attachmentDisposition(asset.name),
     };
   }
 

@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { ImageOff, Image } from "lucide-vue-next";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  File,
+  FileArchive,
+  FileAudio,
+  FileText,
+  ImageOff,
+  Image,
+} from "lucide-vue-next";
 import { translate } from "@/i18n";
 import { mediaApi } from "@/api/media";
 import { sharesApi } from "@/api/shares";
@@ -8,6 +15,8 @@ import { ApiError, getErrorMessage } from "@/api/request";
 import { useAuthStore } from "@/stores/auth";
 import { cachedThumbnail, cacheThumbnail } from "@/composables/thumbnailCache";
 import { sharedRead } from "@/api/sharedRead";
+import { isVisualMedia, mediaTypeLabels } from "@/config/workspace";
+import type { MediaType } from "@/types/media";
 import ImageLoading from "./ImageLoading.vue";
 import LoadingImage from "./LoadingImage.vue";
 
@@ -15,12 +24,23 @@ const props = withDefaults(
   defineProps<{
     assetId: string;
     name?: string;
+    type?: MediaType;
     trash?: boolean;
     version?: string;
     contain?: boolean;
     shareToken?: string;
   }>(),
-  { name: "媒体预览", trash: false },
+  { name: "媒体预览", trash: false, type: "IMAGE" },
+);
+const visual = computed(() => isVisualMedia(props.type));
+const fileIcon = computed(() =>
+  props.type === "DOCUMENT"
+    ? FileText
+    : props.type === "ARCHIVE"
+      ? FileArchive
+      : props.type === "AUDIO"
+        ? FileAudio
+        : File,
 );
 const host = ref<HTMLElement | null>(null);
 const auth = useAuthStore();
@@ -93,6 +113,7 @@ async function retrieve(current: AbortController, attempt = 0, force = false) {
 function loadVisible() {
   if (
     !visible.value ||
+    !visual.value ||
     !props.assetId ||
     source.value ||
     state.value === "error" ||
@@ -132,6 +153,7 @@ watch(visible, (shown) => {
 watch(
   [
     () => props.assetId,
+    () => props.type,
     () => props.trash,
     () => props.version,
     () => props.shareToken,
@@ -171,11 +193,24 @@ onBeforeUnmount(() => {
     ref="host"
     class="relative size-full overflow-hidden bg-panel2 hover:scale-110 transition-transform duration-300"
     :title="errorMessage || undefined"
-    :aria-busy="visible && (state === 'loading' || state === 'processing')"
+    :aria-busy="
+      visual && visible && (state === 'loading' || state === 'processing')
+    "
     @mousedown.prevent
   >
+    <div
+      v-if="!visual"
+      class="flex size-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-accent/10 to-panel2 p-2 text-accent"
+      role="img"
+      :aria-label="`${name} · ${$t(mediaTypeLabels[type])}`"
+    >
+      <component :is="fileIcon" class="size-8 shrink-0" />
+      <span v-if="contain" class="text-sm">{{
+        $t(mediaTypeLabels[type])
+      }}</span>
+    </div>
     <LoadingImage
-      v-if="source"
+      v-else-if="source"
       :src="source"
       :alt="name"
       :contain="contain"

@@ -1,4 +1,57 @@
 export const english: Record<string, string> = {
+  下载: "Download",
+  关闭: "Close",
+  音频: "Audio",
+  文档: "Documents",
+  压缩包: "Archives",
+  其他文件: "Other files",
+  文件类型: "File type",
+  文件信息: "File information",
+  下载原文件: "Download original file",
+  原文件已保存: "Original file saved",
+  选择上传文件: "Choose files to upload",
+  "文档、压缩包、音频及其他文件": "Documents, archives, audio, and other files",
+  "选择图片、视频、文档或压缩包，开始整理你的文件。":
+    "Choose images, videos, documents, or archives to start organizing your files.",
+  "图片 ≤ {value1}；视频 ≤ {value2}；其他文件 ≤ {value3}":
+    "Images ≤ {value1}; videos ≤ {value2}; other files ≤ {value3}",
+  "文件不得超过 {value1}": "Files must not exceed {value1}",
+  "文档、压缩包和其他文件保留原内容，上传完成即可下载。":
+    "Documents, archives, and other files are preserved unchanged and can be downloaded immediately after upload.",
+  "此类型暂不支持在线预览，可下载原文件查看。":
+    "Online preview is not available for this file type. Download the original to view it.",
+  相册封面仅支持图片和视频: "Album covers only support images and videos",
+  其他文件上传上限: "Other file upload limit",
+  "一次最多选择 100 个文件，请分批操作。":
+    "Select up to 100 files at a time. Split larger selections into batches.",
+  没有符合筛选条件的文件: "No files match these filters",
+  "上传文件，开始整理你的资源库":
+    "Upload files to start organizing your library",
+  "支持图片、视频、文档、压缩包、音频及其他文件。":
+    "Supports images, videos, documents, archives, audio, and other files.",
+  选择下载方式: "Choose a download method",
+  "{value1} 个文件 · 合计 {value2}": "{value1} files · {value2} total",
+  "打包下载 ZIP": "Download as ZIP",
+  单独下载: "Download individually",
+  "生成一个 ZIP 压缩包，同名文件自动编号，不覆盖原文件。":
+    "Create one ZIP archive. Duplicate names are numbered automatically; originals stay unchanged.",
+  "逐个下载原文件，保留各自的文件名和格式。":
+    "Download each original file with its name and format preserved.",
+  "单独下载时，浏览器可能询问是否允许下载多个文件，请选择允许。下载进度以浏览器下载列表为准。":
+    "Your browser may ask to allow multiple downloads. Choose Allow, and check progress in its download list.",
+  "正在准备 ZIP 下载…": "Preparing ZIP download…",
+  "正在发起下载 {value1} / {value2}": "Starting downloads {value1} / {value2}",
+  停止发起下载: "Stop starting downloads",
+  "已停止发起下载；已交给浏览器的文件需在浏览器中取消。":
+    "Stopped starting downloads. Cancel downloads already handed off in your browser.",
+  "已发起 {value1} 个下载，剩余 {value2} 个可重试：{value3}":
+    "Started {value1} downloads; {value2} remain to retry: {value3}",
+  "ZIP 下载已交给浏览器，请在下载列表查看进度。":
+    "ZIP download started. Check progress in your browser's download list.",
+  "已发起 {value1} 个文件下载；如浏览器拦截，请允许本站下载多个文件。":
+    "Started {value1} file downloads. If blocked, allow this site to download multiple files.",
+  "原文件与媒体派生文件保存于本地文件系统。":
+    "Original files and derived media are stored on the local filesystem.",
   "本地中英文转写与视频语音摘要。":
     "Local Chinese and English transcription with video speech summaries.",
   "上传完成后独立进行音轨提取、分段转写与 AI 总结，保存原语言文字及时间戳。需要配置 ASR 服务和文本模型；失败可在视频详情重试。摘要不包含画面分析，当前不参与关键词搜索。":
@@ -860,6 +913,7 @@ export const english: Record<string, string> = {
   "HLS 视频流仍在处理中，请稍后重试；原视频仍可查看和下载。":
     "HLS is still processing. Try again later; the original video is available to view and download.",
   "正在连接原视频流…": "Connecting to the original video stream…",
+  "视频缓冲中…": "Buffering video…",
   "正在读取原图片…": "Loading original image…",
   "正在加载 HLS 播放列表与首段视频…":
     "Loading the HLS playlist and first segment…",

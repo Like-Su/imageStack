@@ -11,7 +11,6 @@ import {
   OnModuleInit,
   PayloadTooLargeException,
   ServiceUnavailableException,
-  UnsupportedMediaTypeException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -21,20 +20,22 @@ import { randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { Readable } from 'node:stream';
 import {
+  generalFileFormat,
   isVideoFormat,
   mediaByteLimit,
   mediaFormat,
 } from '../../common/media-formats';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
 import { requireAlbumAccess } from '../collections/album-scope';
 import { AlbumsService } from '../collections/albums.service';
 import { requireOwnedAssets } from '../assets/asset-scope';
 import type {
   FileNode,
+  MediaType,
   Prisma,
   UploadSession,
-} from '../../prisma/generated/prisma/client';
+} from '../../infrastructure/prisma/generated/prisma/client';
 import { MediaJobsService } from '../jobs/media-jobs.service';
 import { MediaProcessingError } from '../jobs/media-processing.constants';
 import { VideoProcessorService } from '../jobs/video-processor.service';
@@ -44,9 +45,9 @@ import {
   createStorageKey,
   storageProviderTypes,
   StorageError,
-} from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
-import { CreateUploadSessionDto } from './dto/upload.dto';
+} from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
+import type { CreateUploadSessionInput } from './schemas/upload.schema';
 import { UploadPartsService } from './upload-parts.service';
 import {
   UPLOAD_CHUNK_BYTES,
@@ -60,7 +61,7 @@ import {
   assertUploadHeaders,
   inspectImage,
   readUploadBody,
-  stageVideoUpload,
+  stageFileUpload,
 } from './upload-validation';
 
 type OwnedSession = UploadSession & { file: FileNode | null };
@@ -104,11 +105,10 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     await this.cleanupWork;
   }
 
-  async createSession(userId: string, dto: CreateUploadSessionDto) {
+  async createSession(userId: string, dto: CreateUploadSessionInput) {
     if (dto.albumId)
       await this.requireAlbumUpload(this.prisma, dto.albumId, userId);
     const format = mediaFormat(dto.fileName);
-    if (!format) throw new UnsupportedMediaTypeException('不支持此文件扩展名');
     const limit = mediaByteLimit(format, this.config);
     if (dto.size > limit)
       throw new PayloadTooLargeException(`文件超过大小限制（${limit} B）`);
@@ -124,9 +124,11 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
           userId,
           hash: dto.hash,
           size: BigInt(dto.size),
+          fileName: dto.fileName,
           status: 'COMPLETED',
           file: {
             ownerId: userId,
+            name: dto.fileName,
             deleted: false,
             type: 'FILE',
             hashAlgorithm: 'BLAKE3',
@@ -275,7 +277,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
     let objectWritten = false;
     let linkAttempted = false;
     let source: Readable | undefined;
-    let stagedVideo: Awaited<ReturnType<typeof stageVideoUpload>> | undefined;
+    let stagedFile: Awaited<ReturnType<typeof stageFileUpload>> | undefined;
     let stopHeartbeat: (() => Promise<void>) | undefined;
     try {
       const now = new Date();
@@ -305,26 +307,34 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       const format = mediaFormat(session.fileName);
       const maxBytes = mediaByteLimit(format, this.config);
       let media: {
-        mediaType: 'IMAGE' | 'VIDEO';
+        mediaType: MediaType;
         mimeType: string;
         hash: string;
-        width: number;
-        height: number;
+        width: number | null;
+        height: number | null;
         durationMs: number | null;
       };
       let content: Readable;
-      if (isVideoFormat(format)) {
-        stagedVideo = await stageVideoUpload(
+      if (format === null || isVideoFormat(format)) {
+        stagedFile = await stageFileUpload(
           source,
           expectedBytes,
           session.hash,
           maxBytes,
         );
-        media = {
-          ...(await this.videos.inspect(stagedVideo.path, format)),
-          hash: stagedVideo.hash,
-        };
-        content = createReadStream(stagedVideo.path);
+        media = isVideoFormat(format)
+          ? {
+              ...(await this.videos.inspect(stagedFile.path, format)),
+              hash: stagedFile.hash,
+            }
+          : {
+              ...generalFileFormat(session.fileName),
+              hash: stagedFile.hash,
+              width: null,
+              height: null,
+              durationMs: null,
+            };
+        content = createReadStream(stagedFile.path);
       } else {
         const bytes = await readUploadBody(source, expectedBytes, maxBytes);
         media = await inspectImage(bytes, session.hash, maxBytes, format);
@@ -351,7 +361,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
               hashAlgorithm: 'BLAKE3',
               hash: media.hash,
               mediaType: media.mediaType,
-              processingStatus: 'PENDING',
+              processingStatus: format === null ? 'READY' : 'PENDING',
               width: media.width,
               height: media.height,
               durationMs:
@@ -452,7 +462,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       this.activeUploads -= 1;
       await stopHeartbeat?.();
       if (source && !('headers' in source)) source.destroy();
-      await stagedVideo
+      await stagedFile
         ?.cleanup()
         .catch((error: unknown) =>
           this.logger.warn(`上传临时文件清理失败：${String(error)}`),
@@ -564,7 +574,6 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
       throw new ConflictException('上传会话已经结束，请重新创建');
     const format = mediaFormat(session.fileName);
     if (
-      !format ||
       !session.size ||
       session.size < 1n ||
       session.size > BigInt(mediaByteLimit(format, this.config))
@@ -596,6 +605,7 @@ export class UploadsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async enqueue(file: FileNode) {
+    if (file.mediaType !== 'IMAGE' && file.mediaType !== 'VIDEO') return;
     await this.videoSummaries.enqueueAutomatic(file).catch(() => {
       this.logger.warn(`视频 ${file.id} 的总结入队暂缓，可在视频详情中重试`);
     });

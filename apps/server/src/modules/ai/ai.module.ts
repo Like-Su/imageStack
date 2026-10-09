@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '../../common/prisma/prisma.module';
-import { StorageModule } from '../storage/storage.module';
+import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { AiController } from './ai.controller';
 import { AiIndexService } from './ai-index.service';
 import { AiVisionService } from './ai-vision.service';

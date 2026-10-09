@@ -1,5 +1,6 @@
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
-export type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
+export type MediaType =
+  "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "ARCHIVE" | "OTHER";
 export type AssetSortBy = "createdAt" | "name" | "size";
 export type AssetSortOrder = "asc" | "desc";
 
@@ -107,7 +108,7 @@ export interface CursorPage<Item> {
 export interface AssetQuery {
   sortBy?: AssetSortBy;
   sortOrder?: AssetSortOrder;
-  type?: "image" | "video" | "audio";
+  type?: Lowercase<MediaType>;
   timeField?: "createdAt" | "takenAt";
   year?: number;
   from?: string;
@@ -264,3 +265,11 @@ export interface MediaStreamTicket {
   expiresAt: string;
   kind: "hls" | "original" | "download";
 }
+
+export interface ArchiveDownloadTicket {
+  path: string;
+  expiresAt: string;
+  fileName: string;
+}
+
+export type DownloadMode = "archive" | "individual";

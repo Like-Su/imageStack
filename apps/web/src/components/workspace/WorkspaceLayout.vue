@@ -20,7 +20,7 @@ import {
 } from "lucide-vue-next";
 import "@/assets/workspace.css";
 import {
-  UPLOAD_ACCEPT,
+  UPLOAD_FILE_LABEL,
   UPLOAD_IMAGE_LABEL,
   UPLOAD_VIDEO_LABEL,
 } from "@/config/workspace";
@@ -352,9 +352,8 @@ onBeforeUnmount(() => {
       id="media-upload-input"
       type="file"
       class="hidden"
-      :accept="UPLOAD_ACCEPT"
       multiple
-      :aria-label="$t('选择上传图片或视频')"
+      :aria-label="$t('选择上传文件')"
     />
     <div
       v-if="dragging"
@@ -369,7 +368,8 @@ onBeforeUnmount(() => {
         }}
       </p>
       <p class="max-w-xl px-6 text-center text-sm leading-7 text-soft">
-        {{ $t(UPLOAD_IMAGE_LABEL) }}<br />{{ UPLOAD_VIDEO_LABEL }} ·
+        {{ $t(UPLOAD_IMAGE_LABEL) }}<br />{{ UPLOAD_VIDEO_LABEL }}<br />
+        {{ $t(UPLOAD_FILE_LABEL) }}<br />
         {{ uploads.limitsLabel }}
       </p>
     </div>

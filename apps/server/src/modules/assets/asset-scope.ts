@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import type { Prisma } from '../../prisma/generated/prisma/client';
+import type { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { MEDIA_MIME_TYPES } from '../../common/media-formats';
 import { albumWhere } from '../collections/album-scope';
-import { storageProviderTypes } from '../storage/storage.provider';
+import { storageProviderTypes } from '../../infrastructure/storage/storage.provider';
 
 export function mediaAssetWhere(
   deleted: boolean | null = false,
@@ -10,11 +10,30 @@ export function mediaAssetWhere(
   return {
     ...(deleted === null ? {} : { deleted }),
     type: 'FILE',
-    mediaType: { in: ['IMAGE', 'VIDEO'] },
+    mediaType: {
+      in: ['IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'ARCHIVE', 'OTHER'],
+    },
     storageProvider: { in: storageProviderTypes },
     storageKey: { not: null },
+    mimeType: { not: null },
+  };
+}
+
+export function visualMediaWhere(
+  deleted: boolean | null = false,
+): Prisma.FileNodeWhereInput {
+  return {
+    ...mediaAssetWhere(deleted),
+    mediaType: { in: ['IMAGE', 'VIDEO'] },
     mimeType: { in: MEDIA_MIME_TYPES },
   };
+}
+
+export function visualAssetWhere(
+  ownerId: string,
+  deleted: boolean | null = false,
+): Prisma.FileNodeWhereInput {
+  return { ...visualMediaWhere(deleted), ownerId };
 }
 
 export function assetWhere(

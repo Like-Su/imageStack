@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { Check, Search } from "lucide-vue-next";
 import { useAssetFeed } from "@/composables/useAssetFeed";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { isVisualMedia } from "@/config/workspace";
 import AppModal from "@/components/workspace/AppModal.vue";
 import DataState from "@/components/workspace/DataState.vue";
 import AssetImage from "./AssetImage.vue";
@@ -122,7 +123,13 @@ function submit() {
           "
           :disabled="
             busy ||
+            (!multiple && !isVisualMedia(asset.type)) ||
             (multiple && selected.size >= 100 && !selected.has(asset.id))
+          "
+          :title="
+            !multiple && !isVisualMedia(asset.type)
+              ? $t('相册封面仅支持图片和视频')
+              : asset.name
           "
           :aria-label="$t('选择 {value1}', { value1: asset.name })"
           :aria-pressed="selected.has(asset.id)"
@@ -130,6 +137,7 @@ function submit() {
         >
           <AssetImage
             :asset-id="asset.id"
+            :type="asset.type"
             :name="asset.name"
             :version="asset.thumbnailRevision ?? asset.status"
           /><span

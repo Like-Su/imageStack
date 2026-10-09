@@ -2,13 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { AssetsService } from '../assets/assets.service';
-import type { SearchQueryDto } from './dto/search-query.dto';
+import type { SearchQuery } from './schemas/search-query.schema';
 
 @Injectable()
 export class SearchService {
   constructor(private readonly assets: AssetsService) {}
 
-  async search(userId: string, query: SearchQueryDto) {
+  async search(userId: string, query: SearchQuery) {
     const startedAt = performance.now();
     const keywords = [
       ...new Set((query.q ?? '').split(/\s+/u).filter(Boolean)),

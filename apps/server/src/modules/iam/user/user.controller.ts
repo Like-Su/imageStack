@@ -13,15 +13,23 @@ import { RequestUser } from '../auth/auth.type';
 import { UserService } from './user.service';
 import { UserManagementService } from './user-management.service';
 import {
-  CreateUserDto,
-  DeleteUserDto,
-  ListUsersDto,
-  UpdateProfileDto,
-  UpdateUserDto,
-} from './dto/user.dto';
+  createUserSchema,
+  deleteUserSchema,
+  listUsersSchema,
+  updateProfileSchema,
+  updateUserSchema,
+  type CreateUserInput,
+  type DeleteUserInput,
+  type ListUsersQuery,
+  type UpdateProfileInput,
+  type UpdateUserInput,
+} from './schemas/user.schema';
 import { RequireRole } from '../auth/decorators/roles-permissions.decorator';
 import { RoleCode } from '../../../common/constants';
-import { PermissionCodesDto } from '../dto/iam.dto';
+import {
+  permissionCodesSchema,
+  type PermissionCodesInput,
+} from '../schemas/iam.schema';
 
 @Controller('user')
 export class UserController {
@@ -38,20 +46,23 @@ export class UserController {
   @Patch('me')
   updateProfile(
     @CurrentUser() user: RequestUser,
-    @Body() body: UpdateProfileDto,
+    @Body({ schema: updateProfileSchema }) body: UpdateProfileInput,
   ) {
     return this.userService.updateProfile(user.id, user.sessionVersion, body);
   }
 
   @RequireRole(RoleCode.ADMIN)
   @Get(['', 'list-users'])
-  listUsers(@Query() query: ListUsersDto) {
+  listUsers(@Query({ schema: listUsersSchema }) query: ListUsersQuery) {
     return this.management.list(query);
   }
 
   @RequireRole(RoleCode.ADMIN)
   @Post(['', 'create'])
-  createUser(@CurrentUser() actor: RequestUser, @Body() body: CreateUserDto) {
+  createUser(
+    @CurrentUser() actor: RequestUser,
+    @Body({ schema: createUserSchema }) body: CreateUserInput,
+  ) {
     return this.management.create(actor, body);
   }
 
@@ -60,7 +71,7 @@ export class UserController {
   updateUser(
     @CurrentUser() actor: RequestUser,
     @Param('id') userId: string,
-    @Body() body: UpdateUserDto,
+    @Body({ schema: updateUserSchema }) body: UpdateUserInput,
   ) {
     return this.management.update(actor, userId, body);
   }
@@ -70,7 +81,7 @@ export class UserController {
   replacePermissions(
     @CurrentUser() actor: RequestUser,
     @Param('id') userId: string,
-    @Body() body: PermissionCodesDto,
+    @Body({ schema: permissionCodesSchema }) body: PermissionCodesInput,
   ) {
     return this.management.update(actor, userId, body);
   }
@@ -85,7 +96,7 @@ export class UserController {
   @Post('delete')
   deleteUserLegacy(
     @CurrentUser() actor: RequestUser,
-    @Body() body: DeleteUserDto,
+    @Body({ schema: deleteUserSchema }) body: DeleteUserInput,
   ) {
     return this.management.remove(actor, body.id);
   }

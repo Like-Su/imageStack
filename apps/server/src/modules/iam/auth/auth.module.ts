@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
+import { MailModule } from '../../../infrastructure/mail/mail.module';
 
 // Custom Module
 import { RoleGuard } from './guards/role.guard';
@@ -33,29 +33,7 @@ import { CsrfModule } from 'src/common/csrf/csrf.module';
         };
       },
     }),
-    // Email 配置
-    MailerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const mailUser = config.get<string>('MAIL_USER');
-        return {
-          transport: {
-            host: config.get<string>('MAIL_HOST'),
-            port: Number(config.get<string>('MAIL_PORT')),
-            secure: config.get<string>('MAIL_SECURE') === 'true',
-            connectionTimeout: 10_000,
-            greetingTimeout: 10_000,
-            socketTimeout: 15_000,
-            auth: mailUser
-              ? { user: mailUser, pass: config.get<string>('MAIL_PASS') }
-              : undefined,
-          },
-          defaults: {
-            from: config.get<string>('MAIL_SEND_FROM'),
-          },
-        } as MailerOptions;
-      },
-    }),
+    MailModule,
     UserModule,
   ],
   providers: [

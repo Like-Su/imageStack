@@ -1,4 +1,4 @@
-import type { Prisma } from '../prisma/generated/prisma/client';
+import type { Prisma } from '../infrastructure/prisma/generated/prisma/client';
 
 export const WORKSPACE_NOTIFY_CHANNEL = 'image_stack_workspace';
 export const workspaceNotificationResources = [

@@ -1,16 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
+import {
+  Logger,
+  RequestMethod,
+  StandardSchemaValidationPipe,
+} from '@nestjs/common';
 import helmet from 'helmet';
 import type { Server } from 'node:http';
 
 // Custom imports
-import { AppModule } from './app.module';
+import { AppModule, ObserveInstrument } from './app.module';
 import { CsrfService } from './common/csrf/csrf.service';
 import { UPLOAD_VIDEO_READ_TIMEOUT_MS } from './modules/uploads/upload.constants';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    instrument: ObserveInstrument,
+  });
   const httpServer = app.getHttpServer() as Server;
   httpServer.requestTimeout = UPLOAD_VIDEO_READ_TIMEOUT_MS + 60_000;
 
@@ -56,16 +62,7 @@ async function bootstrap() {
   app.use(app.get(CsrfService).protect);
 
   // 管道校验
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // 自动去除 DTO 中未定义的属性
-      forbidNonWhitelisted: true, // 如果请求中包含未定义的属性，则抛出异常
-      transform: true, // 自动转换 payload 为 DTO 实例
-      transformOptions: {
-        enableImplicitConversion: true, // 启用隐式类型转换
-      },
-    }),
-  );
+  app.useGlobalPipes(new StandardSchemaValidationPipe());
 
   // 关闭应用时的钩子
   app.enableShutdownHooks();

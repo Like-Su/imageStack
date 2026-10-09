@@ -8,12 +8,16 @@ import {
   CircleAlert,
   LoaderCircle,
   RotateCcw,
-  Images,
+  File,
 } from "lucide-vue-next";
 import { RouterLink } from "vue-router";
 import { useUploadsStore } from "@/stores/uploads";
 import { formatBytes } from "@/composables/mediaFormat";
-import { UPLOAD_IMAGE_LABEL, UPLOAD_VIDEO_LABEL } from "@/config/workspace";
+import {
+  UPLOAD_IMAGE_LABEL,
+  UPLOAD_VIDEO_LABEL,
+  UPLOAD_FILE_LABEL,
+} from "@/config/workspace";
 defineProps<{ albumId?: string }>();
 const uploads = useUploadsStore();
 const labels = {
@@ -68,7 +72,7 @@ const labels = {
           v-if="!uploads.entries.length"
           class="py-6 text-center text-xs text-soft"
         >
-          {{ $t("选择图片或视频，开始建立你的媒体库。") }}
+          {{ $t("选择图片、视频、文档或压缩包，开始整理你的文件。") }}
         </p>
         <div
           v-for="entry in uploads.entries"
@@ -87,7 +91,7 @@ const labels = {
               v-else-if="entry.state === 'running'"
               class="size-4 animate-spin text-accent"
             />
-            <Images v-else class="size-4 text-faint" />
+            <File v-else class="size-4 text-faint" />
           </span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-xs" :title="entry.name">{{ entry.name }}</p>
@@ -185,7 +189,8 @@ const labels = {
       </div>
       <footer class="border-t border-line bg-panel2/50 p-4">
         <p class="text-[10px] leading-5 text-faint">
-          {{ $t(UPLOAD_IMAGE_LABEL) }}；{{ UPLOAD_VIDEO_LABEL }}<br />{{
+          {{ $t(UPLOAD_IMAGE_LABEL) }}；{{ UPLOAD_VIDEO_LABEL }}<br />
+          {{ $t(UPLOAD_FILE_LABEL) }}<br />{{
             $t("{value1}，不限制图片和视频像素，动图 ≤ 1000 帧。", {
               value1: uploads.limitsLabel,
             })
@@ -193,6 +198,7 @@ const labels = {
             $t(
               "动图保留动画，SVG 仅接受安全静态图形。超过 5 MiB 自动分片，支持暂停与断点续传。",
             )
+          }}<br />{{ $t("文档、压缩包和其他文件保留原内容，上传完成即可下载。")
           }}<br />{{
             $t(
               "刷新后 24 小时内重选同一文件可续传；已有文件按内容指纹秒传复用。 视频后台生成封面及 HLS 按段播放流。",

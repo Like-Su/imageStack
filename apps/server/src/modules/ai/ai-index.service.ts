@@ -1,10 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
-import { StorageError } from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import type {
+  FileNode,
+  Prisma,
+} from '../../infrastructure/prisma/generated/prisma/client';
+import { StorageError } from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import {
   AI_INDEX_BATCH_SIZE,
   AI_INDEX_LEASE_MS,

@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { sharp } from '../../common/sharp';
 
-export const ALBUM_COVER_MAX_LENGTH = 65536;
+import { ALBUM_COVER_MAX_LENGTH } from './album-cover.constants';
 
 export async function normalizeAlbumCover(value: string) {
   const invalid = () =>

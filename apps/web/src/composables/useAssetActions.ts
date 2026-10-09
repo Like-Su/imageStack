@@ -3,12 +3,43 @@ import { onScopeDispose, ref } from "vue";
 import { mediaApi, mediaStreamUrl } from "@/api/media";
 import { ApiError, getErrorMessage } from "@/api/request";
 import { useWorkspaceStore } from "@/stores/workspace";
-import type { AssetSummary } from "@/types/media";
+import type { AssetSummary, DownloadMode } from "@/types/media";
+
+function startBrowserDownload(url: string, fileName: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noreferrer";
+  link.referrerPolicy = "no-referrer";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+function downloadDelay(signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Download cancelled", "AbortError"));
+      return;
+    }
+    const abort = () => {
+      window.clearTimeout(timer);
+      reject(new DOMException("Download cancelled", "AbortError"));
+    };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", abort);
+      resolve();
+    }, 350);
+    signal.addEventListener("abort", abort, { once: true });
+  });
+}
 
 export function useAssetActions(source?: () => AssetSummary[]) {
   const workspace = useWorkspaceStore();
   const busy = ref(false);
   const downloading = ref(false);
+  const downloadProgress = ref({ started: 0, total: 0 });
+  const downloadError = ref("");
   let downloadController: AbortController | null = null;
   const urls = new Set<string>();
 
@@ -143,14 +174,8 @@ export function useAssetActions(source?: () => AssetSummary[]) {
             ).path,
           );
       if (originalBlob) urls.add(url);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = asset.name;
-      link.rel = "noreferrer";
-      link.referrerPolicy = "no-referrer";
-      document.body.append(link);
-      link.click();
-      link.remove();
+      if (downloadController.signal.aborted) return;
+      startBrowserDownload(url, asset.name);
       if (originalBlob) {
         window.setTimeout(() => {
           URL.revokeObjectURL(url);
@@ -170,9 +195,118 @@ export function useAssetActions(source?: () => AssetSummary[]) {
     }
   }
 
+  async function downloadMany(assets: AssetSummary[], mode: DownloadMode) {
+    const pending = new Map(assets.map((asset) => [asset.id, asset]));
+    if (
+      downloading.value ||
+      !assets.length ||
+      !workspace.can("asset:download")
+    ) {
+      return [...pending.values()];
+    }
+    if (assets.length > 100) {
+      downloadError.value = translate("一次最多选择 100 个文件，请分批操作。");
+      return [...pending.values()];
+    }
+    downloading.value = true;
+    downloadError.value = "";
+    downloadProgress.value = { started: 0, total: pending.size };
+    downloadController = new AbortController();
+    const signal = downloadController.signal;
+    let firstError = "";
+    try {
+      if (mode === "archive") {
+        const ticket = await mediaApi.archiveTicket(
+          [...pending.keys()],
+          signal,
+        );
+        signal.throwIfAborted();
+        startBrowserDownload(mediaStreamUrl(ticket.path), ticket.fileName);
+        pending.clear();
+        downloadProgress.value.started = assets.length;
+      } else {
+        for (const [index, asset] of assets.entries()) {
+          signal.throwIfAborted();
+          try {
+            const ticket = await mediaApi.streamTicket(
+              asset.id,
+              "download",
+              signal,
+            );
+            signal.throwIfAborted();
+            startBrowserDownload(mediaStreamUrl(ticket.path), asset.name);
+            pending.delete(asset.id);
+            downloadProgress.value.started += 1;
+          } catch (error) {
+            if (
+              signal.aborted ||
+              (error instanceof ApiError &&
+                ([401, 403, 429].includes(error.status) ||
+                  ["AUTH_CHANGED", "ABORTED"].includes(error.code)))
+            ) {
+              throw error;
+            }
+            firstError ||= getErrorMessage(error);
+          }
+          if (index < assets.length - 1) await downloadDelay(signal);
+        }
+      }
+      if (pending.size) {
+        downloadError.value = translate(
+          "已发起 {value1} 个下载，剩余 {value2} 个可重试：{value3}",
+          {
+            value1: downloadProgress.value.started,
+            value2: pending.size,
+            value3: firstError,
+          },
+        );
+      } else {
+        workspace.notify(
+          mode === "archive"
+            ? translate("ZIP 下载已交给浏览器，请在下载列表查看进度。")
+            : translate(
+                "已发起 {value1} 个文件下载；如浏览器拦截，请允许本站下载多个文件。",
+                { value1: downloadProgress.value.started },
+              ),
+          "info",
+        );
+      }
+    } catch (error) {
+      downloadError.value = signal.aborted
+        ? translate("已停止发起下载；已交给浏览器的文件需在浏览器中取消。")
+        : translate(
+            "已发起 {value1} 个下载，剩余 {value2} 个可重试：{value3}",
+            {
+              value1: downloadProgress.value.started,
+              value2: pending.size,
+              value3: getErrorMessage(error),
+            },
+          );
+    } finally {
+      downloading.value = false;
+      downloadController = null;
+    }
+    return [...pending.values()];
+  }
+
+  function cancelDownload() {
+    downloadController?.abort();
+  }
+
   onScopeDispose(() => {
     downloadController?.abort();
     for (const url of urls) URL.revokeObjectURL(url);
   });
-  return { busy, downloading, moveToTrash, restore, purge, download };
+  return {
+    busy,
+    downloading,
+    downloadProgress,
+    downloadError,
+    moveToTrash,
+    restore,
+    purge,
+    download,
+    downloadMany,
+    cancelDownload,
+  };
 }

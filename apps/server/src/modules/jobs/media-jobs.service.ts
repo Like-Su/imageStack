@@ -6,7 +6,6 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { connect } from 'amqp-connection-manager';
 import type {
   AmqpConnectionManager,
   Channel,
@@ -15,7 +14,8 @@ import type {
 import type { ConsumeMessage, Message } from 'amqplib';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { RabbitMqService } from '../../infrastructure/rabbitmq/rabbitmq.service';
 import { AiIndexService } from '../ai/ai-index.service';
 import {
   MEDIA_JOB_NAME,
@@ -54,15 +54,12 @@ export class MediaJobsService
     private readonly prisma: PrismaService,
     private readonly processor: MediaProcessorService,
     private readonly aiIndex: AiIndexService,
+    private readonly rabbitmq: RabbitMqService,
   ) {}
 
   onModuleInit(): void {
     this.settings = mediaQueueConfig(this.config);
-    this.connection = connect([this.settings.url], {
-      heartbeatIntervalInSeconds: 15,
-      reconnectTimeInSeconds: 5,
-      connectionOptions: { timeout: this.settings.connectTimeoutMs },
-    });
+    this.connection = this.rabbitmq.createConnection();
     this.connection.on('connect', () => {
       this.brokerBlocked = false;
       if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
@@ -184,7 +181,7 @@ export class MediaJobsService
         this.consumer?.close(),
         this.publisher?.close(),
       ]);
-      await this.connection?.close();
+      if (this.connection) await this.rabbitmq.closeConnection(this.connection);
     }
   }
 

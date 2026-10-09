@@ -11,11 +11,14 @@ import { User as AuthUser, UserProfile } from '../auth/auth.type';
 import { RedisKey, RoleCode } from 'src/common/constants';
 import { PASSWORD_RESET_INVALID_MESSAGE } from 'src/common/constants/auth';
 import { BusinessException } from 'src/common/exceptions/business.exception';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { withSerializable } from 'src/common/prisma/transaction';
-import { RedisService } from 'src/common/redis/redis.service';
-import { User, UserStatus } from 'src/prisma/generated/prisma/client';
-import { UpdateProfileDto } from './dto/user.dto';
+import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
+import { withSerializable } from 'src/infrastructure/prisma/transaction';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
+import {
+  User,
+  UserStatus,
+} from 'src/infrastructure/prisma/generated/prisma/client';
+import type { UpdateProfileInput } from './schemas/user.schema';
 import { normalizeProfileAvatar } from './profile-avatar';
 
 const AUTH_USER_TTL = 30 * 60;
@@ -147,7 +150,7 @@ export class UserService {
   async updateProfile(
     userId: string,
     sessionVersion: number,
-    body: UpdateProfileDto,
+    body: UpdateProfileInput,
   ) {
     const avatar =
       body.avatar == null

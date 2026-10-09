@@ -1,8 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import type { FileNode, Prisma } from '../../prisma/generated/prisma/client';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import type {
+  FileNode,
+  Prisma,
+} from '../../infrastructure/prisma/generated/prisma/client';
 import { MediaProcessingError } from '../jobs/media-processing.constants';
 import { VideoSummaryLlmService } from './video-summary-llm.service';
 import { VideoTranscriptionService } from './video-transcription.service';

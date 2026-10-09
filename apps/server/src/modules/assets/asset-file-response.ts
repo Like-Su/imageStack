@@ -7,15 +7,23 @@ import {
 import { createHash } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import type { Request, Response } from 'express';
-import { StorageError } from '../storage/storage.provider';
+import { StorageError } from '../../infrastructure/storage/storage.provider';
 import type {
   StorageLocation,
   StorageReadRange,
   StorageStat,
-} from '../storage/storage.provider';
-import type { StorageService } from '../storage/storage.service';
+} from '../../infrastructure/storage/storage.provider';
+import type { StorageService } from '../../infrastructure/storage/storage.service';
 
 const streamLogger = new Logger('MediaStream');
+
+export function attachmentDisposition(fileName: string) {
+  const encodedName = encodeURIComponent(fileName).replace(
+    /['()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `attachment; filename="download"; filename*=UTF-8''${encodedName}`;
+}
 
 export function isMediaResponseClosed(request: Request, response: Response) {
   return request.aborted || response.destroyed || response.writableEnded;

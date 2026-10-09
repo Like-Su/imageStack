@@ -1,16 +1,20 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
 import { MediaJobsService } from '../jobs/media-jobs.service';
-import { storageProviderTypes } from '../storage/storage.provider';
-import type { StorageLocation } from '../storage/storage.provider';
-import { StorageService } from '../storage/storage.service';
-import { assetWhere, requireOwnedAssets } from './asset-scope';
+import { storageProviderTypes } from '../../infrastructure/storage/storage.provider';
+import type { StorageLocation } from '../../infrastructure/storage/storage.provider';
+import { StorageService } from '../../infrastructure/storage/storage.service';
+import {
+  assetWhere,
+  requireOwnedAssets,
+  visualAssetWhere,
+} from './asset-scope';
 import { albumWhere } from '../collections/album-scope';
 import { IMAGE_MIME_TYPES } from '../../common/media-formats';
-import { Prisma } from '../../prisma/generated/prisma/client';
+import { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
 import { hlsObjectKeys } from '../../common/video-stream';
-import { referencedStorageKeys } from '../storage/storage-references';
+import { referencedStorageKeys } from '../../infrastructure/storage/storage-references';
 import { CoalescedReads } from '../../common/coalesced-reads';
 
 interface PlaceRow {
@@ -123,7 +127,11 @@ export class AssetWorkspaceService {
 
   async retry(assetId: string, userId: string) {
     const result = await this.prisma.fileNode.updateMany({
-      where: { ...assetWhere(userId), id: assetId, processingStatus: 'FAILED' },
+      where: {
+        ...visualAssetWhere(userId),
+        id: assetId,
+        processingStatus: 'FAILED',
+      },
       data: {
         processingStatus: 'PENDING',
         processingError: null,

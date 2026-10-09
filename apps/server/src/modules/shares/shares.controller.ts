@@ -24,15 +24,20 @@ import {
   isMediaResponseClosed,
   streamStoredMedia,
 } from '../assets/asset-file-response';
-import { StorageService } from '../storage/storage.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import { SharesService } from './shares.service';
 import {
-  CreateShareDto,
-  ShareAssetDto,
-  SharePageDto,
-  ShareTargetDto,
-  ShareTokenDto,
-} from './dto/shares.dto';
+  createShareSchema,
+  shareAssetSchema,
+  sharePageSchema,
+  shareTargetSchema,
+  shareTokenSchema,
+  type CreateShareInput,
+  type ShareAssetParams,
+  type SharePageQuery,
+  type ShareTarget,
+  type ShareTokenParams,
+} from './schemas/shares.schema';
 
 @Controller('shares')
 export class SharesController {
@@ -45,14 +50,20 @@ export class SharesController {
   @Header('Cache-Control', 'no-store')
   @RequirePermission(PermissionCode.ASSET_SHARE)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
-  create(@CurrentUser() user: RequestUser, @Body() body: CreateShareDto) {
+  create(
+    @CurrentUser() user: RequestUser,
+    @Body({ schema: createShareSchema }) body: CreateShareInput,
+  ) {
     return this.shares.create(user, body);
   }
 
   @Get()
   @Header('Cache-Control', 'no-store')
   @RequirePermission(PermissionCode.ASSET_SHARE)
-  list(@CurrentUser() user: RequestUser, @Query() query: ShareTargetDto) {
+  list(
+    @CurrentUser() user: RequestUser,
+    @Query({ schema: shareTargetSchema }) query: ShareTarget,
+  ) {
     return this.shares.list(user.id, query);
   }
 
@@ -67,7 +78,10 @@ export class SharesController {
   @Header('Cache-Control', 'no-store')
   @Header('Referrer-Policy', 'no-referrer')
   @Header('X-Robots-Tag', 'noindex, nofollow')
-  detail(@Param() params: ShareTokenDto, @Query() query: SharePageDto) {
+  detail(
+    @Param({ schema: shareTokenSchema }) params: ShareTokenParams,
+    @Query({ schema: sharePageSchema }) query: SharePageQuery,
+  ) {
     return this.shares.detail(params.token, query);
   }
 
@@ -75,7 +89,10 @@ export class SharesController {
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
-  save(@CurrentUser() user: RequestUser, @Param() params: ShareTokenDto) {
+  save(
+    @CurrentUser() user: RequestUser,
+    @Param({ schema: shareTokenSchema }) params: ShareTokenParams,
+  ) {
     return this.shares.save(user, params.token);
   }
 
@@ -83,7 +100,7 @@ export class SharesController {
   @Open()
   @SkipResponseWrap()
   thumbnail(
-    @Param() params: ShareAssetDto,
+    @Param({ schema: shareAssetSchema }) params: ShareAssetParams,
     @Req() request: Request,
     @Res() response: Response,
   ) {
@@ -94,7 +111,7 @@ export class SharesController {
   @Open()
   @SkipResponseWrap()
   original(
-    @Param() params: ShareAssetDto,
+    @Param({ schema: shareAssetSchema }) params: ShareAssetParams,
     @Req() request: Request,
     @Res() response: Response,
   ) {
@@ -102,7 +119,7 @@ export class SharesController {
   }
 
   private async media(
-    params: ShareAssetDto,
+    params: ShareAssetParams,
     original: boolean,
     request: Request,
     response: Response,

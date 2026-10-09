@@ -1,4 +1,7 @@
-# 检查代码格式
-# 检查是否有未提交的变更
-pnpm exec lint-staged
+set -e
+
+# 使用相对路径并限制每批参数长度，为 Windows 的命令包装与转义预留空间。
+pnpm exec lint-staged --relative --max-arg-length 4000
+
+# 检查暂存内容中的空白错误和残留合并冲突标记。
 git diff --cached --check

@@ -5,13 +5,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CursorPaginationDto } from '../../common/dto/cursor-pagination.dto';
+import type { CursorPagination } from '../../common/schemas/cursor-pagination.schema';
 import { RoleCode } from '../../common/constants';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { withSerializable } from '../../common/prisma/transaction';
-import { Prisma } from '../../prisma/generated/prisma/client';
-import { mediaAssetWhere, requireOwnedAssets } from '../assets/asset-scope';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { withSerializable } from '../../infrastructure/prisma/transaction';
+import { Prisma } from '../../infrastructure/prisma/generated/prisma/client';
+import {
+  mediaAssetWhere,
+  requireOwnedAssets,
+  visualMediaWhere,
+} from '../assets/asset-scope';
 import { AssetsService } from '../assets/assets.service';
+import { listAssetsSchema } from '../assets/schemas/assets-query.schema';
 import {
   thumbnailRevision,
   thumbnailRevisionSelect,
@@ -24,22 +29,25 @@ import {
   requireAlbumAccess,
 } from './album-scope';
 import { rethrowCollectionError } from './collection-errors';
-import {
-  AlbumMemberPermissionsDto,
-  InviteAlbumMemberDto,
-} from './dto/album-members.dto';
-import { CreateAlbumDto, UpdateAlbumDto } from './dto/collections.dto';
+import type {
+  AlbumMemberPermissionsInput,
+  InviteAlbumMemberInput,
+} from './schemas/album-members.schema';
+import type {
+  CreateAlbumInput,
+  UpdateAlbumInput,
+} from './schemas/collections.schema';
 import { normalizeAlbumCover } from './album-cover';
 
 function albumInclude(userId: string) {
   return {
     ...albumAccessInclude(userId),
     coverAsset: {
-      where: mediaAssetWhere(),
+      where: visualMediaWhere(),
       select: { id: true, ...thumbnailRevisionSelect },
     },
     assets: {
-      where: { asset: mediaAssetWhere() },
+      where: { asset: visualMediaWhere() },
       select: { assetId: true, asset: { select: thumbnailRevisionSelect } },
       orderBy: [{ asset: { createdAt: 'desc' } }, { assetId: 'desc' }],
       take: 1,
@@ -103,14 +111,17 @@ export class AlbumsService {
     return this.summary(album, userId);
   }
 
-  async detail(albumId: string, userId: string, query: CursorPaginationDto) {
+  async detail(albumId: string, userId: string, query: CursorPagination) {
     return {
       ...(await this.getSummary(albumId, userId)),
-      assets: await this.assets.list(userId, { ...query, albumId }),
+      assets: await this.assets.list(
+        userId,
+        listAssetsSchema.parse({ ...query, albumId }),
+      ),
     };
   }
 
-  async create(user: RequestUser, body: CreateAlbumDto) {
+  async create(user: RequestUser, body: CreateAlbumInput) {
     const coverImage =
       body.coverImage == null
         ? body.coverImage
@@ -144,7 +155,7 @@ export class AlbumsService {
     }).catch((error: unknown) => rethrowCollectionError(error, '相册'));
   }
 
-  async update(albumId: string, userId: string, body: UpdateAlbumDto) {
+  async update(albumId: string, userId: string, body: UpdateAlbumInput) {
     if (
       body.name === undefined &&
       body.description === undefined &&
@@ -172,11 +183,17 @@ export class AlbumsService {
             assetId: body.coverAssetId,
             asset: mediaAssetWhere(),
           },
-          select: { assetId: true },
+          select: { assetId: true, asset: { select: { mediaType: true } } },
         });
 
         if (!member) {
           throw new BadRequestException('封面必须是相册中的未删除资产');
+        }
+        if (
+          member.asset.mediaType !== 'IMAGE' &&
+          member.asset.mediaType !== 'VIDEO'
+        ) {
+          throw new BadRequestException('相册封面仅支持图片和视频');
         }
       }
 
@@ -288,7 +305,7 @@ export class AlbumsService {
     });
   }
 
-  inviteMember(albumId: string, userId: string, body: InviteAlbumMemberDto) {
+  inviteMember(albumId: string, userId: string, body: InviteAlbumMemberInput) {
     return withSerializable(this.prisma, async (transaction) => {
       const album = await requireAlbumAccess(
         transaction,
@@ -352,7 +369,7 @@ export class AlbumsService {
     albumId: string,
     userId: string,
     memberId: string,
-    body: AlbumMemberPermissionsDto,
+    body: AlbumMemberPermissionsInput,
   ) {
     return withSerializable(this.prisma, async (transaction) => {
       await requireAlbumAccess(transaction, albumId, userId, 'manageMembers');
@@ -402,7 +419,7 @@ export class AlbumsService {
     });
   }
 
-  private memberPermissions(body: AlbumMemberPermissionsDto) {
+  private memberPermissions(body: AlbumMemberPermissionsInput) {
     return {
       canAdd: body.canAdd,
       canEdit: body.canEdit,
@@ -427,7 +444,7 @@ export class AlbumsService {
     actorId: string,
     memberId: string,
     action: string,
-    permissions?: AlbumMemberPermissionsDto,
+    permissions?: AlbumMemberPermissionsInput,
   ) {
     await transaction.auditLog.create({
       data: {

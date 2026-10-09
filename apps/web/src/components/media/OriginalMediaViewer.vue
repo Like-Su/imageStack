@@ -46,6 +46,7 @@ const sourceIsHls = ref(false);
 const loading = ref(false);
 const loadingMessage = ref("");
 const mediaReady = ref(false);
+const buffering = ref(false);
 const error = ref("");
 const scale = ref(1);
 const fitted = ref(true);
@@ -109,6 +110,7 @@ function clearMedia() {
   source.value = "";
   sourceIsHls.value = false;
   mediaReady.value = false;
+  buffering.value = false;
 }
 
 async function retrieve(
@@ -236,6 +238,7 @@ async function attachVideo(element: HTMLVideoElement | null, url: string) {
         "视频流加载失败或播放凭证失效，请重新加载；也可查看或下载原视频。",
       );
       mediaReady.value = false;
+      buffering.value = false;
       hlsPlayer = null;
       player.destroy();
     });
@@ -404,6 +407,11 @@ function ready(event: Event) {
   fit();
 }
 
+function setBuffering(event: Event, value: boolean) {
+  if (!isVideo.value || event.target !== videoElement.value) return;
+  buffering.value = value;
+}
+
 function cannotDisplay(event: Event) {
   if (!source.value || loading.value) return;
   const element = event.target;
@@ -414,6 +422,7 @@ function cannotDisplay(event: Event) {
     return;
   videoElement.value?.pause();
   mediaReady.value = false;
+  buffering.value = false;
   error.value = isVideo.value
     ? mode.value === "original"
       ? translate(
@@ -565,6 +574,11 @@ onBeforeUnmount(() => {
             playsinline
             preload="auto"
             @loadedmetadata="ready"
+            @waiting="setBuffering($event, true)"
+            @seeking="setBuffering($event, true)"
+            @seeked="setBuffering($event, false)"
+            @canplay="setBuffering($event, false)"
+            @playing="setBuffering($event, false)"
             @error="cannotDisplay"
           />
           <img
@@ -587,6 +601,16 @@ onBeforeUnmount(() => {
         >
           <LoaderCircle class="size-7 animate-spin text-accent" />
           <p>{{ loadingMessage }}</p>
+        </div>
+        <div
+          v-else-if="isVideo && buffering && !error"
+          class="viewer-buffering pointer-events-none"
+          role="status"
+          :aria-label="$t('视频缓冲中…')"
+        >
+          <span class="viewer-buffering-badge">
+            <LoaderCircle class="size-7 animate-spin text-accent" />
+          </span>
         </div>
         <div v-else-if="error" class="viewer-message" role="alert">
           <Film v-if="isVideo" class="size-9 text-white/40" /><ImageOff
@@ -787,6 +811,23 @@ onBeforeUnmount(() => {
   text-align: center;
   font-size: 13px;
   color: rgb(255 255 255 / 65%);
+}
+.viewer-buffering {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.viewer-buffering-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(4px);
 }
 .viewer-button {
   display: inline-flex;
